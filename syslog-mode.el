@@ -50,7 +50,8 @@
     (define-key map "p" 'highlight-phrase)
     (define-key map "l" 'highlight-lines-matching-regexp)
     (define-key map "u" 'unhighlight-regexp)
-    (define-key map "d" 'syslog-filter-dates)
+    (define-key map (kbd "C-/") 'syslog-filter-dates)
+    (define-key map "D" (lambda nil (interactive) (dired "/var/log")))
     (define-key map "j" 'ffap)
     ;; XEmacs does not like the Alt bindings
     (if (string-match "XEmacs" (emacs-version))
@@ -58,6 +59,7 @@
     map)
   "The local keymap for `syslog-mode'.")
 
+;;;###autoload
 (defun syslog-filter-lines (&optional arg)
   "Restrict buffer to lines matching regexp.
 With prefix arg: remove lines matching regexp."
