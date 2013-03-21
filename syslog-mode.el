@@ -19,6 +19,9 @@
 ;;    Added more keywords for font-lock.
 ;;  2003-03-16 : Updated URL and contact info.
 
+;;; Require
+(require 'hide-lines)
+
 ;;; Code:
 
 ;; Setup
@@ -37,12 +40,29 @@
   (let ((map (make-sparse-keymap)))
     ;; Ctrl bindings
     (define-key map [C-down] 'syslog-boot-start)
+    (define-key map "/" 'syslog-filter-lines)
+    (define-key map (kbd "g") 'show-all-invisible)
+    (define-key map (kbd "r") 'highlight-regexp)
+    (define-key map (kbd "p") 'highlight-phrase)
+    (define-key map (kbd "l") 'highlight-lines-matching-regexp)
+    (define-key map (kbd "u") 'unhighlight-regexp)
     ;; XEmacs does not like the Alt bindings
     (if (string-match "XEmacs" (emacs-version))
 	t)
     map)
   "The local keymap for `syslog-mode'.")
 
+(defun syslog-filter-lines (&optional arg)
+  "Restrict buffer to lines matching regexp.
+With prefix arg: remove lines matching regexp."
+  (interactive "p")
+  (if (> arg 1)
+      (let ((regex (read-regexp "Regexp matching lines to remove")))
+        (unless (string= regex "")
+          (hide-matching-lines regex)))
+    (let ((regex (read-regexp "Regexp matching lines to keep")))
+        (unless (string= regex "")
+          (hide-non-matching-lines regex)))))
 
 ;;;###autoload
 (defun syslog-mode ()
