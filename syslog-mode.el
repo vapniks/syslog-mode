@@ -18,6 +18,10 @@
 ;; 20-Mar-2013    Christian Giménez
 ;;    Added more keywords for font-lock.
 ;;  2003-03-16 : Updated URL and contact info.
+;; 21-Mar-2013    Joe Bloggs
+;;    Added functions and keybindings for filtering
+;;    lines by regexps or dates, and for highlighting,
+;;    and quick key for find-file-at-point
 
 ;;; Require
 (require 'hide-lines)
@@ -41,11 +45,13 @@
     ;; Ctrl bindings
     (define-key map [C-down] 'syslog-boot-start)
     (define-key map "/" 'syslog-filter-lines)
-    (define-key map (kbd "g") 'show-all-invisible)
-    (define-key map (kbd "r") 'highlight-regexp)
-    (define-key map (kbd "p") 'highlight-phrase)
-    (define-key map (kbd "l") 'highlight-lines-matching-regexp)
-    (define-key map (kbd "u") 'unhighlight-regexp)
+    (define-key map "g" 'show-all-invisible)
+    (define-key map "r" 'highlight-regexp)
+    (define-key map "p" 'highlight-phrase)
+    (define-key map "l" 'highlight-lines-matching-regexp)
+    (define-key map "u" 'unhighlight-regexp)
+    (define-key map "d" 'syslog-filter-dates)
+    (define-key map "j" 'ffap)
     ;; XEmacs does not like the Alt bindings
     (if (string-match "XEmacs" (emacs-version))
 	t)
@@ -65,6 +71,48 @@ With prefix arg: remove lines matching regexp."
           (hide-non-matching-lines regex)))))
 
 ;;;###autoload
+(defvar syslog-datetime-regexp "^[a-z]\\{3\\} [0-9]\\{1,2\\} \\([0-9]\\{2\\}:\\)\\{2\\}[0-9]\\{2\\} "
+  "A regular expression matching the date-time at the beginning of each line in the log file.")
+
+;;;###autoload
+(defun* syslog-date-to-time (date &optional safe)
+  "Convert DATE string to time.
+If no year is present in the date then the current year is used.
+If DATE can't be parsed then if SAFE is non-nil return '(0 . 0) otherwise throw an error."
+  (if safe
+      (safe-date-to-time (concat date " " (substring (current-time-string) -4)))
+    (date-to-time (concat date " " (substring (current-time-string) -4)))))
+
+;;;###autoload
+(defun syslog-filter-dates (start end &optional arg)
+  "Restrict buffer to lines between dates.
+With prefix arg: remove lines between dates."
+  (interactive (list (syslog-date-to-time (read-string "Start date and time (leave blank for first time): "
+                                                       nil nil "02 Jan 1970"))
+                     (syslog-date-to-time (read-string "End date and time (leave blank for last time): "
+                                                       nil nil "01 Jan 2500"))
+                     current-prefix-arg))
+  (set (make-local-variable 'line-move-ignore-invisible) t)
+  (goto-char (point-min))
+  (let* ((start-position (point-min))
+         (pos (re-search-forward syslog-datetime-regexp nil t))
+         (intime-p (if arg (lambda (time) (not (and (time-less-p time end)
+                                                    (not (time-less-p time start)))))
+                     (lambda (time) (and (time-less-p time end)
+                                         (not (time-less-p time start))))))
+         (keeptime (funcall intime-p (syslog-date-to-time (match-string 0))))
+         (dodelete t))
+    (while pos
+      (cond ((and keeptime dodelete)
+             (add-invisible-overlay start-position (point-at-bol))
+             (setq dodelete nil))
+            ((not (or keeptime dodelete))
+             (setq dodelete t start-position (point-at-bol))))
+      (setq pos (re-search-forward syslog-datetime-regexp nil t)
+            keeptime (funcall intime-p (syslog-date-to-time (match-string 0)))))
+    (if dodelete (add-invisible-overlay start-position (point-max)))))
+
+;;;###autoload
 (defun syslog-mode ()
   "Major mode for working with system logs.
 
@@ -79,9 +127,7 @@ With prefix arg: remove lines matching regexp."
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults '(syslog-font-lock-keywords))
   ;;
-  (run-hooks 'syslog-mode-hook)
-  )
-
+  (run-hooks 'syslog-mode-hook))
 
 (defvar syslog-boot-start-regexp "unix: SunOS"
   "Regexp to match the first line of boot sequence.")
