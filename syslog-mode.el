@@ -112,29 +112,44 @@ With prefix arg: remove lines matching regexp."
 (defun* syslog-date-to-time (date &optional safe)
   "Convert DATE string to time.
 If no year is present in the date then the current year is used.
-If DATE can't be parsed then if SAFE is non-nil return '(0 . 0) otherwise throw an error."
+If DATE can't be parsed then if SAFE is non-nil return nil otherwise throw an error."
   (if safe
-      (safe-date-to-time (concat date " " (substring (current-time-string) -4)))
+      (let ((time (safe-date-to-time (concat date " " (substring (current-time-string) -4)))))
+        (if (and (= (car time) 0) (= (cdr time) 0))
+            nil
+          time))
     (date-to-time (concat date " " (substring (current-time-string) -4)))))
 
 ;;;###autoload
 (defun syslog-filter-dates (start end &optional arg)
   "Restrict buffer to lines between dates.
 With prefix arg: remove lines between dates."
-  (interactive (list (syslog-date-to-time (read-string "Start date and time (leave blank for first time): "
-                                                       nil nil "02 Jan 1970"))
-                     (syslog-date-to-time (read-string "End date and time (leave blank for last time): "
-                                                       nil nil "01 Jan 2500"))
-                     current-prefix-arg))
+  (interactive (let (firstdate lastdate)
+                 (save-excursion
+                   (goto-char (point-min))
+                   (beginning-of-line)
+                   (re-search-forward syslog-datetime-regexp nil t)
+                   (setq firstdate (match-string 0))
+                   (goto-char (point-max))
+                   (beginning-of-line)
+                   (re-search-backward syslog-datetime-regexp nil t)
+                   (setq lastdate (match-string 0)))
+                 (list (syslog-date-to-time (read-string "Start date and time: "
+                                                         firstdate nil firstdate))
+                       (syslog-date-to-time (read-string "End date and time: "
+                                                         lastdate nil lastdate))
+                     current-prefix-arg)))
   (set (make-local-variable 'line-move-ignore-invisible) t)
   (goto-char (point-min))
   (let* ((start-position (point-min))
          (pos (re-search-forward syslog-datetime-regexp nil t))
-         (intime-p (if arg (lambda (time) (not (and (time-less-p time end)
-                                                    (not (time-less-p time start)))))
-                     (lambda (time) (and (time-less-p time end)
-                                         (not (time-less-p time start))))))
-         (keeptime (funcall intime-p (syslog-date-to-time (match-string 0))))
+         (intime-p (if arg (lambda (time)
+                             (and time (not (and (time-less-p time end)
+                                                 (not (time-less-p time start))))))
+                     (lambda (time)
+                       (and time (and (time-less-p time end)
+                                      (not (time-less-p time start)))))))
+         (keeptime (funcall intime-p (syslog-date-to-time (match-string 0) t)))
          (dodelete t))
     (while pos
       (cond ((and keeptime dodelete)
@@ -143,7 +158,7 @@ With prefix arg: remove lines between dates."
             ((not (or keeptime dodelete))
              (setq dodelete t start-position (point-at-bol))))
       (setq pos (re-search-forward syslog-datetime-regexp nil t)
-            keeptime (funcall intime-p (syslog-date-to-time (match-string 0)))))
+            keeptime (funcall intime-p (syslog-date-to-time (match-string 0) t))))
     (if dodelete (add-invisible-overlay start-position (point-max)))))
 
 ;;;###autoload
