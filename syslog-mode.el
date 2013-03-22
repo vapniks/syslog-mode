@@ -304,3 +304,5 @@ looks like syslog.  It will also turn enable fontification for `syslog-mode'."
 (provide 'syslog-mode)
 
 ;;; syslog-mode.el ends here
+
+;;; (yaoddmuse-post "EmacsWiki" "syslog-mode.el" (buffer-name) (buffer-string) "update")
