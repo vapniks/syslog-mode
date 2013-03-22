@@ -23,8 +23,11 @@
 ;;    lines by regexps or dates, and for highlighting,
 ;;    and quick key for find-file-at-point
 
+;; If anyone wants to make changes please fork the following github repo: https://github.com/vapniks/syslog-mode
+
 ;;; TODO: statistical reporting - have a regular expression to match item type, then report counts of each item type.
 ;;        also statistics on number of items per hour/day/week/etc.
+
 
 ;;; Require
 (require 'hide-lines)
