@@ -29,6 +29,10 @@
 ;;; Code:
 
 ;; Setup
+(defgroup syslog nil
+  "syslog-mode - a major mode for viewing log files"
+  :link '(url-link "https://github.com/vapniks/syslog-mode"))
+
 (defvar syslog-mode-hook nil
   "*Hook to setup `syslog-mode'.")
 
@@ -105,8 +109,10 @@ With prefix arg: remove lines matching regexp."
           (hide-non-matching-lines regex)))))
 
 ;;;###autoload
-(defvar syslog-datetime-regexp "^[a-z]\\{3\\} [0-9]\\{1,2\\} \\([0-9]\\{2\\}:\\)\\{2\\}[0-9]\\{2\\} "
-  "A regular expression matching the date-time at the beginning of each line in the log file.")
+(defcustom syslog-datetime-regexp "^[a-z]\\{3\\} [0-9]\\{1,2\\} \\([0-9]\\{2\\}:\\)\\{2\\}[0-9]\\{2\\} "
+  "A regular expression matching the date-time at the beginning of each line in the log file."
+  :group 'syslog
+  :type 'regexp)
 
 ;;;###autoload
 (defun* syslog-date-to-time (date &optional safe)
@@ -167,15 +173,12 @@ With prefix arg: remove lines between dates."
 
 \\{syslog-mode-map}"
   (interactive)
-  ;;
   (kill-all-local-variables)
   (setq mode-name "syslog")
   (setq major-mode 'syslog-mode)
   (use-local-map syslog-mode-map)
-  ;;
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults '(syslog-font-lock-keywords))
-  ;;
   (run-hooks 'syslog-mode-hook))
 
 (defvar syslog-boot-start-regexp "unix: SunOS"
@@ -190,56 +193,47 @@ With prefix arg: remove lines between dates."
 (defvar syslog-ip-face 'syslog-ip-face)
 
 (defcustom syslog-ip-face
-  '(
-    (t :underline t :slant italic :weight bold)
-    )
+  '((t :underline t :slant italic :weight bold))
   "Face for IPs"
-  )
+  :group 'syslog
+  :type 'sexp)
 
 (defcustom syslog-hour-face
-  '(
-    (t :weight bold  :inherit font-lock-type-face)
-    )
+  '((t :weight bold  :inherit font-lock-type-face))
   "Face for IPs"
-  )
+  :group 'syslog
+  :type 'sexp)
 
 (defcustom syslog-error-face
-  '(
-    (t  :weight bold :foreground "red")
-    )
+  '((t  :weight bold :foreground "red"))
   "Face for IPs"
-  )
+  :group 'syslog
+  :type 'sexp)
 
 (defcustom syslog-warn-face
-  '(
-    (t  :weight bold :foreground "goldenrod")
-    )
+  '((t  :weight bold :foreground "goldenrod"))
   "Face for IPs"
-  )
+  :group 'syslog
+  :type 'sexp)
 
 (defcustom syslog-info-face
-  '(
-    (t  :weight bold :foreground "deep sky blue")
-    )
+  '((t  :weight bold :foreground "deep sky blue"))
   "Face for IPs"
-  )
+  :group 'syslog
+  :type 'sexp)
+
 
 (defcustom syslog-debug-face
-  '(
-    (t  :weight bold :foreground "medium spring green")
-    )
+  '((t  :weight bold :foreground "medium spring green"))
   "Face for IPs"
-  )
+  :group 'syslog
+  :type 'sexp)
 
 (defcustom syslog-su-face
-  '(
-    (t  :weight bold :foreground "firebrick")
-    )
+  '((t  :weight bold :foreground "firebrick"))
   "Face for IPs"
-  )
-
-  
-
+  :group 'syslog
+  :type 'sexp)
 
 ;; Keywords
 ;; Todo: Seperate the keywords into a list for each format, rather
@@ -272,9 +266,7 @@ With prefix arg: remove lines between dates."
     ("(--)" . (0 syslog-debug-face append))
     ("(\\*\\*)" . (0 syslog-debug-face append))
     ("(==)" . (0 syslog-debug-face append))
-    ("(\\+\\+)" . (0 syslog-debug-face append))
-
-    )
+    ("(\\+\\+)" . (0 syslog-debug-face append)))
   "Expressions to hilight in `syslog-mode'.")
 
 
@@ -295,8 +287,7 @@ looks like syslog.  It will also turn enable fontification for `syslog-mode'."
   ;; (add-hook 'find-file-hooks 'syslog-find-file-func)
   (add-to-list
    'auto-mode-alist
-   '("\\(messages\\(\\.[0-9]\\)?\\|SYSLOG\\)\\'" . syslog-mode))
-  )
+   '("\\(messages\\(\\.[0-9]\\)?\\|SYSLOG\\)\\'" . syslog-mode)))
 
 ;; Setup hooks on request when this mode is loaded.
 (if syslog-setup-on-load
