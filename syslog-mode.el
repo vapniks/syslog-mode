@@ -44,20 +44,52 @@
   (let ((map (make-sparse-keymap)))
     ;; Ctrl bindings
     (define-key map [C-down] 'syslog-boot-start)
+    (define-key map "R" 'revert-buffer)
     (define-key map "/" 'syslog-filter-lines)
     (define-key map "g" 'show-all-invisible)
-    (define-key map "r" 'highlight-regexp)
-    (define-key map "p" 'highlight-phrase)
-    (define-key map "l" 'highlight-lines-matching-regexp)
-    (define-key map "u" 'unhighlight-regexp)
+    (define-prefix-command 'syslog-highlight-map)
+    (define-key map "h" 'syslog-highlight-map)
+    (define-key map (kbd "h r") 'highlight-regexp)
+    (define-key map (kbd "h p") 'highlight-phrase)
+    (define-key map (kbd "h l") 'highlight-lines-matching-regexp)
+    (define-key map (kbd "h u") 'unhighlight-regexp)
     (define-key map (kbd "C-/") 'syslog-filter-dates)
     (define-key map "D" (lambda nil (interactive) (dired "/var/log")))
     (define-key map "j" 'ffap)
+    (define-key map "<" 'syslog-previous-file)
+    (define-key map ">" 'syslog-next-file)
     ;; XEmacs does not like the Alt bindings
     (if (string-match "XEmacs" (emacs-version))
 	t)
     map)
   "The local keymap for `syslog-mode'.")
+
+(defun syslog-previous-file (&optional arg)
+  "Open the previous logfile backup, or the next one if a prefix arg is used.
+Unix systems keep backups of log files with numbered suffixes, e.g. syslog.1 syslog.2.gz, etc.
+where higher numbers indicate older log files.
+This function will load the previous log file to the current one (if it exists), or the next
+one if ARG is non-nil."
+  (interactive "P")
+  (string-match "\\(.*?\\)\\.\\([0-9]+\\)\\(\\.gz\\)?" buffer-file-name)
+  (let* ((basename (or (match-string 1 buffer-file-name)
+                       buffer-file-name))
+         (str (match-string 2 buffer-file-name))
+         (curver (or (and str (string-to-number str)) 0))
+         (nextver (if arg (1- curver) (1+ curver)))
+         (nextfile (if (> nextver 0)
+                       (concat basename "." (number-to-string nextver))
+                     basename)))
+    (if (file-readable-p nextfile)
+        (find-file nextfile)
+      (if (file-readable-p (concat nextfile ".gz"))
+          (find-file (concat nextfile ".gz"))))))
+
+(defun syslog-next-file nil
+  "Open the next logfile.
+This just calls `syslog-previous-file' with non-nil argument, so we can bind it to a key."
+  (interactive)
+  (syslog-previous-file t))
 
 ;;;###autoload
 (defun syslog-filter-lines (&optional arg)
