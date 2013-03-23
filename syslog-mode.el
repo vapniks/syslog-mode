@@ -81,10 +81,10 @@ where higher numbers indicate older log files.
 This function will load the previous log file to the current one (if it exists), or the next
 one if ARG is non-nil."
   (interactive "P")
-  (string-match "\\(.*?\\)\\.\\([0-9]+\\)\\(\\.gz\\)?" buffer-file-name)
-  (let* ((basename (or (match-string 1 buffer-file-name)
-                       buffer-file-name))
-         (str (match-string 2 buffer-file-name))
+  (let* ((res (string-match "\\(.*?\\)\\.\\([0-9]+\\)\\(\\.t?gz\\)?" buffer-file-name))
+         (basename (if res (match-string 1 buffer-file-name)
+                     buffer-file-name))
+         (str (and res (match-string 2 buffer-file-name)))
          (curver (or (and str (string-to-number str)) 0))
          (nextver (if arg (1- curver) (1+ curver)))
          (nextfile (if (> nextver 0)
