@@ -70,6 +70,8 @@
     (define-key map "j" 'ffap)
     (define-key map "<" 'syslog-previous-file)
     (define-key map ">" 'syslog-next-file)
+    (define-key map "o" 'syslog-open-files)
+    (define-key map "q" 'quit-window)
     ;; XEmacs does not like the Alt bindings
     (if (string-match "XEmacs" (emacs-version))
 	t)
@@ -230,6 +232,7 @@ With prefix arg: remove lines between dates."
   (use-local-map syslog-mode-map)
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults '(syslog-font-lock-keywords))
+  (toggle-read-only 1)
   (run-hooks 'syslog-mode-hook))
 
 (defvar syslog-boot-start-regexp "unix: SunOS"
