@@ -97,11 +97,12 @@ and the number NUM of consecutive backup files to include."
   (let* ((pair (syslog-get-basename-and-number filename))
          (basename (car pair))
          (curver (cdr pair))
-         (bufname (generate-new-buffer
-                   (concat (file-name-nondirectory basename)
-                           "[" (number-to-string curver) "-"
-                           (number-to-string (+ curver num)) "]"))))
-    (with-current-buffer bufname
+         (buf (get-buffer-create
+               (concat (file-name-nondirectory basename)
+                       "[" (number-to-string curver) "-"
+                       (number-to-string (+ curver num)) "]"))))
+    (with-current-buffer buf
+      (erase-buffer)
       (goto-char (point-min))
       (insert-file-contents filename)
       (loop for n from (1+ curver) to (+ curver num)
@@ -114,7 +115,7 @@ and the number NUM of consecutive backup files to include."
             (insert-file-contents nextfile))
       (goto-char (point-min))
       (syslog-mode))
-    (switch-to-buffer bufname)))
+    (switch-to-buffer buf)))
 
 (defun syslog-previous-file (&optional arg)
   "Open the previous logfile backup, or the next one if a prefix arg is used.
