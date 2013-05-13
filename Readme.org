@@ -1,0 +1,43 @@
+* Commentary
+This library provides a major-mode for viewing syslog files.
+You can highlight and filter the lines of the file by regular expressions and by timestamp.
+* Keybindings
+- "C-down" : syslog-boot-start
+- "R"      : revert-buffer
+- "/"      : syslog-filter-lines
+- "g"      : show-all-invisible
+- "h r"    : highlight-regexp
+- "h p"    : highlight-phrase
+- "h l"    : highlight-lines-matching-regexp
+- "h u"    : unhighlight-regexp
+- "C-/"    : syslog-filter-dates
+- "D"      : open dired buffer in log directory (`syslog-log-file-directory')
+- "j"      : ffap
+- "<"      : syslog-previous-file
+- ">"      : syslog-next-file
+- "o"      : syslog-open-files
+- "q"      : quit-window
+* Commands:
+Below are complete command list:
+
+ - `syslog-open-files'    : Open consecutive log files in same buffer.
+ - `syslog-previous-file' : Open the previous logfile backup, or the next one if a prefix arg is used.
+ - `syslog-next-file'     : Open the next logfile.
+ - `syslog-filter-lines'  : Restrict buffer to lines matching regexp.
+ - `syslog-filter-dates'  : Restrict buffer to lines between dates.
+ - `syslog-mode'          : Major mode for working with system logs.
+ - `syslog-boot-start'    : Jump forward in the log to when the system booted.
+
+* Customizable Options:
+Below are customizable option list:
+
+ - `syslog-datetime-regexp'    : A regular expression matching the date-time at the beginning of each line in the log file.
+   default = "^[a-z]\\{3\\} [0-9]\\{1,2\\} \\([0-9]\\{2\\}:\\)\\{2\\}[0-9]\\{2\\} "
+ - `syslog-log-file-directory' : The directory in which log files are stored.
+   default = "/var/log/"
+* Installation
+
+ - If you have [[http://www.marmalade-repo.org/][marmalade-repo.org]], this syslog-mode is part of the emacs packages you can install.  Just type M-x package-install syslog-mode marmalade 
+ - Otherwise download the library from here Lisp:syslog-mode, and put it in a directory in the emacs load path, like ~/.emacs.d
+ - Add (require 'syslog-mode) in your ~/.emacs file
+
