@@ -35,7 +35,7 @@
 ;; along with this program; see the file COPYING.
 ;; If not, see <http://www.gnu.org/licenses/>.
 
-;;; Commentary: 
+;;; Commentary:
 ;;
 ;;; Commentary:
 ;; * Handy functions for looking at system logs.
@@ -120,7 +120,7 @@
 ;; Put syslog-mode.el in a directory in your load-path, e.g. ~/.emacs.d/
 ;; You can add a directory to your load-path with the following line in ~/.emacs
 ;; (add-to-list 'load-path (expand-file-name "~/elisp"))
-;; where ~/elisp is the directory you want to add 
+;; where ~/elisp is the directory you want to add
 ;; (you don't need to do this for ~/.emacs.d - it's added by default).
 ;;
 ;; Add the following to your ~/.emacs startup file.
@@ -130,7 +130,7 @@
 
 
 ;;; Change log:
-;;	
+;;
 ;; 21-03-2013    Joe Bloggs
 ;;    Added functions and keybindings for filtering
 ;;    lines by regexps or dates, and for highlighting,
@@ -374,8 +374,6 @@ With prefix arg: remove lines between dates."
   (search-forward-regexp syslog-boot-start-regexp (point-max) t)
   (beginning-of-line))
 
-(defvar syslog-ip-face 'syslog-ip-face)
-
 (defcustom syslog-ip-face
   '((t :underline t :slant italic :weight bold))
   "Face for IPs"
@@ -424,7 +422,7 @@ With prefix arg: remove lines between dates."
 ;; than one for all.
 (defvar syslog-font-lock-keywords
   '(
-    ;; Hours: 17:36:00 
+    ;; Hours: 17:36:00
     ("\\(?:^\\|[[:space:]]\\)\\([[:digit:]]\\{1,2\\}:[[:digit:]]\\{1,2\\}\\(:[[:digit:]]\\{1,2\\}\\)?\\)\\(?:$\\|[[:space:]]\\)" . (1 syslog-hour-face append))
     ;; Date
     ("\\(?:^\\|[[:space:]]\\)\\([[:digit:]]\\{1,2\\}/[[:digit:]]\\{1,2\\}/[[:digit:]]\\{2,4\\}\\)\\(?:$\\|[[:space:]]\\)" . (1 syslog-hour-face append))
@@ -432,7 +430,7 @@ With prefix arg: remove lines between dates."
     ("^\\(\\(?:[[:alpha:]]\\{3\\}\\)?[[:space:]]*[[:alpha:]]\\{3\\}\\s-+[0-9]+\\s-+[0-9:]+\\)" (1 font-lock-type-face t))
     ;; Su events
     ("\\(su:.*$\\)" . (1 syslog-su-face t))
-    ("\\(sudo:.*$\\)" . (1 syslog-su-face t))    
+    ("\\(sudo:.*$\\)" . (1 syslog-su-face t))
     ("\\[[^]]*\\]" . 'font-lock-comment-face)
     ;; IPs
     ("[[:digit:]]\\{1,3\\}\\.[[:digit:]]\\{1,3\\}\\.[[:digit:]]\\{1,3\\}\\.[[:digit:]]\\{1,3\\}" (0 syslog-ip-face append))
