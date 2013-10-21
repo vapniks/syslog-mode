@@ -89,25 +89,25 @@
 ;;  `syslog-log-file-directory'
 ;;    The directory in which log files are stored.
 ;;    default = "/var/log/"
-;;  `syslog-ip-face'
+;;  `syslog-ip'
 ;;    Face for IPs
 ;;    default = (quote ((t :underline t :slant italic ...)))
-;;  `syslog-hour-face'
+;;  `syslog-hour'
 ;;    Face for IPs
 ;;    default = (quote ((t :weight bold :inherit font-lock-type-face)))
-;;  `syslog-error-face'
+;;  `syslog-error'
 ;;    Face for IPs
 ;;    default = (quote ((t :weight bold :foreground "red")))
-;;  `syslog-warn-face'
+;;  `syslog-warn'
 ;;    Face for IPs
 ;;    default = (quote ((t :weight bold :foreground "goldenrod")))
-;;  `syslog-info-face'
+;;  `syslog-info'
 ;;    Face for IPs
 ;;    default = (quote ((t :weight bold :foreground "deep sky blue")))
-;;  `syslog-debug-face'
+;;  `syslog-debug'
 ;;    Face for IPs
 ;;    default = (quote ((t :weight bold :foreground "medium spring green")))
-;;  `syslog-su-face'
+;;  `syslog-su'
 ;;    Face for IPs
 ;;    default = (quote ((t :weight bold :foreground "firebrick")))
 ;;
