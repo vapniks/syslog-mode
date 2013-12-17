@@ -426,8 +426,8 @@ With prefix arg: remove lines between dates."
     ("\\[[^]]*\\]" . 'font-lock-comment-face)
     ;; IPs
     ("[[:digit:]]\\{1,3\\}\\.[[:digit:]]\\{1,3\\}\\.[[:digit:]]\\{1,3\\}\\.[[:digit:]]\\{1,3\\}" 0 'syslog-ip append)
-    ("[Ee][Rr][Rr]\\(?:[Oo][Rr]\\)?" 0 'syslog-error append)
-    ("[Ii][Nn][Ff][Oo]" 0 'syslog-info append)
+    ("\\<[Ee][Rr][Rr]\\(?:[Oo][Rr]\\)?\\>" 0 'syslog-error append)
+    ("\\<[Ii][Nn][Ff][Oo]\\>" 0 'syslog-info append)
     ("STARTUP" 0 'syslog-info append)
     ("CMD" 0 'syslog-info append)
     ("[Ww][Aa][Rr][Nn]\\(?:[Ii][Nn][Gg]\\)?" 0 'syslog-warn append)
