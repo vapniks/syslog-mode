@@ -362,7 +362,8 @@ With prefix arg: remove lines between dates."
   (setq major-mode 'syslog-mode)
   (use-local-map syslog-mode-map)
   (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults '(syslog-font-lock-keywords))
+  (setq font-lock-defaults '(syslog-font-lock-keywords t t nil ))
+  (buffer-disable-undo)
   (toggle-read-only 1)
   (run-hooks 'syslog-mode-hook))
 
@@ -423,6 +424,8 @@ With prefix arg: remove lines between dates."
 ;; than one for all.
 (defvar syslog-font-lock-keywords
   '(
+    ("\"[^\"]*\"" . 'font-lock-string-face)
+    ("'[^']*'" . 'font-lock-string-face)
     ;; Hours: 17:36:00
     ("\\(?:^\\|[[:space:]]\\)\\([[:digit:]]\\{1,2\\}:[[:digit:]]\\{1,2\\}\\(:[[:digit:]]\\{1,2\\}\\)?\\)\\(?:$\\|[[:space:]]\\)" 1 'syslog-hour append)
     ;; Date
@@ -435,12 +438,12 @@ With prefix arg: remove lines between dates."
     ("\\[[^]]*\\]" . 'font-lock-comment-face)
     ;; IPs
     ("[[:digit:]]\\{1,3\\}\\.[[:digit:]]\\{1,3\\}\\.[[:digit:]]\\{1,3\\}\\.[[:digit:]]\\{1,3\\}" 0 'syslog-ip append)
-    ("[Ee][Rr][Rr]\\(?:[Oo][Rr]\\)?" 0 'syslog-error append)
-    ("[Ii][Nn][Ff][Oo]" 0 'syslog-info append)
+    (" critical " 0 'syslog-error append)
+    (" info " 0 'syslog-info append)
     ("STARTUP" 0 'syslog-info append)
     ("CMD" 0 'syslog-info append)
-    ("[Ww][Aa][Rr][Nn]\\(?:[Ii][Nn][Gg]\\)?" 0 'syslog-warn append)
-    ("[Dd][Ee][Bb][Uu][Gg]" 0 'syslog-debug append)
+    (" warn\\(?:ing\\)? " 0 'syslog-warn append)
+    (" debug " 0 'syslog-debug append)
     ("(EE)" 0 'syslog-error append)
     ("(WW)" 0 'syslog-warn append)
     ("(II)" 0 'syslog-info append)
