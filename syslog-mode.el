@@ -195,6 +195,7 @@
     (define-key map "<" 'syslog-previous-file)
     (define-key map ">" 'syslog-next-file)
     (define-key map "o" 'syslog-open-files)
+    (define-key map "c" 'syslog-count-matches)
     (define-key map "q" 'quit-window)
     ;; XEmacs does not like the Alt bindings
     (if (string-match "XEmacs" (emacs-version))
@@ -367,6 +368,14 @@ With prefix arg: remove lines between dates."
 
 (defvar syslog-boot-start-regexp "unix: SunOS"
   "Regexp to match the first line of boot sequence.")
+
+(defun syslog-count-matches (regexp)
+  "Count strings which match the given pattern."
+  (interactive (list (read-regexp "How many matches for regexp")))
+  (message "%s occurrences" (count-matches regexp
+                                           (point-min)
+                                           (point-max) nil))
+)
 
 (defun syslog-boot-start ()
   "Jump forward in the log to when the system booted."
