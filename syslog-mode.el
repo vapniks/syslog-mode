@@ -15,7 +15,7 @@
 ;;
 ;; Features that might be required by this library:
 ;;
-;; hide-lines cl ido
+;; hide-lines cl ido dash
 ;;
 
 ;;; This file is NOT part of GNU Emacs
@@ -217,45 +217,6 @@ and number is a number."
          (num (or (and str (string-to-number str)) (1- syslog-number-suffix-start))))
     (cons basename num)))
 
-(defun syslog-open-files (filename num)
-  "Open consecutive log files in same buffer.
-When called interactively the user is prompted for the initial file FILENAME,
-and the number NUM of previous backup files (if positive) or days (if negative) to include."
-  (interactive (list (ido-read-file-name "Log file: " syslog-log-file-directory "syslog" t)
-                     (read-number "Number of previous files (if positive) or days (if negative) to include" 0)))
-  (let* ((pair (syslog-get-basename-and-number filename))
-	 (basename (car pair))
-	 (basename2 (file-name-nondirectory basename))
-         (curver (cdr pair))
-         (num2 (if (>= num 0) num
-		 (- (let* ((startdate (+ (float-time (nth 5 (file-attributes filename)))
-					 (* num 86400))))
-		      (cl-loop for file2 in (directory-files
-					     (file-name-directory filename)
-					     t basename2)
-			       for filedate2 = (float-time (nth 5 (file-attributes file2)))
-			       if (>= filedate2 startdate)
-			       maximize (cdr (syslog-get-basename-and-number file2))))
-		    curver)))
-         (buf (get-buffer-create
-               (concat basename2 "[" (number-to-string curver) "-"
-                       (number-to-string (+ curver num2)) "]"))))
-    (with-current-buffer buf
-      (erase-buffer)
-      (goto-char (point-min))
-      (insert-file-contents filename)
-      (loop for n from (1+ curver) to (+ curver num2)
-            for numsuffix = (concat "." (number-to-string n))
-            for nextfile = (loop for suffix in '(nil ".gz" ".tgz")
-                                 if (file-readable-p (concat basename numsuffix suffix))
-                                 return (concat basename numsuffix suffix))
-            if nextfile do
-            (goto-char (point-min))
-            (insert-file-contents nextfile))
-      (goto-char (point-min))
-      (syslog-mode))
-    (switch-to-buffer buf)))
-
 (defun syslog-get-filenames (&optional pairs)
   "Get log files associated with PAIRS argument, or prompt user for files.
 The PAIRS argument should be a list of cons cells whose cars are paths to log files,
@@ -316,6 +277,55 @@ and FILES are prompted for using `syslog-get-filenames'."
 	       do (goto-char (point-max))
 	       do (insert-file-contents file))
       (read-only-mode (if ro 1 -1)))))
+
+(defun syslog-create-buffer (filenames)
+  "Create a new buffer named after the files in FILENAMES."
+  (let* ((uniquefiles (mapcar 'file-name-nondirectory
+			      (cl-remove-duplicates filenames :test 'equal)))
+	 (basenames (mapcar (lambda (x)
+			      (replace-regexp-in-string
+			       "\\(\\.gz\\|\\.tgz\\)$" ""
+			       (file-name-nondirectory x)))
+			    uniquefiles))
+	 (basenames2 (cl-remove-duplicates
+		      (mapcar (lambda (x) (replace-regexp-in-string "\\.[0-9]+$" "" x)) basenames)
+		      :test 'equal)))
+    (get-buffer-create
+     (substring (cl-loop for file in basenames2
+			 for files = (cl-remove-if-not
+				      (lambda (x) (string-match-p (regexp-opt (list file)) x))
+				      basenames)
+			 for nums = (mapcar (lambda (x)
+					      (let* ((match (string-match "\\.\\([0-9]+\\)" x))
+						     (n (if match (match-string 1 x) "0")))
+						(string-to-number n)))
+					    files)
+			 for min = (if nums (apply 'min nums) 0)
+			 for max = (if nums (apply 'max nums) 0)
+			 concat (concat file "." (if (= min max) (number-to-string min)
+						   (concat "{" (number-to-string min)
+							   "-" (number-to-string max) "}"))
+					","))
+		0 -1))))
+
+(defun syslog-open-files (files &optional label)
+  "Insert log FILES into new buffer.
+If the optional argument LABEL is non-nil then each new line will be labelled
+with the corresponding filename.
+When called interactively the FILES are prompted for using `syslog-get-filenames'."
+  (interactive (list (syslog-get-filenames)
+		     (y-or-n-p "Label lines with filenames? ")))
+  (let ((buf (syslog-create-buffer files)))
+    (with-current-buffer buf
+      (let ((ro buffer-read-only))
+	(read-only-mode -1)
+	(set-visited-file-name nil)
+	(cl-loop for file in (cl-remove-duplicates files :test 'equal)
+		 do (goto-char (point-max))
+		 do (insert-file-contents file))
+	(read-only-mode (if ro 1 -1)))
+      (syslog-mode))
+    (switch-to-buffer buf)))
 
 (defun syslog-previous-file (&optional arg)
   "Open the previous logfile backup, or the next one if a prefix arg is used.
