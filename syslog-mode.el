@@ -328,7 +328,7 @@ With prefix arg: remove lines between dates."
                                                          firstdate nil firstdate))
                        (syslog-date-to-time (read-string "End date and time: "
                                                          lastdate nil lastdate))
-                     current-prefix-arg)))
+		       current-prefix-arg)))
   (set (make-local-variable 'line-move-ignore-invisible) t)
   (goto-char (point-min))
   (let* ((start-position (point-min))
@@ -343,13 +343,13 @@ With prefix arg: remove lines between dates."
          (dodelete t))
     (while pos
       (cond ((and keeptime dodelete)
-             (add-invisible-overlay start-position (point-at-bol))
+             (hide-lines-add-overlay start-position (point-at-bol))
              (setq dodelete nil))
             ((not (or keeptime dodelete))
              (setq dodelete t start-position (point-at-bol))))
       (setq pos (re-search-forward syslog-datetime-regexp nil t)
             keeptime (funcall intime-p (syslog-date-to-time (match-string 0) t))))
-    (if dodelete (add-invisible-overlay start-position (point-max)))))
+    (if dodelete (hide-lines-add-overlay start-position (point-max)))))
 
 ;;;###autoload
 (defun syslog-mode ()
