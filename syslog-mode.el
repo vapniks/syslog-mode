@@ -217,17 +217,20 @@ and number is a number."
          (num (or (and str (string-to-number str)) (1- syslog-number-suffix-start))))
     (cons basename num)))
 
-(defun syslog-get-filenames (&optional pairs)
+(defun syslog-get-filenames (&optional pairs prompt)
   "Get log files associated with PAIRS argument, or prompt user for files.
 The PAIRS argument should be a list of cons cells whose cars are paths to log files,
 and whose cdr's are numbers indicating how many previous log files (if positive) or days 
- (if negative) to include. If PAIRS is missing then the user is prompted for those values."
+ (if negative) to include. If PAIRS is missing then the user is prompted for those values.
+The PROMPT argument is an optional prompt to use for prompting the user for files."
   (let* ((continue t)
 	 (num 0)
 	 (pairs (or pairs
 		    (cl-loop while continue
 			     do (setq filename
-				      (ido-read-file-name "Log file: " syslog-log-file-directory "syslog" nil)
+				      (ido-read-file-name
+				       (or prompt "Log file: ")
+				       syslog-log-file-directory "syslog" nil)
 				      num (read-number
 					   "Number of previous files (if positive) or days (if negative) to include"
 					   num))
@@ -266,7 +269,7 @@ If the optional argument LABEL is non-nil then each new line will be labelled
 with the corresponding filename.
 When called interactively the current buffer is used,
 and FILES are prompted for using `syslog-get-filenames'."
-  (interactive (list (syslog-get-filenames) (current-buffer)
+  (interactive (list (syslog-get-filenames nil "Append log file: ") (current-buffer)
 		     current-prefix-arg
 		     (y-or-n-p "Label lines with filenames? ")))
   (with-current-buffer buf
@@ -313,18 +316,25 @@ and FILES are prompted for using `syslog-get-filenames'."
 If the optional argument LABEL is non-nil then each new line will be labelled
 with the corresponding filename.
 When called interactively the FILES are prompted for using `syslog-get-filenames'."
-  (interactive (list (syslog-get-filenames)
+  (interactive (list (syslog-get-filenames nil "View log file: ")
 		     (y-or-n-p "Label lines with filenames? ")))
   (let ((buf (syslog-create-buffer files)))
     (with-current-buffer buf
-      (let ((ro buffer-read-only))
+      (let ((ro buffer-read-only)
+	    start end)
 	(read-only-mode -1)
 	(set-visited-file-name nil)
 	(cl-loop for file in (cl-remove-duplicates files :test 'equal)
-		 do (goto-char (point-max))
-		 do (insert-file-contents file))
+		 do (progn (setq start (goto-char (point-max)))
+			   (insert-file-contents file)
+			   (goto-char (point-max))
+			   (unless (not label)
+			     (forward-line 0)
+			     (string-rectangle
+			      start (point) (concat (file-name-nondirectory file) ": ")))))
 	(read-only-mode (if ro 1 -1)))
-      (syslog-mode))
+      (syslog-mode)
+      (setq default-directory (file-name-directory (car files))))
     (switch-to-buffer buf)))
 
 (defun syslog-previous-file (&optional arg)
