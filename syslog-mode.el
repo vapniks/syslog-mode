@@ -219,21 +219,31 @@ and number is a number."
 (defun syslog-open-files (filename num)
   "Open consecutive log files in same buffer.
 When called interactively the user is prompted for the initial file FILENAME,
-and the number NUM of consecutive backup files to include."
+and the number NUM of previous backup files (if positive) or days (if negative) to include."
   (interactive (list (ido-read-file-name "Log file: " syslog-log-file-directory "syslog" t)
-                     (read-number "Number of consecutive backup files to include" 0)))
+                     (read-number "Number of previous files (if positive) or days (if negative) to include" 0)))
   (let* ((pair (syslog-get-basename-and-number filename))
-         (basename (car pair))
+	 (basename (car pair))
+	 (basename2 (file-name-nondirectory basename))
          (curver (cdr pair))
+         (num2 (if (>= num 0) num
+		 (- (let* ((startdate (+ (float-time (nth 5 (file-attributes filename)))
+					 (* num 86400))))
+		      (cl-loop for file2 in (directory-files
+					     (file-name-directory filename)
+					     t basename2)
+			       for filedate2 = (float-time (nth 5 (file-attributes file2)))
+			       if (>= filedate2 startdate)
+			       maximize (cdr (syslog-get-basename-and-number file2))))
+		    curver)))
          (buf (get-buffer-create
-               (concat (file-name-nondirectory basename)
-                       "[" (number-to-string curver) "-"
-                       (number-to-string (+ curver num)) "]"))))
+               (concat basename2 "[" (number-to-string curver) "-"
+                       (number-to-string (+ curver num2)) "]"))))
     (with-current-buffer buf
       (erase-buffer)
       (goto-char (point-min))
       (insert-file-contents filename)
-      (loop for n from (1+ curver) to (+ curver num)
+      (loop for n from (1+ curver) to (+ curver num2)
             for numsuffix = (concat "." (number-to-string n))
             for nextfile = (loop for suffix in '(nil ".gz" ".tgz")
                                  if (file-readable-p (concat basename numsuffix suffix))
@@ -312,8 +322,8 @@ If DATE can't be parsed then if SAFE is non-nil return nil otherwise throw an er
 
 ;;;###autoload
 (defun syslog-filter-dates (start end &optional arg)
-  "Restrict buffer to lines between dates.
-With prefix arg: remove lines between dates."
+  "Restrict buffer to lines between dates START and END.
+With prefix ARG: remove lines between dates."
   (interactive (let (firstdate lastdate)
                  (save-excursion
                    (goto-char (point-min))
