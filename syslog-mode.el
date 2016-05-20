@@ -93,22 +93,22 @@
 ;;    Face for IPs
 ;;    default = (quote ((t :underline t :slant italic ...)))
 ;;  `syslog-hour'
-;;    Face for IPs
+;;    Face for hours
 ;;    default = (quote ((t :weight bold :inherit font-lock-type-face)))
 ;;  `syslog-error'
-;;    Face for IPs
+;;    Face for errors
 ;;    default = (quote ((t :weight bold :foreground "red")))
 ;;  `syslog-warn'
-;;    Face for IPs
+;;    Face for warnings
 ;;    default = (quote ((t :weight bold :foreground "goldenrod")))
 ;;  `syslog-info'
-;;    Face for IPs
+;;    Face for info lines
 ;;    default = (quote ((t :weight bold :foreground "deep sky blue")))
 ;;  `syslog-debug'
-;;    Face for IPs
+;;    Face for debug lines
 ;;    default = (quote ((t :weight bold :foreground "medium spring green")))
 ;;  `syslog-su'
-;;    Face for IPs
+;;    Face for su and sudo
 ;;    default = (quote ((t :weight bold :foreground "firebrick")))
 ;;
 ;; All of the above can customized by:
@@ -380,7 +380,7 @@ With prefix arg: remove lines matching regexp."
           (hide-lines-not-matching regex)))))
 
 ;;;###autoload
-(defcustom syslog-datetime-regexp "^[a-z]\\{3\\} [0-9]\\{1,2\\} \\([0-9]\\{2\\}:\\)\\{2\\}[0-9]\\{2\\} "
+(defcustom syslog-datetime-regexp "^\\(?:[^ :]+: \\)?\\(\\(?:[[:alpha:]]\\{3\\}\\)?[[:space:]]*[[:alpha:]]\\{3\\}\\s-+[0-9]+\\s-+[0-9:]+\\)"
   "A regular expression matching the date-time at the beginning of each line in the log file."
   :group 'syslog
   :type 'regexp)
@@ -411,11 +411,11 @@ With prefix ARG: remove lines between dates."
                    (goto-char (point-min))
                    (beginning-of-line)
                    (re-search-forward syslog-datetime-regexp nil t)
-                   (setq firstdate (match-string 0))
+                   (setq firstdate (match-string 1))
                    (goto-char (point-max))
                    (beginning-of-line)
                    (re-search-backward syslog-datetime-regexp nil t)
-                   (setq lastdate (match-string 0)))
+                   (setq lastdate (match-string 1)))
                  (list (syslog-date-to-time (read-string "Start date and time: "
                                                          firstdate nil firstdate))
                        (syslog-date-to-time (read-string "End date and time: "
@@ -431,7 +431,7 @@ With prefix ARG: remove lines between dates."
                      (lambda (time)
                        (and time (and (time-less-p time end)
                                       (not (time-less-p time start)))))))
-         (keeptime (funcall intime-p (syslog-date-to-time (match-string 0) t)))
+         (keeptime (funcall intime-p (syslog-date-to-time (match-string 1) t)))
          (dodelete t))
     (while pos
       (cond ((and keeptime dodelete)
@@ -440,7 +440,7 @@ With prefix ARG: remove lines between dates."
             ((not (or keeptime dodelete))
              (setq dodelete t start-position (point-at-bol))))
       (setq pos (re-search-forward syslog-datetime-regexp nil t)
-            keeptime (funcall intime-p (syslog-date-to-time (match-string 0) t))))
+            keeptime (funcall intime-p (syslog-date-to-time (match-string 1) t))))
     (if dodelete (hide-lines-add-overlay start-position (point-max)))))
 
 ;;;###autoload
@@ -480,34 +480,39 @@ With prefix ARG: remove lines between dates."
   "Face for IPs"
   :group 'syslog)
 
+(defface syslog-file
+  '((t :weight bold  :foreground "dark blue"))
+  "Face for filenames"
+  :group 'syslog)
+
 (defface syslog-hour
   '((t :weight bold  :inherit font-lock-type-face))
-  "Face for IPs"
+  "Face for hours"
   :group 'syslog)
 
 (defface syslog-error
   '((t  :weight bold :foreground "red"))
-  "Face for IPs"
+  "Face for errors"
   :group 'syslog)
 
 (defface syslog-warn
   '((t  :weight bold :foreground "goldenrod"))
-  "Face for IPs"
+  "Face for warnings"
   :group 'syslog)
 
 (defface syslog-info
   '((t  :weight bold :foreground "deep sky blue"))
-  "Face for IPs"
+  "Face for info lines"
   :group 'syslog)
 
 (defface syslog-debug
   '((t  :weight bold :foreground "medium spring green"))
-  "Face for IPs"
+  "Face for debug lines"
   :group 'syslog)
 
 (defface syslog-su
   '((t  :weight bold :foreground "firebrick"))
-  "Face for IPs"
+  "Face for su and sudo"
   :group 'syslog)
 
 ;; Keywords
@@ -517,12 +522,14 @@ With prefix ARG: remove lines between dates."
   '(
     ("\"[^\"]*\"" . 'font-lock-string-face)
     ("'[^']*'" . 'font-lock-string-face)
+    ;; Filename at beginning of line
+    ("^\\([^ :]+\\): " 1 'syslog-file append)
     ;; Hours: 17:36:00
     ("\\(?:^\\|[[:space:]]\\)\\([[:digit:]]\\{1,2\\}:[[:digit:]]\\{1,2\\}\\(:[[:digit:]]\\{1,2\\}\\)?\\)\\(?:$\\|[[:space:]]\\)" 1 'syslog-hour append)
     ;; Date
     ("\\(?:^\\|[[:space:]]\\)\\([[:digit:]]\\{1,2\\}/[[:digit:]]\\{1,2\\}/[[:digit:]]\\{2,4\\}\\)\\(?:$\\|[[:space:]]\\)" 1 'syslog-hour append)
     ;; Dates: May  9 15:52:34
-    ("^\\(\\(?:[[:alpha:]]\\{3\\}\\)?[[:space:]]*[[:alpha:]]\\{3\\}\\s-+[0-9]+\\s-+[0-9:]+\\)" 1 'font-lock-type-face t)
+    ("^\\(?:[^ :]+: \\)?\\(\\(?:[[:alpha:]]\\{3\\}\\)?[[:space:]]*[[:alpha:]]\\{3\\}\\s-+[0-9]+\\s-+[0-9:]+\\)" 1 'font-lock-type-face t)
     ;; Su events
     ("\\(su:.*$\\)" 1 'syslog-su t)
     ("\\(sudo:.*$\\)" 1 'syslog-su t)
@@ -530,7 +537,7 @@ With prefix ARG: remove lines between dates."
     ;; IPs
     ("[[:digit:]]\\{1,3\\}\\.[[:digit:]]\\{1,3\\}\\.[[:digit:]]\\{1,3\\}\\.[[:digit:]]\\{1,3\\}" 0 'syslog-ip append)
     ("\\<[Ee][Rr][Rr]\\(?:[Oo][Rr][Ss]?\\)\\>" 0 'syslog-error append)
-    ("\\<[Ii][Nn][Ff][Oo]\\>" 0 'syslog-info append)    
+    ("\\<[Ii][Nn][Ff][Oo]\\>" 0 'syslog-info append)
     ("\\<[Cc][Rr][Ii][Tt][Ii][Cc][Aa][Ll]\\>" 0 'syslog-error append)
     ("STARTUP" 0 'syslog-info append)
     ("CMD" 0 'syslog-info append)
