@@ -546,7 +546,7 @@ buffer respectively."
 
 (defun syslog-count-matches (regexp)
   "Count strings which match the given pattern."
-  (interactive (list (read-regexp "How many matches for regexp")))
+  (interactive (list (read-regexp "How many matches for regexp" (word-at-point))))
   (message "%s occurrences" (count-matches regexp
                                            (point-min)
                                            (point-max) nil)))
