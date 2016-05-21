@@ -290,7 +290,16 @@ a prefix argument is used in which case they are prompted for."
       (set-visited-file-name nil)
       (cl-loop for file in (cl-remove-duplicates files :test 'equal)
 	       do (goto-char (point-max))
-	       do (insert-file-contents file))
+	       do (insert-file-contents file)
+	       (progn (goto-char (point-max))
+		      (forward-line 0)
+		      (setq start (point))
+		      (insert-file-contents file)
+		      (unless (not label)
+			(goto-char (point-max))
+			(forward-line 0)
+			(string-rectangle
+			 start (point) (concat (file-name-nondirectory file) ": ")))))
       (read-only-mode (if ro 1 -1)))))
 
 (defun syslog-prepend-files (files buf &optional replace label)
@@ -313,8 +322,13 @@ a prefix argument is used in which case they are prompted for."
       (read-only-mode -1)
       (set-visited-file-name nil)
       (cl-loop for file in (cl-remove-duplicates files :test 'equal)
-	       do (goto-char (point-min))
-	       do (insert-file-contents file))
+	       do (progn (setq start (goto-char (point-min))
+			       nchars (second (insert-file-contents file)))
+			 (unless (not label)
+			   (forward-char nchars)			   
+			   (forward-line 0)
+			   (string-rectangle
+			    start (point) (concat (file-name-nondirectory file) ": ")))))
       (read-only-mode (if ro 1 -1)))))
 
 (defun syslog-create-buffer (filenames)
