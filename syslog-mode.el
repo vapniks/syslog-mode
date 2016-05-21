@@ -337,27 +337,29 @@ When called interactively the FILES are prompted for using `syslog-get-filenames
       (setq default-directory (file-name-directory (car files))))
     (switch-to-buffer buf)))
 
-(defun syslog-view (files &optional rxshow rxhide startdate enddate highlights label)
+(defun syslog-view (files &optional label rxshow rxhide startdate enddate removedates
+			  highlights bufname)
   "Open a view of syslog files with optional filters and highlights applied.
 FILES should be the same as the first argument to `syslog-get-filenames' - a list of cons
 cells whose cars are filenames and whose cdrs indicate how many logfiles to include.
+LABEL indicates whether or not to label each line with the filename it came from.
 RXSHOW and RXHIDE are optional regexps which will be used to filter in/out buffer lines 
 with `syslog-filter-lines'. STARTDATE and ENDDATE are optional dates used to filter the 
 lines with `syslog-filter-dates'; they can be either date strings or time lists as returned 
 by `syslog-date-to-time'.
 HIGHLIGHTS is a list of cons cells whose cars are regexps and whose cdrs are faces to 
-highlight those regexps with, and LABEL indicates whether or not to label each line
-with the filename it came from.
-"
+highlight those regexps with."
   (let ((filenames (syslog-get-filenames files)))
     (syslog-open-files filenames label)
     (if rxshow (hide-lines-not-matching rxshow))
     (if rxhide (hide-lines-matching rxhide))
-    ;; TODO!!!!
-    (if (and startdate enddate) (syslog-filter-dates startdate enddate ARG))
-    
-    )
-  )
+    (if (or startdate enddate)
+	(syslog-filter-dates startdate enddate removedates))
+    (if highlights
+	(cl-loop for hl in highlights
+		 for (regex . face) = hl
+		 do (highlight-regexp regex face)))
+    (if bufname (rename-buffer bufname t))))
 
 (defun syslog-previous-file (&optional arg)
   "Open the previous logfile backup, or the next one if a prefix arg is used.
@@ -398,8 +400,8 @@ With prefix arg: remove lines matching regexp."
         (unless (string= regex "")
           (hide-lines-matching regex)))
     (let ((regex (read-regexp "Regexp matching lines to keep")))
-        (unless (string= regex "")
-          (hide-lines-not-matching regex)))))
+      (unless (string= regex "")
+	(hide-lines-not-matching regex)))))
 
 ;;;###autoload
 (defcustom syslog-datetime-regexp "^\\(?:[^ :]+: \\)?\\(\\(?:[[:alpha:]]\\{3\\}\\)?[[:space:]]*[[:alpha:]]\\{3\\}\\s-+[0-9]+\\s-+[0-9:]+\\)"
@@ -445,25 +447,31 @@ buffer respectively."
                        (syslog-date-to-time (read-string "End date and time: "
                                                          lastdate nil lastdate))
 		       current-prefix-arg)))
-  (set (make-local-variable 'line-move-ignore-invisible) t)
-  (goto-char (point-min))
-  (let* ((start-position (point-min))
-         (pos (re-search-forward syslog-datetime-regexp nil t))
-         (intime-p (lambda (time)
-		     (let ((isin (and (or (not end) (time-less-p time end))
-				      (or (not start) (not (time-less-p time start))))))
-		       (and time (if arg (not isin) isin)))))
-         (keeptime (funcall intime-p (syslog-date-to-time (match-string 1) t)))
-         (dodelete t))
-    (while pos
-      (cond ((and keeptime dodelete)
-             (hide-lines-add-overlay start-position (point-at-bol))
-             (setq dodelete nil))
-            ((not (or keeptime dodelete))
-             (setq dodelete t start-position (point-at-bol))))
-      (setq pos (re-search-forward syslog-datetime-regexp nil t)
-            keeptime (funcall intime-p (syslog-date-to-time (match-string 1) t))))
-    (if dodelete (hide-lines-add-overlay start-position (point-max)))))
+  (let ((start (if (stringp start)
+		   (syslog-date-to-time start)
+		 start))
+	(end (if (stringp end)
+		 (syslog-date-to-time end)
+	       end)))
+    (set (make-local-variable 'line-move-ignore-invisible) t)
+    (goto-char (point-min))
+    (let* ((start-position (point-min))
+	   (pos (re-search-forward syslog-datetime-regexp nil t))
+	   (intime-p (lambda (time)
+		       (let ((isin (and (or (not end) (time-less-p time end))
+					(or (not start) (not (time-less-p time start))))))
+			 (and time (if arg (not isin) isin)))))
+	   (keeptime (funcall intime-p (syslog-date-to-time (match-string 1) t)))
+	   (dodelete t))
+      (while pos
+	(cond ((and keeptime dodelete)
+	       (hide-lines-add-overlay start-position (point-at-bol))
+	       (setq dodelete nil))
+	      ((not (or keeptime dodelete))
+	       (setq dodelete t start-position (point-at-bol))))
+	(setq pos (re-search-forward syslog-datetime-regexp nil t)
+	      keeptime (funcall intime-p (syslog-date-to-time (match-string 1) t))))
+      (if dodelete (hide-lines-add-overlay start-position (point-max))))))
 
 ;;;###autoload
 (defun syslog-mode ()
