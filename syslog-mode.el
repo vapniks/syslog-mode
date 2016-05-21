@@ -220,7 +220,7 @@ and number is a number."
 (defun syslog-get-filenames (&optional pairs prompt)
   "Get log files associated with PAIRS argument, or prompt user for files.
 The PAIRS argument should be a list of cons cells whose cars are paths to log files,
-and whose cdr's are numbers indicating how many previous log files (if positive) or days 
+and whose cdrs are numbers indicating how many previous log files (if positive) or days 
  (if negative) to include. If PAIRS is missing then the user is prompted for those values.
 The PROMPT argument is an optional prompt to use for prompting the user for files."
   (let* ((continue t)
@@ -337,6 +337,28 @@ When called interactively the FILES are prompted for using `syslog-get-filenames
       (setq default-directory (file-name-directory (car files))))
     (switch-to-buffer buf)))
 
+(defun syslog-view (files &optional rxshow rxhide startdate enddate highlights label)
+  "Open a view of syslog files with optional filters and highlights applied.
+FILES should be the same as the first argument to `syslog-get-filenames' - a list of cons
+cells whose cars are filenames and whose cdrs indicate how many logfiles to include.
+RXSHOW and RXHIDE are optional regexps which will be used to filter in/out buffer lines 
+with `syslog-filter-lines'. STARTDATE and ENDDATE are optional dates used to filter the 
+lines with `syslog-filter-dates'; they can be either date strings or time lists as returned 
+by `syslog-date-to-time'.
+HIGHLIGHTS is a list of cons cells whose cars are regexps and whose cdrs are faces to 
+highlight those regexps with, and LABEL indicates whether or not to label each line
+with the filename it came from.
+"
+  (let ((filenames (syslog-get-filenames files)))
+    (syslog-open-files filenames label)
+    (if rxshow (hide-lines-not-matching rxshow))
+    (if rxhide (hide-lines-matching rxhide))
+    ;; TODO!!!!
+    (if (and startdate enddate) (syslog-filter-dates startdate enddate ARG))
+    
+    )
+  )
+
 (defun syslog-previous-file (&optional arg)
   "Open the previous logfile backup, or the next one if a prefix arg is used.
 Unix systems keep backups of log files with numbered suffixes, e.g. syslog.1 syslog.2.gz, etc.
@@ -404,8 +426,10 @@ If DATE can't be parsed then if SAFE is non-nil return nil otherwise throw an er
 
 ;;;###autoload
 (defun syslog-filter-dates (start end &optional arg)
-  "Restrict buffer to lines between dates START and END.
-With prefix ARG: remove lines between dates."
+  "Restrict buffer to lines between times START and END (Emacs time lists).
+With prefix ARG: remove lines between dates.
+If either START or END are nil then treat them as the first/last time in the
+buffer respectively."
   (interactive (let (firstdate lastdate)
                  (save-excursion
                    (goto-char (point-min))
@@ -425,12 +449,10 @@ With prefix ARG: remove lines between dates."
   (goto-char (point-min))
   (let* ((start-position (point-min))
          (pos (re-search-forward syslog-datetime-regexp nil t))
-         (intime-p (if arg (lambda (time)
-                             (and time (not (and (time-less-p time end)
-                                                 (not (time-less-p time start))))))
-                     (lambda (time)
-                       (and time (and (time-less-p time end)
-                                      (not (time-less-p time start)))))))
+         (intime-p (lambda (time)
+		     (let ((isin (and (or (not end) (time-less-p time end))
+				      (or (not start) (not (time-less-p time start))))))
+		       (and time (if arg (not isin) isin)))))
          (keeptime (funcall intime-p (syslog-date-to-time (match-string 1) t)))
          (dodelete t))
     (while pos
