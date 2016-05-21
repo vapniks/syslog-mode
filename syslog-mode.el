@@ -481,7 +481,10 @@ With prefix ARG: remove lines between dates."
   :group 'syslog)
 
 (defface syslog-file
-  '((t :weight bold  :foreground "dark blue"))
+  (list (list t :weight 'bold
+	      :inherit (if (facep diredp-file-name)
+			   'diredp-file-name
+			 'dired-ignored)))
   "Face for filenames"
   :group 'syslog)
 
@@ -516,11 +519,10 @@ With prefix ARG: remove lines between dates."
   :group 'syslog)
 
 ;; Keywords
-;; Todo: Seperate the keywords into a list for each format, rather
-;; than one for all.
+;; TODO: Seperate the keywords into a list for each format, rather than one for all.
+;;       Better matching of dates (even when not at beginning of line).
 (defvar syslog-font-lock-keywords
-  '(
-    ("\"[^\"]*\"" . 'font-lock-string-face)
+  '(("\"[^\"]*\"" . 'font-lock-string-face)
     ("'[^']*'" . 'font-lock-string-face)
     ;; Filename at beginning of line
     ("^\\([^ :]+\\): " 1 'syslog-file append)
