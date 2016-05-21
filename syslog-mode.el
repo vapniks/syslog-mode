@@ -446,10 +446,12 @@ This just calls `syslog-previous-file' with non-nil argument, so we can bind it 
 With prefix arg: remove lines matching regexp."
   (interactive "p")
   (if (> arg 1)
-      (let ((regex (read-regexp "Regexp matching lines to remove")))
+      (let ((regex (read-regexp "Regexp matching lines to remove"
+				(word-at-point))))
         (unless (string= regex "")
           (hide-lines-matching regex)))
-    (let ((regex (read-regexp "Regexp matching lines to keep")))
+    (let ((regex (read-regexp "Regexp matching lines to keep"
+			      (word-at-point))))
       (unless (string= regex "")
 	(hide-lines-not-matching regex)))))
 
