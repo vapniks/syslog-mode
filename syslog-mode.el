@@ -196,6 +196,7 @@
     (define-key map ">" 'syslog-next-file)
     (define-key map "o" 'syslog-open-files)
     (define-key map "a" 'syslog-append-files)
+    (define-key map "p" 'syslog-prepend-files)
     (define-key map "c" 'syslog-count-matches)
     (define-key map "q" 'quit-window)
     ;; XEmacs does not like the Alt bindings
@@ -217,67 +218,102 @@ and number is a number."
          (num (or (and str (string-to-number str)) (1- syslog-number-suffix-start))))
     (cons basename num)))
 
-(defun syslog-get-filenames (&optional pairs prompt)
+(defun syslog-get-filenames (&optional pairs prompt onlyone)
   "Get log files associated with PAIRS argument, or prompt user for files.
 The PAIRS argument should be a list of cons cells whose cars are paths to log files,
 and whose cdrs are numbers indicating how many previous log files (if positive) or days 
  (if negative) to include. If PAIRS is missing then the user is prompted for those values.
+If ONLYONE is non-nil then the user is only prompted for a single file.
 The PROMPT argument is an optional prompt to use for prompting the user for files."
   (let* ((continue t)
 	 (num 0)
-	 (pairs (or pairs
-		    (cl-loop while continue
-			     do (setq filename
-				      (ido-read-file-name
-				       (or prompt "Log file: ")
-				       syslog-log-file-directory "syslog" nil)
-				      num (read-number
-					   "Number of previous files (if positive) or days (if negative) to include"
-					   num))
-			     collect (cons filename num)
-			     do (setq continue (y-or-n-p "Add more files? "))))))
-    (cl-loop for pair1 in pairs
-	     for filename = (car pair1)
-	     for num = (cdr pair1)
-	     for pair = (syslog-get-basename-and-number filename)
-	     for basename = (car pair)
-	     for basename2 = (file-name-nondirectory basename)
-	     for curver = (cdr pair)
-	     for num2 = (if (>= num 0) num
-			  (- (let* ((startdate (+ (float-time (nth 5 (file-attributes filename)))
-						  (* num 86400))))
-			       (cl-loop for file2 in (directory-files (file-name-directory filename)
-								      t basename2)
-					for filedate2 = (float-time (nth 5 (file-attributes file2)))
-					if (>= filedate2 startdate)
-					maximize (cdr (syslog-get-basename-and-number file2))))
-			     curver))
-	     for files = (cl-loop for n from (1+ curver) to (+ curver num2)
-				  for numstr = (number-to-string n)
-				  for nextfile = (cl-loop for suffix in '(nil ".gz" ".tgz")
-							  for filename3 = (concat basename "." numstr suffix)
-							  if (file-readable-p filename3)
-							  return filename3)
-				  collect nextfile)
-	     nconc (nconc (list filename) files))))
+	 (pairs
+	  (or pairs
+	      (cl-loop
+	       while continue
+	       do (setq
+		   filename
+		   (ido-read-file-name
+		    (or prompt "Log file: ")
+		    syslog-log-file-directory "syslog" nil)
+		   num (if onlyone 0
+			 (read-number
+			  "Number of previous files (if positive) or days (if negative) to include"
+			  num)))
+	       collect (cons filename num)
+	       if onlyone do (setq continue nil)
+	       else do (setq continue (y-or-n-p "Add more files? "))))))
+    (cl-remove-duplicates
+     (cl-loop for pair1 in pairs
+	      for filename = (car pair1)
+	      for num = (cdr pair1)
+	      for pair = (syslog-get-basename-and-number filename)
+	      for basename = (car pair)
+	      for basename2 = (file-name-nondirectory basename)
+	      for curver = (cdr pair)
+	      for num2 = (if (>= num 0) num
+			   (- (let* ((startdate (+ (float-time (nth 5 (file-attributes filename)))
+						   (* num 86400))))
+				(cl-loop for file2 in (directory-files (file-name-directory filename)
+								       t basename2)
+					 for filedate2 = (float-time (nth 5 (file-attributes file2)))
+					 if (>= filedate2 startdate)
+					 maximize (cdr (syslog-get-basename-and-number file2))))
+			      curver))
+	      for files = (cl-loop for n from (1+ curver) to (+ curver num2)
+				   for numstr = (number-to-string n)
+				   for nextfile = (cl-loop for suffix in '(nil ".gz" ".tgz")
+							   for filename3 = (concat basename "." numstr suffix)
+							   if (file-readable-p filename3)
+							   return filename3)
+				   collect nextfile)
+	      nconc (nconc (list filename) files)) :test 'equal)))
 
 (defun syslog-append-files (files buf &optional replace label)
   "Append FILES into buffer BUF.
-If REPLACE is non-nil or a prefix argument is used when called interactively
-then the contents of BUF will be overwritten.
+If REPLACE is non-nil then the contents of BUF will be overwritten.
 If the optional argument LABEL is non-nil then each new line will be labelled
 with the corresponding filename.
-When called interactively the current buffer is used,
-and FILES are prompted for using `syslog-get-filenames'."
-  (interactive (list (syslog-get-filenames nil "Append log file: ") (current-buffer)
-		     current-prefix-arg
-		     (y-or-n-p "Label lines with filenames? ")))
+When called interactively the current buffer is used, FILES are prompted for
+using `syslog-get-filenames', and REPLACE & LABEL are set to nil, unless
+a prefix argument is used in which case they are prompted for."
+  (interactive (list (syslog-get-filenames nil "Append log file: "
+					   (not current-prefix-arg))
+		     (current-buffer)
+		     (if current-prefix-arg
+			 (y-or-n-p "Replace current buffer contents? "))
+		     (if current-prefix-arg
+			 (y-or-n-p "Label lines with filenames? "))))
   (with-current-buffer buf
     (let ((ro buffer-read-only))
       (read-only-mode -1)
       (set-visited-file-name nil)
       (cl-loop for file in (cl-remove-duplicates files :test 'equal)
 	       do (goto-char (point-max))
+	       do (insert-file-contents file))
+      (read-only-mode (if ro 1 -1)))))
+
+(defun syslog-prepend-files (files buf &optional replace label)
+  "Prepend FILES into buffer BUF.
+If REPLACE is non-nil then the contents of BUF will be overwritten.
+If the optional argument LABEL is non-nil then each new line will be labelled
+with the corresponding filename.
+When called interactively the current buffer is used, FILES are prompted for
+using `syslog-get-filenames', and REPLACE & LABEL are set to nil, unless
+a prefix argument is used in which case they are prompted for."
+  (interactive (list (syslog-get-filenames nil "Prepend log file: "
+					   (not current-prefix-arg))
+		     (current-buffer)
+		     (if current-prefix-arg
+			 (y-or-n-p "Replace current buffer contents? "))
+		     (if current-prefix-arg
+			 (y-or-n-p "Label lines with filenames? "))))
+  (with-current-buffer buf
+    (let ((ro buffer-read-only))
+      (read-only-mode -1)
+      (set-visited-file-name nil)
+      (cl-loop for file in (cl-remove-duplicates files :test 'equal)
+	       do (goto-char (point-min))
 	       do (insert-file-contents file))
       (read-only-mode (if ro 1 -1)))))
 
