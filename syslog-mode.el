@@ -267,7 +267,7 @@ The PROMPT argument is an optional prompt to use for prompting the user for file
 							   if (file-readable-p filename3)
 							   return filename3)
 				   collect nextfile)
-	      nconc (nconc (list filename) files)) :test 'equal)))
+	      nconc (nconc (list filename) (cl-remove-if 'null files))) :test 'equal)))
 
 (defun syslog-append-files (files buf &optional replace label)
   "Append FILES into buffer BUF.
