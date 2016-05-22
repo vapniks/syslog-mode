@@ -450,11 +450,11 @@ With prefix arg: remove lines matching regexp."
   (interactive "p")
   (if (> arg 1)
       (let ((regex (read-regexp "Regexp matching lines to remove"
-				(word-at-point))))
+				(symbol-at-point))))
         (unless (string= regex "")
           (hide-lines-matching regex)))
     (let ((regex (read-regexp "Regexp matching lines to keep"
-			      (word-at-point))))
+			      (symbol-at-point))))
       (unless (string= regex "")
 	(hide-lines-not-matching regex)))))
 
@@ -549,7 +549,7 @@ buffer respectively."
 
 (defun syslog-count-matches (regexp)
   "Count strings which match the given pattern."
-  (interactive (list (read-regexp "How many matches for regexp" (word-at-point))))
+  (interactive (list (read-regexp "How many matches for regexp" (symbol-at-point))))
   (message "%s occurrences" (count-matches regexp
                                            (point-min)
                                            (point-max) nil)))
