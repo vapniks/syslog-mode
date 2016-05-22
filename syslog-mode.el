@@ -390,7 +390,8 @@ When called interactively the FILES are prompted for using `syslog-get-filenames
 (defun syslog-view (files &optional label rxshow rxhide startdate enddate removedates
 			  highlights bufname)
   "Open a view of syslog files with optional filters and highlights applied.
-FILES should be the same as the first argument to `syslog-get-filenames' - a list of cons
+FILES can be either nil in which case the view is applied to the current log file, or
+it can be the same as the first argument to `syslog-get-filenames' - a list of cons
 cells whose cars are filenames and whose cdrs indicate how many logfiles to include.
 LABEL indicates whether or not to label each line with the filename it came from.
 RXSHOW and RXHIDE are optional regexps which will be used to filter in/out buffer lines 
@@ -399,8 +400,10 @@ lines with `syslog-filter-dates'; they can be either date strings or time lists 
 by `syslog-date-to-time'.
 HIGHLIGHTS is a list of cons cells whose cars are regexps and whose cdrs are faces to 
 highlight those regexps with."
-  (let ((filenames (syslog-get-filenames files)))
-    (syslog-open-files filenames label)
+  (if files (syslog-open-files (syslog-get-filenames files) label))
+  (if (not (eq major-mode 'syslog-mode))
+      (error "Not in syslog-mode")
+    (unless files (hide-lines-show-all))
     (if rxshow (hide-lines-not-matching rxshow))
     (if rxhide (hide-lines-matching rxhide))
     (if (or startdate enddate)
