@@ -198,6 +198,7 @@
     (define-key map "a" 'syslog-append-files)
     (define-key map "p" 'syslog-prepend-files)
     (define-key map "c" 'syslog-count-matches)
+    (define-key map "w" 'syslog-whois-reverse-lookup)
     (define-key map "q" 'quit-window)
     ;; XEmacs does not like the Alt bindings
     (if (string-match "XEmacs" (emacs-version))
@@ -560,6 +561,18 @@ buffer respectively."
   (interactive)
   (search-forward-regexp syslog-boot-start-regexp (point-max) t)
   (beginning-of-line))
+
+(defun syslog-whois-reverse-lookup (arg search-string)
+  "This is a wrapper around the `whois' command using symbol at point as default search string.
+Also `whois-server-name' is set to `whois-reverse-lookup-server'.
+The ARG and SEARCH-STRING arguments are the same as for `whois'."
+  (interactive (list current-prefix-arg
+		     (let* ((symb (symbol-at-point))
+			    (default (replace-regexp-in-string ":[0-9]+$" "" (symbol-name symb))))
+		       (read-string (if symb (concat "Whois (default " default "): ")
+				      "Whois: ") nil nil default))))
+  (let ((whois-server-name whois-reverse-lookup-server))
+    (whois arg search-string)))
 
 (defface syslog-ip
   '((t :underline t :slant italic :weight bold))
