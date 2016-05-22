@@ -198,7 +198,7 @@
     (define-key map "a" 'syslog-append-files)
     (define-key map "p" 'syslog-prepend-files)
     (define-key map "c" 'syslog-count-matches)
-    (define-key map "w" 'syslog-whois-reverse-lookup)
+    (define-key map "W" 'syslog-whois-reverse-lookup)
     (define-key map "q" 'quit-window)
     ;; XEmacs does not like the Alt bindings
     (if (string-match "XEmacs" (emacs-version))
