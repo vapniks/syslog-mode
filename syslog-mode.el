@@ -460,6 +460,24 @@ With prefix arg: remove lines matching regexp."
 	(hide-lines-not-matching regex)))))
 
 ;;;###autoload
+(defcustom syslog-views nil
+  "A list of views."
+  :group 'syslog
+  :type '(repeat (list (string :tag "Name")
+		       (repeat (cons (string :tag "Base file")
+				     (number :tag "Number of previous files/days")))
+		       (choice (const :tag "No file labels" nil)
+			       (const :tag "Add file labels" t))
+		       (regexp :tag "Regexp matching lines to show")
+		       (regexp :tag "Regexp matching lines to hide")
+		       (string :tag "Start date")
+		       (string :tag "End date")
+		       (choice (const :tag "Keep matching dates" nil)
+			       (const :tag "Remove matching dates" t))
+		       (repeat (cons (regexp :tag "Regexp to highlight")
+				     (face :tag "Face")))
+		       (string :tag "Buffer name"))))
+
 (defcustom syslog-datetime-regexp "^\\(?:[^ :]+: \\)?\\(\\(?:[[:alpha:]]\\{3\\}\\)?[[:space:]]*[[:alpha:]]\\{3\\}\\s-+[0-9]+\\s-+[0-9:]+\\)"
   "A regular expression matching the date-time at the beginning of each line in the log file."
   :group 'syslog
