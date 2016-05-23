@@ -197,12 +197,12 @@
     (define-key map "o" 'syslog-open-files)
     (define-key map "a" 'syslog-append-files)
     (define-key map "p" 'syslog-prepend-files)
+    (define-key map "v" 'syslog-view)
     (define-key map "c" 'syslog-count-matches)
     (define-key map "W" 'syslog-whois-reverse-lookup)
     (define-key map "q" 'quit-window)
     ;; XEmacs does not like the Alt bindings
-    (if (string-match "XEmacs" (emacs-version))
-	t)
+    (if (string-match "XEmacs" (emacs-version)) t)
     map)
   "The local keymap for `syslog-mode'.")
 
@@ -391,6 +391,8 @@ When called interactively the FILES are prompted for using `syslog-get-filenames
 (defun syslog-view (files &optional label rxshow rxhide startdate enddate removedates
 			  highlights bufname)
   "Open a view of syslog files with optional filters and highlights applied.
+When called interactively the user is prompted for a member of `syslog-views' and the
+arguments are determined from the chosen member.
 FILES can be either nil in which case the view is applied to the current log file, or
 it can be the same as the first argument to `syslog-get-filenames' - a list of cons
 cells whose cars are filenames and whose cdrs indicate how many logfiles to include.
@@ -401,19 +403,35 @@ lines with `syslog-filter-dates'; they can be either date strings or time lists 
 by `syslog-date-to-time'.
 HIGHLIGHTS is a list of cons cells whose cars are regexps and whose cdrs are faces to 
 highlight those regexps with."
-  (if files (syslog-open-files (syslog-get-filenames files) label))
-  (if (not (eq major-mode 'syslog-mode))
-      (error "Not in syslog-mode")
-    (unless files (hide-lines-show-all))
-    (if rxshow (hide-lines-not-matching rxshow))
-    (if rxhide (hide-lines-matching rxhide))
-    (if (or startdate enddate)
-	(syslog-filter-dates startdate enddate removedates))
-    (if highlights
-	(cl-loop for hl in highlights
-		 for (regex . face) = hl
-		 do (highlight-regexp regex face)))
-    (if bufname (rename-buffer bufname t))))
+  (interactive (let ((view (cdr (cl-assoc (ido-completing-read "View: " (mapcar 'car syslog-views))
+					  syslog-views :test 'equal))))
+		 (list (first view)
+		       (second view)
+		       (third view)
+		       (fourth view)
+		       (fifth view)
+		       (sixth view)
+		       (seventh view)
+		       (eighth view)
+		       (ninth view))))
+  (let ((rxshow (unless (or (not rxshow) (equal rxshow "")) rxshow))
+	(rxhide (unless (or (not rxhide) (equal rxhide "")) rxhide))
+	(startdate (unless (or (not startdate) (equal startdate "")) startdate))
+	(enddate (unless (or (not enddate) (equal enddate "")) enddate))
+	(bufname (unless (or (not bufname) (equal bufname "")) bufname))) 
+    (if files (syslog-open-files (syslog-get-filenames files) label))
+    (if (not (eq major-mode 'syslog-mode))
+	(error "Not in syslog-mode")
+      (unless files (hide-lines-show-all))
+      (if rxshow (hide-lines-not-matching rxshow))
+      (if rxhide (hide-lines-matching rxhide))
+      (if (or startdate enddate)
+	  (syslog-filter-dates startdate enddate removedates))
+      (if highlights
+	  (cl-loop for hl in highlights
+		   for (regex . face) = hl
+		   do (highlight-regexp regex face)))
+      (if bufname (rename-buffer bufname t)))))
 
 (defun syslog-previous-file (&optional arg)
   "Open the previous logfile backup, or the next one if a prefix arg is used.
