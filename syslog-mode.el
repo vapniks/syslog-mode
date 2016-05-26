@@ -388,6 +388,7 @@ When called interactively the FILES are prompted for using `syslog-get-filenames
       (setq default-directory (file-name-directory (car files))))
     (switch-to-buffer buf)))
 
+;;;###autoload
 (defun syslog-view (files &optional label rxshow rxhide startdate enddate removedates
 			  highlights bufname)
   "Open a view of syslog files with optional filters and highlights applied.
@@ -422,7 +423,6 @@ highlight those regexps with."
     (if files (syslog-open-files (syslog-get-filenames files) label))
     (if (not (eq major-mode 'syslog-mode))
 	(error "Not in syslog-mode")
-      (unless files (hide-lines-show-all))
       (if rxshow (hide-lines-not-matching rxshow))
       (if rxhide (hide-lines-matching rxhide))
       (if (or startdate enddate)
@@ -617,7 +617,7 @@ The ARG and SEARCH-STRING arguments are the same as for `whois'."
 
 (defface syslog-file
   (list (list t :weight 'bold
-	      :inherit (if (facep diredp-file-name)
+	      :inherit (if (facep 'diredp-file-name)
 			   'diredp-file-name
 			 'dired-ignored)))
   "Face for filenames"
