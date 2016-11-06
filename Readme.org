@@ -23,7 +23,7 @@ Below are complete command list:
  - `syslog-open-files'    : Open consecutive log files in same buffer.
  - `syslog-previous-file' : Open the previous logfile backup, or the next one if a prefix arg is used.
  - `syslog-next-file'     : Open the next logfile.
- - `syslog-filter-lines'  : Restrict buffer to lines matching regexp.
+ - `syslog-filter-lines'  : Restrict buffer to blocks of lines between matching regexps.
  - `syslog-filter-dates'  : Restrict buffer to lines between dates.
  - `syslog-mode'          : Major mode for working with system logs.
  - `syslog-boot-start'    : Jump forward in the log to when the system booted.
