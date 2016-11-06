@@ -464,18 +464,24 @@ This just calls `syslog-previous-file' with non-nil argument, so we can bind it 
 
 ;;;###autoload
 (defun syslog-filter-lines (&optional arg)
-  "Restrict buffer to lines matching regexp.
-With prefix arg: remove lines matching regexp."
+  "Restrict buffer to blocks of text between matching regexps.
+If the user only enters one regexp then just filter matching lines instead of blocks.
+With prefix ARG: remove matching blocks."
   (interactive "p")
-  (if (> arg 1)
-      (let ((regex (read-regexp "Regexp matching lines to remove"
-				(symbol-name (symbol-at-point)))))
-        (unless (string= regex "")
-          (hide-lines-matching regex)))
-    (let ((regex (read-regexp "Regexp matching lines to keep"
-			      (symbol-name (symbol-at-point)))))
-      (unless (string= regex "")
-	(hide-lines-not-matching regex)))))
+  (let* ((str (if (> arg 1) "to remove" "to keep"))
+	 (startregex (read-regexp
+		      (format "Regexp matching start lines of blocks %s" str)
+		      (symbol-name (symbol-at-point))))
+	 (endregex (read-regexp
+		    (format "Regexp matching end lines of blocks %s (default=filter start lines only)" str))))
+    (unless (string= startregex "")
+      (if (> arg 1)
+	  (if (string= endregex "")
+	      (hide-lines-matching startregex)
+	    (hide-blocks-matching startregex endregex))
+	(if (string= endregex "")
+	    (hide-lines-not-matching startregex)
+	  (hide-blocks-not-matching startregex endregex))))))
 
 ;;;###autoload
 (defcustom syslog-views nil
