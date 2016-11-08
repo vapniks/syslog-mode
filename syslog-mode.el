@@ -165,8 +165,10 @@
   "syslog-mode - a major mode for viewing log files"
   :link '(url-link "https://github.com/vapniks/syslog-mode"))
 
-(defvar syslog-mode-hook nil
-  "*Hook to setup `syslog-mode'.")
+(defcustom syslog-mode-hook nil
+  "*Hook to setup `syslog-mode'."
+  :group 'syslog
+  :type 'hook)
 
 (defvar syslog-mode-load-hook nil
   "*Hook to run when `syslog-mode' is loaded.")
