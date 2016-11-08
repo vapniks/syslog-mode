@@ -192,7 +192,7 @@
     (define-key map (kbd "C-/") 'syslog-filter-dates)
     (define-key map "D" (lambda nil (interactive) (dired syslog-log-file-directory)))
     (define-key map "j" 'ffap)
-    (define-key map "f" 'ffap)    
+    (define-key map "f" 'ffap)
     (define-key map "<" 'syslog-previous-file)
     (define-key map ">" 'syslog-next-file)
     (define-key map "o" 'syslog-open-files)
@@ -628,6 +628,7 @@ buffer respectively."
 					   :help "Remove highlighting"
 					   :keys "h u"))]
       ["Open stored view..." syslog-view :help "Open a stored view of syslog files" :key "v"]
+      ["Edit stored views..." (lambda nil (interactive) (customize-variable 'syslog-views)) :help "Customize `syslog-views'"]
       ["---" "---"]))
   ;; font locking
   (make-local-variable 'font-lock-defaults)
