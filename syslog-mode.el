@@ -519,8 +519,10 @@ If regexps matching end lines are left blank then lines will be filtered instead
 				     (face :tag "Face")))
 		       (string :tag "Buffer name"))))
 
-(defcustom syslog-datetime-regexp "^\\(?:[^ :]+: \\)?\\(\\(?:[[:alpha:]]\\{3\\}\\)?[[:space:]]*[[:alpha:]]\\{3\\}\\s-+[0-9]+\\s-+[0-9:]+\\)"
-  "A regular expression matching the date-time at the beginning of each line in the log file."
+(defcustom syslog-datetime-regexp
+  "^\\(?:[^ :]+: \\)?\\(\\(?:\\(?:[[:alpha:]]\\{3\\}\\)?[[:space:]]*[[:alpha:]]\\{3\\}\\s-+[0-9]+\\s-+[0-9:]+\\)\\|\\(?:[0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}\\s-+[0-9]\\{2\\}:[0-9]\\{2\\}:[0-9]\\{2\\}\\)\\)"
+  "A regular expression matching the date-time at the beginning of each line in the log file.
+It should contain one non-shy subexpression matching the datetime string."
   :group 'syslog
   :type 'regexp)
 
