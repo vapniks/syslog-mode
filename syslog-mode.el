@@ -713,6 +713,11 @@ The ARG and SEARCH-STRING arguments are the same as for `whois'."
   "Face for su and sudo"
   :group 'syslog)
 
+(defface syslog-hide
+  '((t :foreground "black" :background "black"))
+  "Face for hiding text"
+  :group 'syslog)
+
 ;; Keywords
 ;; TODO: Seperate the keywords into a list for each format, rather than one for all.
 ;;       Better matching of dates (even when not at beginning of line).
