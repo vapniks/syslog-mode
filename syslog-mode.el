@@ -157,6 +157,7 @@
 (require 'hide-lines)
 (eval-when-compile (require 'cl))
 (require 'ido)
+(require 'hi-lock)
 
 ;;; Code:
 
