@@ -158,6 +158,7 @@
 (eval-when-compile (require 'cl))
 (require 'ido)
 (require 'hi-lock)
+(require 'net-utils)
 
 ;;; Code:
 
