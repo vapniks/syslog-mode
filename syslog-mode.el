@@ -427,31 +427,32 @@ HIGHLIGHTS is a list of cons cells whose cars are regexps and whose cdrs are fac
 highlight those regexps with."
   (interactive (cdr (cl-assoc (ido-completing-read "View: " (mapcar 'car syslog-views))
 			      syslog-views :test 'string=)))
-  (let ((rxshowstart (unless (or (not rxshowstart) (string= rxshowstart "")) rxshowstart))
-	(rxshowend (unless (or (not rxshowend) (string= rxshowend "")) rxshowend))
-	(rxhidestart (unless (or (not rxhidestart) (string= rxhidestart "")) rxhidestart))
-	(rxhideend (unless (or (not rxhideend) (string= rxhideend "")) rxhideend))
-	(startdate (unless (or (not startdate) (string= startdate "")) startdate))
-	(enddate (unless (or (not enddate) (string= enddate "")) enddate))
-	(bufname (unless (or (not bufname) (string= bufname "")) bufname))) 
-    (if files (syslog-open-files (syslog-get-filenames files) label))
-    (if (not (eq major-mode 'syslog-mode))
-	(error "Not in syslog-mode")
-      (if rxshowstart
-	  (if rxshowend
-	      (hide-blocks-not-matching rxshowstart rxshowend)
-	    (hide-lines-not-matching rxshowstart)))
-      (if rxhidestart
-	  (if rxhideend
-	      (hide-blocks-not-matching rxhidestart rxhideend)
-	    (hide-lines-matching rxhidestart)))
-      (if (or startdate enddate)
-	  (syslog-filter-dates startdate enddate removedates))
-      (if highlights
-	  (cl-loop for hl in highlights
-		   for (regex . face) = hl
-		   do (highlight-regexp regex face)))
-      (if bufname (rename-buffer bufname t)))))
+  (cl-flet ((getstr (str) (and (not (string= str "")) str)))
+    (let ((rxshowstart (getstr rxshowstart))
+	  (rxshowend (getstr rxshowend))
+	  (rxhidestart (getstr rxhidestart))
+	  (rxhideend (getstr rxhideend))
+	  (startdate (getstr startdate))
+	  (enddate (getstr enddate))
+	  (bufname (getstr bufname))) 
+      (if files (syslog-open-files (syslog-get-filenames files) label))
+      (if (not (eq major-mode 'syslog-mode))
+	  (error "Not in syslog-mode")
+	(if rxshowstart
+	    (if rxshowend
+		(hide-blocks-not-matching rxshowstart rxshowend)
+	      (hide-lines-not-matching rxshowstart)))
+	(if rxhidestart
+	    (if rxhideend
+		(hide-blocks-not-matching rxhidestart rxhideend)
+	      (hide-lines-matching rxhidestart)))
+	(if (or startdate enddate)
+	    (syslog-filter-dates startdate enddate removedates))
+	(if highlights
+	    (cl-loop for hl in highlights
+		     for (regex . face) = hl
+		     do (highlight-regexp regex face)))
+	(if bufname (rename-buffer bufname t))))))
 
 (defun syslog-previous-file (&optional arg)
   "Open the previous logfile backup, or the next one if a prefix arg is used.
