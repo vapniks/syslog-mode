@@ -207,6 +207,8 @@
     (define-key map "W" 'syslog-whois-reverse-lookup)
     (define-key map "q" 'quit-window)
     (define-key map "!" 'syslog-shell-command)
+    (define-key map (kbd "<M-down>") 'syslog-move-next-file)
+    (define-key map (kbd "<M-up>") 'syslog-move-previous-file)
     ;; XEmacs does not like the Alt bindings
     (if (string-match "XEmacs" (emacs-version)) t)
     map)
@@ -486,6 +488,18 @@ This just calls `syslog-previous-file' with non-nil argument, so we can bind it 
   (interactive)
   (syslog-previous-file t))
 
+(defun syslog-move-next-file nil
+  "Move to the next file in the current `syslog-mode' buffer."
+  (interactive)
+  (goto-char (next-single-property-change
+	      (point) 'syslog-filename nil (point-max))))
+
+(defun syslog-move-previous-file nil
+  "Move to the next file in the current `syslog-mode' buffer."
+  (interactive)
+  (goto-char (previous-single-property-change
+	      (point) 'syslog-filename nil (point-min))))
+
 ;;;###autoload
 (defun syslog-filter-lines (&optional arg)
   "Restrict buffer to blocks of text between matching regexps.
@@ -619,8 +633,10 @@ buffer respectively."
       ["Filter lines..." syslog-filter-lines :help "Show/hide blocks of text between matching regexps" :key "/"]
       ["Filter dates..." syslog-filter-dates :help "Show/hide lines between start and end dates" :key "C-/"]
       ["Jump to boot start" syslog-boot-start :help "Jump forward in the log to when the system booted" :key "<C-down>"]
-      ["Previous log file" syslog-previous-file :help "Open previous logfile backup" :key "<"]
-      ["Next log file" syslog-next-file :help "Open next logfile backup" :key ">"]
+      ["Open previous log file" syslog-previous-file :help "Open previous logfile backup" :key "<"]
+      ["Open next log file" syslog-next-file :help "Open next logfile backup" :key ">"]
+      ["Move to previous log file" syslog-move-previous-file :help "Move to previous logfile in buffer" :key "<M-up>"]
+      ["Move to next log file" syslog-move-next-file :help "Move to next logfile in buffer" :key "<M-down>"]
       ["Open log files..." syslog-open-files :help "Insert log files into new buffer" :key "o"]
       ["Append files..." syslog-append-files :help "Append files into current buffer" :key "a"]
       ["Prepend files..." syslog-prepend-files :help "Prepend files into current buffer" :key "p"]
