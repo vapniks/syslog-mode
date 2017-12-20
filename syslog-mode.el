@@ -301,8 +301,7 @@ with the corresponding filename.
 When called interactively the current buffer is used, FILES are prompted for
 using `syslog-get-filenames', and REPLACE & LABEL are set to nil, unless
 a prefix argument is used in which case they are prompted for."
-  (interactive (list (syslog-get-filenames
-		      nil "Append log file: " (not current-prefix-arg))
+  (interactive (list (syslog-get-filenames nil "Append log file: ")
 		     (current-buffer)
 		     (if current-prefix-arg
 			 (y-or-n-p "Replace current buffer contents? "))
@@ -311,19 +310,17 @@ a prefix argument is used in which case they are prompted for."
   (with-current-buffer buf
     (let ((inhibit-read-only t))
       (set-visited-file-name nil)
-      (cl-loop for file in (cl-remove-duplicates files :test 'equal)
-	       do (goto-char (point-max))
-	       (insert-file-contents file)
-	       (goto-char (point-max))
-	       (forward-line 0)
-	       (let ((start (point)))
-		 (insert-file-contents file)
-		 (goto-char (point-max))
-		 (forward-line 0)
-		 (unless (not label)
-		   (string-rectangle
-		    start (point) (concat (file-name-nondirectory file) ": ")))
-		 (put-text-property start (point) 'syslog-filename file))))))
+      (save-excursion
+	(cl-loop for file in (cl-remove-duplicates files :test 'equal)
+		 do (goto-char (point-max))
+		 (let ((start (point)))
+		   (insert-file-contents file)
+		   (goto-char (point-max))
+		   (unless (not label)
+		     (apply-on-rectangle
+		      'string-rectangle-line start (line-beginning-position 0)
+		      (concat (file-name-nondirectory file) ": ") nil))
+		   (put-text-property start (point) 'syslog-filename file)))))))
 
 (defun syslog-prepend-files (files buf &optional replace label)
   "Prepend FILES into buffer BUF.
@@ -333,8 +330,7 @@ with the corresponding filename.
 When called interactively the current buffer is used, FILES are prompted for
 using `syslog-get-filenames', and REPLACE & LABEL are set to nil, unless
 a prefix argument is used in which case they are prompted for."
-  (interactive (list (syslog-get-filenames nil "Prepend log file: "
-					   (not current-prefix-arg))
+  (interactive (list (syslog-get-filenames nil "Prepend log file: ")
 		     (current-buffer)
 		     (if current-prefix-arg
 			 (y-or-n-p "Replace current buffer contents? "))
@@ -345,12 +341,11 @@ a prefix argument is used in which case they are prompted for."
       (set-visited-file-name nil)
       (cl-loop for file in (cl-remove-duplicates files :test 'equal)
 	       do (let ((start (goto-char (point-min))))
-		    (forward-char (second (insert-file-contents file)))
-		    (forward-line 0)
+		    (forward-char (cl-second (insert-file-contents file)))
 		    (unless (not label)
-		      (string-rectangle
-		       start (point)
-		       (concat (file-name-nondirectory file) ": ")))
+		      (apply-on-rectangle
+		       'string-rectangle-line start (line-beginning-position 0)
+		       (concat (file-name-nondirectory file) ": ") nil))
 		    (put-text-property start (point) 'syslog-filename file))))))
 
 (defun syslog-create-buffer (filenames)
