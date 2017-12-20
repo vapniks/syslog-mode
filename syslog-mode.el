@@ -425,19 +425,8 @@ STARTDATE and ENDDATE are optional dates used to filter the lines with `syslog-f
 they can be either date strings or time lists as returned by `syslog-date-to-time'.
 HIGHLIGHTS is a list of cons cells whose cars are regexps and whose cdrs are faces to 
 highlight those regexps with."
-  (interactive (let ((view (cdr (cl-assoc (ido-completing-read "View: " (mapcar 'car syslog-views))
-					  syslog-views :test 'string=))))
-		 (list (cl-first view)
-		       (cl-second view)
-		       (cl-third view)
-		       (cl-fourth view)
-		       (cl-fifth view)
-		       (cl-sixth view)
-		       (cl-seventh view)
-		       (cl-eighth view)
-		       (cl-ninth view)
-		       (cl-tenth view)
-		       (nth 10 view))))
+  (interactive (cdr (cl-assoc (ido-completing-read "View: " (mapcar 'car syslog-views))
+			      syslog-views :test 'string=)))
   (let ((rxshowstart (unless (or (not rxshowstart) (string= rxshowstart "")) rxshowstart))
 	(rxshowend (unless (or (not rxshowend) (string= rxshowend "")) rxshowend))
 	(rxhidestart (unless (or (not rxhidestart) (string= rxhidestart "")) rxhidestart))
