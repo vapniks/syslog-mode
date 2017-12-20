@@ -209,6 +209,7 @@
     (define-key map "!" 'syslog-shell-command)
     (define-key map (kbd "<M-down>") 'syslog-move-next-file)
     (define-key map (kbd "<M-up>") 'syslog-move-previous-file)
+    (define-key map "t" 'syslog-toggle-filenames)
     ;; XEmacs does not like the Alt bindings
     (if (string-match "XEmacs" (emacs-version)) t)
     map)
@@ -463,8 +464,7 @@ This function will load the previous log file to the current one (if it exists),
 one if ARG is non-nil."
   (interactive "P")
   (let* ((pair (syslog-get-basename-and-number
-		(or (get-text-property (point) 'syslog-filename)
-		    buffer-file-name)))
+		(syslog-get-filename-at-point)))
          (basename (car pair))
          (curver (cdr pair))
          (nextver (if arg (1- curver) (1+ curver)))
@@ -505,6 +505,50 @@ files forward."
   (cl-loop for i from 1 to arg
 	   do (goto-char (previous-single-property-change
 			  (point) 'syslog-filename nil (point-min)))))
+
+(defun syslog-get-filename-at-point nil
+  "Get the filename associated with the line at point."
+  (or (get-text-property (point) 'syslog-filename)
+      buffer-file-name))
+
+(defun syslog-toggle-filenames (&optional arg)
+  "Toggle the display of filenames before each line.
+If prefix ARG is positive display filenames, and if its negative hide them,
+otherwise toggle them."
+  (interactive "P")
+  (save-excursion
+    (let* ((start (goto-char (point-min)))
+	   (filename (syslog-get-filename-at-point))
+	   (fileshownp (and filename
+			    (looking-at
+			     (concat "^" (regexp-quote (file-name-nondirectory filename))
+				     ": "))))
+	   (hidep (if arg (prefix-numeric-value arg) 0)))
+      (let ((inhibit-read-only t))
+	(while (and (goto-char
+		     (next-single-property-change
+		      (point) 'syslog-filename nil (point-max)))
+		    (/= start (point)))
+	  (if fileshownp
+	      (if (<= hidep 0)
+		  (apply-on-rectangle
+		   'delete-rectangle-line
+		   start (+ (line-beginning-position 0)
+			    (length (match-string 0)))
+		   nil))
+	    (unless (< hidep 0)
+	      (apply-on-rectangle
+	       'string-rectangle-line start
+	       (line-beginning-position 0)
+	       (concat (file-name-nondirectory filename) ": ")
+	       nil)
+	      (put-text-property start (point) 'syslog-filename filename)))
+	  (setq start (point)
+		filename (syslog-get-filename-at-point)
+		fileshownp (and filename
+				(looking-at
+				 (concat "^" (regexp-quote (file-name-nondirectory filename))
+					 ": ")))))))))
 
 ;;;###autoload
 (defun syslog-filter-lines (&optional arg)
@@ -646,6 +690,7 @@ buffer respectively."
       ["Open log files..." syslog-open-files :help "Insert log files into new buffer" :key "o"]
       ["Append files..." syslog-append-files :help "Append files into current buffer" :key "a"]
       ["Prepend files..." syslog-prepend-files :help "Prepend files into current buffer" :key "p"]
+      ["Toggle filenames" syslog-toggle-filenames :help "Toggle display of filenames" :key "t"]
       ["Find file at point" ffap :help "Find file at point" :key "f"]
       ["Whois" syslog-whois-reverse-lookup :help "Perform whois lookup on hostname at point" :key "W"]
       ["Count matches" syslog-count-matches :help "Count strings which match the given pattern" :key "c"]
