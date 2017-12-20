@@ -782,13 +782,11 @@ These hooks will activate `syslog-mode' when visiting a file
 which has a syslog-like name (.fasta or .gb) or whose contents
 looks like syslog.  It will also turn enable fontification for `syslog-mode'."
   ;; (add-hook 'find-file-hooks 'syslog-find-file-func)
-  (add-to-list
-   'auto-mode-alist
-   '("\\(messages\\(\\.[0-9]\\)?\\|SYSLOG\\)\\'" . syslog-mode)))
+  (add-to-list 'auto-mode-alist
+	       '("\\(messages\\(\\.[0-9]\\)?\\|SYSLOG\\)\\'" . syslog-mode)))
 
 ;; Setup hooks on request when this mode is loaded.
-(if syslog-setup-on-load
-    (syslog-add-hooks))
+(if syslog-setup-on-load (syslog-add-hooks))
 
 ;; done loading
 (run-hooks 'syslog-mode-load-hook)
