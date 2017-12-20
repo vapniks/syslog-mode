@@ -391,19 +391,20 @@ When called interactively the FILES are prompted for using `syslog-get-filenames
 		     (y-or-n-p "Label lines with filenames? ")))
   (let ((buf (syslog-create-buffer files)))
     (with-current-buffer buf
-      (let ((ro buffer-read-only)
-	    start end)
-	(read-only-mode -1)
+      (let ((inhibit-read-only t))
 	(set-visited-file-name nil)
 	(cl-loop for file in (cl-remove-duplicates files :test 'equal)
-		 do (progn (setq start (goto-char (point-max)))
-			   (insert-file-contents file)
-			   (goto-char (point-max))
-			   (unless (not label)
-			     (forward-line 0)
-			     (string-rectangle
-			      start (point) (concat (file-name-nondirectory file) ": ")))))
-	(read-only-mode (if ro 1 -1)))
+		 do (let ((start (goto-char (point-max))))
+		      (insert-file-contents file)
+		      (goto-char (point-max))
+		      (unless (not label)
+			(forward-line 0)
+			(goto-char
+			 (apply-on-rectangle
+			  'string-rectangle-line start (point)
+			  (concat (file-name-nondirectory file) ": ") nil)))
+		      (put-text-property
+		       start (point) 'syslog-filename (file-name-nondirectory file)))))
       (syslog-mode)
       (setq default-directory (file-name-directory (car files))))
     (switch-to-buffer buf)))
