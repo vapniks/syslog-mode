@@ -293,20 +293,16 @@ The PROMPT argument is an optional prompt to use for prompting the user for file
 				   collect nextfile)
 	      nconc (nconc (list filename) (cl-remove-if 'null files))) :test 'equal)))
 
-(defun syslog-append-files (files buf &optional replace label)
+(defun syslog-append-files (files buf &optional replace)
   "Append FILES into buffer BUF.
 If REPLACE is non-nil then the contents of BUF will be overwritten.
-If the optional argument LABEL is non-nil then each new line will be labelled
-with the corresponding filename.
 When called interactively the current buffer is used, FILES are prompted for
-using `syslog-get-filenames', and REPLACE & LABEL are set to nil, unless
+using `syslog-get-filenames', and REPLACE is set to nil, unless
 a prefix argument is used in which case they are prompted for."
   (interactive (list (syslog-get-filenames nil "Append log file: ")
 		     (current-buffer)
 		     (if current-prefix-arg
-			 (y-or-n-p "Replace current buffer contents? "))
-		     (if current-prefix-arg
-			 (y-or-n-p "Label lines with filenames? "))))
+			 (y-or-n-p "Replace current buffer contents? "))))
   (with-current-buffer buf
     (let ((inhibit-read-only t))
       (set-visited-file-name nil)
@@ -316,36 +312,24 @@ a prefix argument is used in which case they are prompted for."
 		 (let ((start (point)))
 		   (insert-file-contents file)
 		   (goto-char (point-max))
-		   (unless (not label)
-		     (apply-on-rectangle
-		      'string-rectangle-line start (line-beginning-position 0)
-		      (concat (file-name-nondirectory file) ": ") nil))
 		   (put-text-property start (point) 'syslog-filename file)))))))
 
-(defun syslog-prepend-files (files buf &optional replace label)
+(defun syslog-prepend-files (files buf &optional replace)
   "Prepend FILES into buffer BUF.
 If REPLACE is non-nil then the contents of BUF will be overwritten.
-If the optional argument LABEL is non-nil then each new line will be labelled
-with the corresponding filename.
 When called interactively the current buffer is used, FILES are prompted for
-using `syslog-get-filenames', and REPLACE & LABEL are set to nil, unless
+using `syslog-get-filenames', and REPLACE is set to nil, unless
 a prefix argument is used in which case they are prompted for."
   (interactive (list (syslog-get-filenames nil "Prepend log file: ")
 		     (current-buffer)
 		     (if current-prefix-arg
-			 (y-or-n-p "Replace current buffer contents? "))
-		     (if current-prefix-arg
-			 (y-or-n-p "Label lines with filenames? "))))
+			 (y-or-n-p "Replace current buffer contents? "))))
   (with-current-buffer buf
     (let ((inhibit-read-only t))
       (set-visited-file-name nil)
       (cl-loop for file in (cl-remove-duplicates files :test 'equal)
 	       do (let ((start (goto-char (point-min))))
 		    (forward-char (cl-second (insert-file-contents file)))
-		    (unless (not label)
-		      (apply-on-rectangle
-		       'string-rectangle-line start (line-beginning-position 0)
-		       (concat (file-name-nondirectory file) ": ") nil))
 		    (put-text-property start (point) 'syslog-filename file))))))
 
 (defun syslog-create-buffer (filenames)
