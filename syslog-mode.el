@@ -298,30 +298,29 @@ with the corresponding filename.
 When called interactively the current buffer is used, FILES are prompted for
 using `syslog-get-filenames', and REPLACE & LABEL are set to nil, unless
 a prefix argument is used in which case they are prompted for."
-  (interactive (list (syslog-get-filenames nil "Append log file: "
-					   (not current-prefix-arg))
+  (interactive (list (syslog-get-filenames
+		      nil "Append log file: " (not current-prefix-arg))
 		     (current-buffer)
 		     (if current-prefix-arg
 			 (y-or-n-p "Replace current buffer contents? "))
 		     (if current-prefix-arg
 			 (y-or-n-p "Label lines with filenames? "))))
   (with-current-buffer buf
-    (let ((ro buffer-read-only))
-      (read-only-mode -1)
+    (let ((inhibit-read-only t))
       (set-visited-file-name nil)
       (cl-loop for file in (cl-remove-duplicates files :test 'equal)
 	       do (goto-char (point-max))
-	       do (insert-file-contents file)
-	       (progn (goto-char (point-max))
-		      (forward-line 0)
-		      (setq start (point))
-		      (insert-file-contents file)
-		      (unless (not label)
-			(goto-char (point-max))
-			(forward-line 0)
-			(string-rectangle
-			 start (point) (concat (file-name-nondirectory file) ": ")))))
-      (read-only-mode (if ro 1 -1)))))
+	       (insert-file-contents file)
+	       (goto-char (point-max))
+	       (forward-line 0)
+	       (let ((start (point)))
+		 (insert-file-contents file)
+		 (goto-char (point-max))
+		 (forward-line 0)
+		 (unless (not label)
+		   (string-rectangle
+		    start (point) (concat (file-name-nondirectory file) ": ")))
+		 (put-text-property start (point) 'syslog-filename file))))))
 
 (defun syslog-prepend-files (files buf &optional replace label)
   "Prepend FILES into buffer BUF.
@@ -339,18 +338,17 @@ a prefix argument is used in which case they are prompted for."
 		     (if current-prefix-arg
 			 (y-or-n-p "Label lines with filenames? "))))
   (with-current-buffer buf
-    (let ((ro buffer-read-only))
-      (read-only-mode -1)
+    (let ((inhibit-read-only t))
       (set-visited-file-name nil)
       (cl-loop for file in (cl-remove-duplicates files :test 'equal)
-	       do (progn (setq start (goto-char (point-min))
-			       nchars (second (insert-file-contents file)))
-			 (unless (not label)
-			   (forward-char nchars)			   
-			   (forward-line 0)
-			   (string-rectangle
-			    start (point) (concat (file-name-nondirectory file) ": ")))))
-      (read-only-mode (if ro 1 -1)))))
+	       do (let ((start (goto-char (point-min))))
+		    (forward-char (second (insert-file-contents file)))
+		    (forward-line 0)
+		    (unless (not label)
+		      (string-rectangle
+		       start (point)
+		       (concat (file-name-nondirectory file) ": ")))
+		    (put-text-property start (point) 'syslog-filename file))))))
 
 (defun syslog-create-buffer (filenames)
   "Create a new buffer named after the files in FILENAMES."
@@ -404,7 +402,7 @@ When called interactively the FILES are prompted for using `syslog-get-filenames
 			  'string-rectangle-line start (point)
 			  (concat (file-name-nondirectory file) ": ") nil)))
 		      (put-text-property
-		       start (point) 'syslog-filename (file-name-nondirectory file)))))
+		       start (point) 'syslog-filename file))))
       (syslog-mode)
       (setq default-directory (file-name-directory (car files))))
     (switch-to-buffer buf)))
@@ -462,21 +460,25 @@ where higher numbers indicate older log files.
 This function will load the previous log file to the current one (if it exists), or the next
 one if ARG is non-nil."
   (interactive "P")
-  (let* ((pair (syslog-get-basename-and-number buffer-file-name))
+  (let* ((pair (syslog-get-basename-and-number
+		(or (get-text-property (point) 'syslog-filename)
+		    buffer-file-name)))
          (basename (car pair))
          (curver (cdr pair))
          (nextver (if arg (1- curver) (1+ curver)))
          (nextfile (if (> nextver (1- syslog-number-suffix-start))
                        (concat basename "." (number-to-string nextver))
                      basename)))
-    (cond ((file-readable-p nextfile)
-           (find-file nextfile))
-          ((file-readable-p (concat nextfile ".bz2"))
-           (find-file (concat nextfile ".bz2")))
-          ((file-readable-p (concat nextfile ".gz"))
-           (find-file (concat nextfile ".gz")))
-          ((file-readable-p (concat nextfile ".tgz"))
-           (find-file (concat nextfile ".tgz"))))))
+    (let ((inhibit-read-only t))
+      (cond ((file-readable-p nextfile)
+	     (find-file nextfile))
+	    ((file-readable-p (concat nextfile ".bz2"))
+	     (find-file (concat nextfile ".bz2")))
+	    ((file-readable-p (concat nextfile ".gz"))
+	     (find-file (concat nextfile ".gz")))
+	    ((file-readable-p (concat nextfile ".tgz"))
+	     (find-file (concat nextfile ".tgz"))))
+      (put-text-property (point-min) (point-max) 'syslog-filename nextfile))))
 
 (defun syslog-next-file nil
   "Open the next logfile.
