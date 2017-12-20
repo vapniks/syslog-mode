@@ -76,8 +76,8 @@
 ;;    Major mode for working with system logs.
 ;;  `syslog-boot-start'
 ;;    Jump forward in the log to when the system booted.
-;;
-
+;;  `syslog-shell-command'
+;;    Execute a shell COMMAND synchronously. With prefix arg run under sudo.
 
 ;;; Customizable Options:
 ;;
@@ -216,7 +216,7 @@
   "The first number used as rotation suffix.")
 
 (defun syslog-shell-command (command &optional sudop)
-  "Execute a shell COMMAND synchronously. If SUDOP is non-nil run under sudo."
+  "Execute a shell COMMAND synchronously, with prefix arg (SUDOP) run under sudo."
   (interactive (list (read-string (if current-prefix-arg
 				      "Shell command (root): "
 				    "Shell command: "))
@@ -635,6 +635,7 @@ buffer respectively."
       ["Whois" syslog-whois-reverse-lookup :help "Perform whois lookup on hostname at point" :key "W"]
       ["Count matches" syslog-count-matches :help "Count strings which match the given pattern" :key "c"]
       ["Dired" (lambda nil (interactive) (dired syslog-log-file-directory)) :help "Enter logfiles directory" :keys "D"]
+      ["Shell command" syslog-shell-command :help "Execute shell command (as root if prefix arg used)" :key "!"]
       ["Highlight..." (keymap "Highlight"
 			      (regexp menu-item "Regexp" highlight-regexp
 				      :help "Highlight each match of regexp"
