@@ -488,17 +488,23 @@ This just calls `syslog-previous-file' with non-nil argument, so we can bind it 
   (interactive)
   (syslog-previous-file t))
 
-(defun syslog-move-next-file nil
-  "Move to the next file in the current `syslog-mode' buffer."
-  (interactive)
-  (goto-char (next-single-property-change
-	      (point) 'syslog-filename nil (point-max))))
+(defun syslog-move-next-file (&optional arg)
+  "Move to the next file in the current `syslog-mode' buffer.
+If ARG is non-nil (or called with numeric prefix arg), move that many
+files forward."
+  (interactive "p")
+  (cl-loop for i from 1 to arg
+	   do (goto-char (next-single-property-change
+			  (point) 'syslog-filename nil (point-max)))))
 
-(defun syslog-move-previous-file nil
-  "Move to the next file in the current `syslog-mode' buffer."
-  (interactive)
-  (goto-char (previous-single-property-change
-	      (point) 'syslog-filename nil (point-min))))
+(defun syslog-move-previous-file (&optional arg)
+  "Move to the next file in the current `syslog-mode' buffer.
+If ARG is non-nil (or called with numeric prefix arg), move that many
+files forward."
+  (interactive "p")
+  (cl-loop for i from 1 to arg
+	   do (goto-char (previous-single-property-change
+			  (point) 'syslog-filename nil (point-min)))))
 
 ;;;###autoload
 (defun syslog-filter-lines (&optional arg)
