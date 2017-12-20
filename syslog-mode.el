@@ -217,9 +217,9 @@
 
 (defun syslog-shell-command (command &optional sudop)
   "Execute a shell COMMAND synchronously, with prefix arg (SUDOP) run under sudo."
-  (interactive (list (read-string (if current-prefix-arg
-				      "Shell command (root): "
-				    "Shell command: "))
+  (interactive (list (read-shell-command (if current-prefix-arg
+					     "Shell command (root): "
+					   "Shell command: "))
 		     current-prefix-arg))
   (if sudop
       (with-temp-buffer
