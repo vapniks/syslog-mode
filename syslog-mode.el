@@ -206,6 +206,7 @@
     (define-key map "c" 'syslog-count-matches)
     (define-key map "W" 'syslog-whois-reverse-lookup)
     (define-key map "q" 'quit-window)
+    (define-key map "!" 'syslog-shell-command)
     ;; XEmacs does not like the Alt bindings
     (if (string-match "XEmacs" (emacs-version)) t)
     map)
@@ -213,6 +214,20 @@
 
 (defvar syslog-number-suffix-start 1
   "The first number used as rotation suffix.")
+
+(defun syslog-shell-command (command &optional sudop)
+  "Execute a shell COMMAND synchronously. If SUDOP is non-nil run under sudo."
+  (interactive (list (read-string (if current-prefix-arg
+				      "Shell command (root): "
+				    "Shell command: "))
+		     current-prefix-arg))
+  (if sudop
+      (with-temp-buffer
+	(cd (concat "/sudo::"
+		    (replace-regexp-in-string
+		     "^/sudo[^/]+" "" default-directory)))
+	(shell-command command))
+    (shell-command command)))
 
 (defun syslog-get-basename-and-number (filename)
   "Return the basename and number suffix of a log file in FILEPATH.
