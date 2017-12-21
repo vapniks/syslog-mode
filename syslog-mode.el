@@ -6,16 +6,16 @@
 ;; Maintainer: Joe Bloggs <vapniks@yahoo.com>
 ;; Created: 2003-03-17 18:50:12 Harley Gorrell
 ;; Version: 2.2
-;; Last-Updated: 2013-10-21 19:04:00
+;; Last-Updated: 2017-12-21 13:03:00
 ;;           By: Joe Bloggs
 ;; URL: https://github.com/vapniks/syslog-mode
 ;; Keywords: unix
 ;; Compatibility: GNU Emacs 24.3.1
-;; Package-Requires:  ((hide-lines "20130623"))
+;; Package-Requires:  ((hide-lines "20130623") (ov "20150311"))
 ;;
 ;; Features that might be required by this library:
 ;;
-;; hide-lines cl ido dash dired+
+;; hide-lines cl ido dash dired+ ov
 ;;
 
 ;;; This file is NOT part of GNU Emacs
@@ -175,6 +175,7 @@
 (require 'ido)
 (require 'hi-lock)
 (require 'net-utils)
+(require 'ov)
 
 ;;; Code:
 
@@ -509,10 +510,10 @@ files forward."
 (defun syslog-toggle-filenames (&optional arg)
   "Toggle the display of filenames before each line.
 If prefix ARG is positive display filenames, and if its negative hide them,
-otherwise toggle them.
-Note: currently this does not work when you have filtered lines."
+otherwise toggle them."
   (interactive "P")
   (save-excursion
+    (ov-set (ov-in) 'invisible nil)
     (let* ((start (goto-char (point-min)))
 	   (filename (syslog-get-filename-at-point))
 	   (fileshownp (and filename
@@ -544,7 +545,8 @@ Note: currently this does not work when you have filtered lines."
 		fileshownp (and filename
 				(looking-at
 				 (concat "^" (regexp-quote (file-name-nondirectory filename))
-					 ": ")))))))))
+					 ": ")))))))
+    (ov-set (ov-in) 'invisible 'hl)))
 
 ;;;###autoload
 (defun syslog-filter-lines (&optional arg)
