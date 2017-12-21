@@ -493,7 +493,8 @@ files forward."
 (defun syslog-toggle-filenames (&optional arg)
   "Toggle the display of filenames before each line.
 If prefix ARG is positive display filenames, and if its negative hide them,
-otherwise toggle them."
+otherwise toggle them.
+Note: currently this does not work when you have filtered lines."
   (interactive "P")
   (save-excursion
     (let* ((start (goto-char (point-min)))
