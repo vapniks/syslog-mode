@@ -559,7 +559,8 @@ With prefix ARG: remove matching blocks."
 		      (format "Regexp matching start lines of blocks %s" str)
 		      (symbol-name (symbol-at-point))))
 	 (endregex (read-regexp
-		    (format "Regexp matching end lines of blocks %s (default=filter start lines only)" str))))
+		    (format "Regexp matching end lines of blocks %s (default=filter start lines only)" str)))
+	 (n (length (overlays-in (point-min) (point-max)))))
     (unless (string= startregex "")
       (if (> arg 1)
 	  (if (string= endregex "")
@@ -567,7 +568,9 @@ With prefix ARG: remove matching blocks."
 	    (hide-blocks-matching startregex endregex))
 	(if (string= endregex "")
 	    (hide-lines-not-matching startregex)
-	  (hide-blocks-not-matching startregex endregex))))))
+	  (hide-blocks-not-matching startregex endregex)))
+      (if (= n (length (overlays-in (point-min) (point-max))))
+	  (message "No matches found")))))
 
 ;;;###autoload
 (defcustom syslog-views nil
