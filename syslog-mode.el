@@ -221,6 +221,7 @@
     (define-key map "p" 'syslog-prepend-files)
     (define-key map "v" 'syslog-view)
     (define-key map "c" 'syslog-count-matches)
+    (define-key map "k" 'hide-lines-kill-hidden)
     (define-key map "W" 'syslog-whois-reverse-lookup)
     (define-key map "q" 'quit-window)
     (define-key map "!" 'syslog-shell-command)
@@ -683,6 +684,7 @@ buffer respectively."
       ["Show all"  hide-lines-show-all :help "Show all hidden lines/blocks" :key "g"]
       ["Filter lines..." syslog-filter-lines :help "Show/hide blocks of text between matching regexps" :key "/"]
       ["Filter dates..." syslog-filter-dates :help "Show/hide lines between start and end dates" :key "C-/"]
+      ["Kill hidden" hide-lines-kill-hidden :help "Kill (with prefix delete) hidden lines" :key "k"]
       ["Jump to boot start" syslog-boot-start :help "Jump forward in the log to when the system booted" :key "<C-down>"]
       ["Open previous log file" syslog-previous-file :help "Open previous logfile backup" :key "<"]
       ["Open next log file" syslog-next-file :help "Open next logfile backup" :key ">"]
