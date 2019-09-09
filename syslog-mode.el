@@ -220,7 +220,6 @@
     (define-key map "a" 'syslog-append-files)
     (define-key map "p" 'syslog-prepend-files)
     (define-key map "v" 'syslog-view)
-    (define-key map "c" 'syslog-count-matches)
     (define-key map "k" 'hide-lines-kill-hidden)
     (define-key map "W" 'syslog-whois-reverse-lookup)
     (define-key map "q" 'quit-window)
@@ -724,14 +723,6 @@ buffer respectively."
 
 (defvar syslog-boot-start-regexp "unix: SunOS"
   "Regexp to match the first line of boot sequence.")
-
-(defun syslog-count-matches (regexp)
-  "Count strings which match the given pattern."
-  (interactive (list (read-regexp "How many matches for regexp"
-				  (symbol-name (symbol-at-point)))))
-  (message "%s occurrences" (count-matches regexp
-                                           (point-min)
-                                           (point-max) nil)))
 
 (defun syslog-boot-start ()
   "Jump forward in the log to when the system booted."
