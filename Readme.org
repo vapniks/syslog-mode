@@ -51,3 +51,6 @@ Below are customizable option list:
  - Otherwise download the library from here Lisp:syslog-mode, and put it in a directory in the emacs load path, like ~/.emacs.d
  - Add (require 'syslog-mode) in your ~/.emacs file
 
+* License
+
+=syslog-mode= is licensed under GPLv3 or later.
