@@ -5,7 +5,7 @@ You can highlight and filter the lines of the file by regular expressions and by
 - "C-down" : syslog-boot-start
 - "R"      : revert-buffer
 - "/"      : syslog-filter-lines
-- "g"      : show-all-invisible
+- "g"      : hide-lines-show-all
 - "h r"    : highlight-regexp
 - "h p"    : highlight-phrase
 - "h l"    : highlight-lines-matching-regexp
@@ -16,6 +16,16 @@ You can highlight and filter the lines of the file by regular expressions and by
 - "<"      : syslog-previous-file
 - ">"      : syslog-next-file
 - "o"      : syslog-open-files
+- "a"      : syslog-append-files
+- "p"      : syslog-prepend-files
+- "v"      : syslog-view
+- "c"      : syslog-count-matches
+- "k"      : hide-lines-kill-hidden
+- "W"      : syslog-whois-reverse-lookup
+- "!"      : syslog-shell-command
+- "M-down" : syslog-move-next-file
+- "M-up"   : syslog-move-previous-file
+- "t"      : syslog-toggle-filenames
 - "q"      : quit-window
 * Commands:
 Below are complete command list:
