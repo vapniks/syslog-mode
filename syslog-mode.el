@@ -36,7 +36,7 @@
 ;; along with this program; see the file COPYING.
 ;; If not, see <http://www.gnu.org/licenses/>.
 
-;;; Commentary: 
+;;; Commentary:
 ;;
 ;;; Commentary:
 ;; * Handy functions for looking at system logs.
@@ -137,7 +137,7 @@
 ;; Put syslog-mode.el in a directory in your load-path, e.g. ~/.emacs.d/
 ;; You can add a directory to your load-path with the following line in ~/.emacs
 ;; (add-to-list 'load-path (expand-file-name "~/elisp"))
-;; where ~/elisp is the directory you want to add 
+;; where ~/elisp is the directory you want to add
 ;; (you don't need to do this for ~/.emacs.d - it's added by default).
 ;;
 ;; Add the following to your ~/.emacs startup file.
@@ -147,7 +147,7 @@
 
 
 ;;; Change log:
-;;	
+;;
 ;; 21-03-2013    Joe Bloggs
 ;;    Added functions and keybindings for filtering
 ;;    lines by regexps or dates, and for highlighting,
@@ -221,6 +221,7 @@
     (define-key map "a" 'syslog-append-files)
     (define-key map "p" 'syslog-prepend-files)
     (define-key map "v" 'syslog-view)
+    (define-key map "c" 'syslog-count-matches)
     (define-key map "k" 'hide-lines-kill-hidden)
     (define-key map "W" 'syslog-whois-reverse-lookup)
     (define-key map "q" 'quit-window)
@@ -725,6 +726,14 @@ buffer respectively."
 (defvar syslog-boot-start-regexp "unix: SunOS"
   "Regexp to match the first line of boot sequence.")
 
+(defun syslog-count-matches (regexp)
+  "Count strings which match the given pattern."
+  (interactive (list (read-regexp "How many matches for regexp"
+				  (symbol-name (symbol-at-point)))))
+  (message "%s occurrences" (count-matches regexp
+                                           (point-min)
+                                           (point-max) nil)))
+
 (defun syslog-boot-start ()
   "Jump forward in the log to when the system booted."
   (interactive)
@@ -742,8 +751,6 @@ The ARG and SEARCH-STRING arguments are the same as for `whois'."
 				      "Whois: ") nil nil default))))
   (let ((whois-server-name whois-reverse-lookup-server))
     (whois arg search-string)))
-
-(defvar syslog-ip-face 'syslog-ip-face)
 
 (defface syslog-ip
   '((t :underline t :slant italic :weight bold))
