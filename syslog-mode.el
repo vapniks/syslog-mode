@@ -5,9 +5,6 @@
 ;; Author: Harley Gorrell <harley@panix.com>
 ;; Maintainer: Joe Bloggs <vapniks@yahoo.com>
 ;; Created: 2003-03-17 18:50:12 Harley Gorrell
-;; Version: 2.2
-;; Last-Updated: 2017-12-21 13:03:00
-;;           By: Joe Bloggs
 ;; URL: https://github.com/vapniks/syslog-mode
 ;; Keywords: unix
 ;; Compatibility: GNU Emacs 24.3.1
