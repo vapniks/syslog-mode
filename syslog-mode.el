@@ -799,23 +799,62 @@ buffer respectively."
   (toggle-read-only 1)
   (run-hooks 'syslog-mode-hook))
 
+;; simple-call-tree-info: DONE
 (defvar syslog-boot-start-regexp "unix: SunOS"
   "Regexp to match the first line of boot sequence.")
 
-(defun syslog-count-matches (regexp)
-  "Count strings which match the given pattern."
-  (interactive (list (read-regexp "How many matches for regexp"
-				  (symbol-name (symbol-at-point)))))
-  (message "%s occurrences" (count-matches regexp
-                                           (point-min)
-                                           (point-max) nil)))
+;; simple-call-tree-info: DONE
+(defun syslog-count-matches (rx &optional display ignorecase)
+  "Count all matches to regexp RX in current buffer.
+If RX contains non-shy match groups then matches to them will
+be counted, otherwise matches to the whole regexp will be counted.
+If DISPLAY is non-nil or if called interactively then the counts
+will be displayed in the minibuffer, otherwise an alist of (string . count)
+pairs will be returned.
+If IGNORECASE is non-nil or when called interactively with a prefix arg
+case will be ignored when searching for matches."
+  (interactive (list (read-regexp
+		      "Regexp: "
+		      '("^[0-9]+" "pid=\"\\([^ ]+\\)\""))
+		     t current-prefix-arg))
+  (let ((ngrps (regexp-opt-depth rx))
+	(case-fold-search ignorecase)
+	matches)
+    (cl-flet ((addmatch (m)
+			(let ((pair (assoc m matches)))
+			  (if pair
+			      (setf (cdr pair) (1+ (cdr pair)))
+			    (add-to-list
+			     'matches
+			     (cons (substring-no-properties m) 1))))))
+      (save-excursion
+	(goto-char (point-min))
+	(if (> ngrps 0)
+	    (while (re-search-forward rx nil t)
+	      (cl-loop for i from 1
+		       for match = (match-string i)
+		       if match do (addmatch match)
+		       else return nil))
+	  (while (re-search-forward rx nil t)
+	    (addmatch (match-string 0))))))
+    (setq matches (sort matches (lambda (a b) (> (cdr a) (cdr b)))))
+    (if display
+	(cl-format t "~:{~a:~s ~}" matches)
+      matches)))
 
+;; simple-call-tree-info: TODO
+(defun syslog-collect-matches (rx &optional sep count)
+  "Collect & concatenate strings matching regexp RX (or its match groups)."
+  )
+
+;; simple-call-tree-info: DONE
 (defun syslog-boot-start ()
   "Jump forward in the log to when the system booted."
   (interactive)
   (search-forward-regexp syslog-boot-start-regexp (point-max) t)
   (beginning-of-line))
 
+;; simple-call-tree-info: DONE
 (defun syslog-whois-reverse-lookup (arg search-string)
   "This is a wrapper around the `whois' command using symbol at point as default search string.
 Also `whois-server-name' is set to `whois-reverse-lookup-server'.
