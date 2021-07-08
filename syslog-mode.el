@@ -231,23 +231,31 @@
     map)
   "The local keymap for `syslog-mode'.")
 
+;; simple-call-tree-info: DONE
 (defvar syslog-number-suffix-start 1
   "The first number used as rotation suffix.")
 
-(defun syslog-shell-command (command &optional sudop)
-  "Execute a shell COMMAND synchronously, with prefix arg (SUDOP) run under sudo."
+;; simple-call-tree-info: DONE
+(defun syslog-shell-command (command &optional sudop tostrings)
+  "Execute a shell COMMAND synchronously, with prefix arg (SUDOP) run under sudo.
+If TOSTRINGS is non-nil then output will be returned as a list of strings (one per line),
+otherwise it will be place in the *Shell Command Output* buffer."
   (interactive (list (read-shell-command (if current-prefix-arg
 					     "Shell command (root): "
 					   "Shell command: "))
 		     current-prefix-arg))
-  (if sudop
-      (with-temp-buffer
-	(cd (concat "/sudo::"
-		    (replace-regexp-in-string
-		     "^/sudo[^/]+" "" default-directory)))
-	(shell-command command))
-    (shell-command command)))
+  (with-temp-buffer
+    (when sudop
+      (cd (concat "/sudo::"
+		  (replace-regexp-in-string
+		   "^/sudo[^/]+" "" default-directory))))
+    (if tostrings
+	(split-string (shell-command-to-string command) "\n" t)
+      (shell-command command))))
 
+
+
+;; simple-call-tree-info: DONE
 (defun syslog-get-basename-and-number (filename)
   "Return the basename and number suffix of a log file in FILEPATH.
 Return results in a cons cell '(basename . number) where basename is a string,
