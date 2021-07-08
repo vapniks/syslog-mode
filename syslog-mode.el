@@ -178,23 +178,28 @@
 ;;; Code:
 
 ;; Setup
+;; simple-call-tree-info: DONE  
 (defgroup syslog nil
   "syslog-mode - a major mode for viewing log files"
   :link '(url-link "https://github.com/vapniks/syslog-mode"))
 
+;; simple-call-tree-info: DONE  
 (defcustom syslog-mode-hook nil
   "*Hook to setup `syslog-mode'."
   :group 'syslog
   :type 'hook)
 
+;; simple-call-tree-info: DONE  
 (defvar syslog-mode-load-hook nil
   "*Hook to run when `syslog-mode' is loaded.")
 
 ;;;###autoload
+;; simple-call-tree-info: DONE
 (defvar syslog-setup-on-load nil
   "*If not nil setup syslog mode on load by running syslog-add-hooks.")
 
 ;; I also use "Alt" as C-c is too much to type for cursor motions.
+;; simple-call-tree-info: DONE
 (defvar syslog-mode-map
   (let ((map (make-sparse-keymap)))
     ;; Ctrl bindings
@@ -266,6 +271,7 @@ and number is a number."
          (num (or (and str (string-to-number str)) (1- syslog-number-suffix-start))))
     (cons basename num)))
 
+;; simple-call-tree-info: DONE
 (defun syslog-get-filenames (&optional pairs prompt onlyone)
   "Get log files associated with PAIRS argument, or prompt user for files.
 The PAIRS argument should be a list of cons cells whose cars are paths to log files,
@@ -317,6 +323,7 @@ The PROMPT argument is an optional prompt to use for prompting the user for file
 				   collect nextfile)
 	      nconc (nconc (list filename) (cl-remove-if 'null files))) :test 'equal)))
 
+;; simple-call-tree-info: DONE
 (defun syslog-append-files (files buf &optional replace)
   "Append FILES into buffer BUF.
 If REPLACE is non-nil then the contents of BUF will be overwritten.
@@ -338,6 +345,7 @@ a prefix argument is used in which case they are prompted for."
 		   (goto-char (point-max))
 		   (put-text-property start (point) 'syslog-filename file)))))))
 
+;; simple-call-tree-info: DONE
 (defun syslog-prepend-files (files buf &optional replace)
   "Prepend FILES into buffer BUF.
 If REPLACE is non-nil then the contents of BUF will be overwritten.
@@ -356,6 +364,7 @@ a prefix argument is used in which case they are prompted for."
 		    (forward-char (cl-second (insert-file-contents file)))
 		    (put-text-property start (point) 'syslog-filename file))))))
 
+;; simple-call-tree-info: DONE
 (defun syslog-create-buffer (filenames)
   "Create a new buffer named after the files in FILENAMES."
   (let* ((uniquefiles (mapcar 'file-name-nondirectory
@@ -386,6 +395,7 @@ a prefix argument is used in which case they are prompted for."
 					","))
 		0 -1))))
 
+;; simple-call-tree-info: DONE
 (defun syslog-open-files (files &optional label)
   "Insert log FILES into new buffer, and switch to that buffer.
 If the optional argument LABEL is non-nil then each new line will be labelled
@@ -414,6 +424,7 @@ When called interactively the FILES are prompted for using `syslog-get-filenames
     (switch-to-buffer buf)))
 
 ;;;###autoload
+;; simple-call-tree-info: DONE
 (defun syslog-view (files &optional label washes rxshowstart rxshowend
 			  rxhidestart rxhideend startdate enddate removedates
 			  highlights bufname)
@@ -470,6 +481,7 @@ highlight those regexps with."
 		     do (highlight-regexp regex face)))
 	(if bufname (rename-buffer bufname t))))))
 
+;; simple-call-tree-info: DONE
 (defun syslog-previous-file (&optional arg)
   "Open the previous logfile backup, or the next one if a prefix arg is used.
 Unix systems keep backups of log files with numbered suffixes, e.g. syslog.1 syslog.2.gz, etc.
@@ -496,12 +508,14 @@ one if ARG is non-nil."
 	     (find-file (concat nextfile ".tgz"))))
       (put-text-property (point-min) (point-max) 'syslog-filename nextfile))))
 
+;; simple-call-tree-info: DONE
 (defun syslog-next-file nil
   "Open the next logfile.
 This just calls `syslog-previous-file' with non-nil argument, so we can bind it to a key."
   (interactive)
   (syslog-previous-file t))
 
+;; simple-call-tree-info: DONE
 (defun syslog-move-next-file (&optional arg)
   "Move to the next file in the current `syslog-mode' buffer.
 If ARG is non-nil (or called with numeric prefix arg), move that many
@@ -511,6 +525,7 @@ files forward."
 	   do (goto-char (next-single-property-change
 			  (point) 'syslog-filename nil (point-max)))))
 
+;; simple-call-tree-info: DONE
 (defun syslog-move-previous-file (&optional arg)
   "Move to the next file in the current `syslog-mode' buffer.
 If ARG is non-nil (or called with numeric prefix arg), move that many
@@ -520,11 +535,13 @@ files forward."
 	   do (goto-char (previous-single-property-change
 			  (point) 'syslog-filename nil (point-min)))))
 
+;; simple-call-tree-info: DONE
 (defun syslog-get-filename-at-point nil
   "Get the filename associated with the line at point."
   (or (get-text-property (point) 'syslog-filename)
       buffer-file-name))
 
+;; simple-call-tree-info: DONE
 (defun syslog-toggle-filenames (&optional arg)
   "Toggle the display of filenames before each line.
 If prefix ARG is positive display filenames, and if its negative hide them,
@@ -567,6 +584,7 @@ otherwise toggle them."
     (ov-set (ov-in) 'invisible 'hl)))
 
 ;;;###autoload
+;; simple-call-tree-info: DONE
 (defun syslog-filter-lines (&optional arg)
   "Restrict buffer to blocks of text between matching regexps.
 If the user only enters one regexp then just filter matching lines instead of blocks.
@@ -591,6 +609,7 @@ With prefix ARG: remove matching blocks."
 	  (message "No matches found")))))
 
 ;;;###autoload
+;; simple-call-tree-info: DONE
 (defcustom syslog-views nil
   "A list of views.
 Each view is a list of:
@@ -648,6 +667,7 @@ Each view is a list of:
 				     (face :tag "Face")))
 		       (string :tag "Buffer name"))))
 
+;; simple-call-tree-info: DONE
 (defcustom syslog-datetime-regexp
   "^\\(?:[^ :]+: \\)?\\(\\(?:\\(?:[[:alpha:]]\\{3\\}\\)?[[:space:]]*[[:alpha:]]\\{3\\}\\s-+[0-9]+\\s-+[0-9:]+\\)\\|\\(?:[0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}\\s-+[0-9]\\{2\\}:[0-9]\\{2\\}:[0-9]\\{2\\}\\)\\)"
   "A regular expression matching the date-time at the beginning of each line in the log file.
@@ -655,12 +675,14 @@ It should contain one non-shy subexpression matching the datetime string."
   :group 'syslog
   :type 'regexp)
 
+;; simple-call-tree-info: DONE
 (defcustom syslog-log-file-directory "/var/log/"
   "The directory in which log files are stored."
   :group 'syslog
   :type 'directory)
 
 ;;;###autoload
+;; simple-call-tree-info: DONE
 (cl-defun syslog-date-to-time (date &optional safe)
   "Convert DATE string to time.
 If no year is present in the date then the current year is used.
@@ -673,6 +695,7 @@ If DATE can't be parsed then if SAFE is non-nil return nil otherwise throw an er
     (date-to-time (concat date " " (substring (current-time-string) -4)))))
 
 ;;;###autoload
+;; simple-call-tree-info: DONE
 (defun syslog-filter-dates (start end &optional arg)
   "Restrict buffer to lines between times START and END (Emacs time lists).
 With prefix ARG: remove lines between dates.
@@ -720,6 +743,7 @@ buffer respectively."
       (if dodelete (hide-lines-add-overlay start-position (point-max))))))
 
 ;;;###autoload
+;; simple-call-tree-info: DONE
 (defun syslog-mode ()
   "Major mode for working with system logs.
 
@@ -888,36 +912,43 @@ PIDs to be replaced."
   "Face for filenames"
   :group 'syslog)
 
+;; simple-call-tree-info: DONE
 (defface syslog-hour
   '((t :weight bold  :inherit font-lock-type-face))
   "Face for hours"
   :group 'syslog)
 
+;; simple-call-tree-info: DONE
 (defface syslog-error
   '((t  :weight bold :foreground "red"))
   "Face for errors"
   :group 'syslog)
 
+;; simple-call-tree-info: DONE
 (defface syslog-warn
   '((t  :weight bold :foreground "goldenrod"))
   "Face for warnings"
   :group 'syslog)
 
+;; simple-call-tree-info: DONE
 (defface syslog-info
   '((t  :weight bold :foreground "deep sky blue"))
   "Face for info lines"
   :group 'syslog)
 
+;; simple-call-tree-info: DONE
 (defface syslog-debug
   '((t  :weight bold :foreground "medium spring green"))
   "Face for debug lines"
   :group 'syslog)
 
+;; simple-call-tree-info: DONE
 (defface syslog-su
   '((t  :weight bold :foreground "firebrick"))
   "Face for su and sudo"
   :group 'syslog)
 
+;; simple-call-tree-info: DONE
 (defface syslog-hide
   '((t :foreground "black" :background "black"))
   "Face for hiding text"
@@ -926,6 +957,7 @@ PIDs to be replaced."
 ;; Keywords
 ;; TODO: Seperate the keywords into a list for each format, rather than one for all.
 ;;       Better matching of dates (even when not at beginning of line).
+;; simple-call-tree-info: DONE
 (defvar syslog-font-lock-keywords
   '(("\"[^\"]*\"" . 'font-lock-string-face)
     ("'[^']*'" . 'font-lock-string-face)
@@ -962,6 +994,7 @@ PIDs to be replaced."
   "Expressions to hilight in `syslog-mode'.")
 
 ;;; Setup functions
+;; simple-call-tree-info: DONE
 (defun syslog-find-file-func ()
   "Invoke `syslog-mode' if the buffer appears to be a system logfile.
 and another mode is not active.
@@ -970,6 +1003,7 @@ This function is added to `find-file-hooks'."
 	   (looking-at syslog-sequence-start-regexp))
       (syslog-mode)))
 
+;; simple-call-tree-info: DONE
 (defun syslog-add-hooks ()
   "Add a default set of syslog-hooks.
 These hooks will activate `syslog-mode' when visiting a file
