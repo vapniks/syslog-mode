@@ -705,6 +705,12 @@ It should contain one non-shy subexpression matching the datetime string."
   :group 'syslog
   :type 'directory)
 
+(defcustom syslog-hi-face-defaults '(hi-blue hi-green hi-yellow hi-pink hi-red-b
+					     hi-blue-b hi-green-b hi-black-b hi-black-hb)
+  "List of faces (as symbols) to use for automatic highlighting."
+  :group 'syslog
+  :type '(repeat (string :tag "Face")))
+
 ;;;###autoload
 ;; simple-call-tree-info: DONE
 (cl-defun syslog-date-to-time (date &optional safe)
@@ -1038,10 +1044,13 @@ If the process name cannot be determined then the pid will be returned as a stri
 	       pid)))))
 
 ;; simple-call-tree-info: DONE
-(defun syslog-replace-pids (pidrx &optional lsof)
-  "Replace PIDs with processs names in buffer.
+(cl-defun syslog-replace-pids (pidrx &optional (lsof nil) (faces t))
+  "Replace PIDs with process names in buffer.
 PIDRX should be a regexp containing a single non-shy match group for matching PIDs.
 The LSOF arg is interpreted in the same way as `syslog-pid-to-comm'.
+The FACES arg is an optional list of faces to use for highlighting the process names. 
+By default this is set to t which means highlighting face will be picked automatically
+from `syslog-hi-face-defaults'. If FACES is nil then process names will not be highlighted.
 When called interactively with no prefix arg, a file containing lsof output will be
 prompted for, with a single prefix arg a buffer will be prompted for, otherwise the
 ps shell command will be used to find process names."
@@ -1052,24 +1061,33 @@ ps shell command will be used to find process names."
 			    (get-buffer
 			     (read-buffer "Buffer containing lsof output: " nil t)))
 			   (current-prefix-arg nil)
-			   (t (read-file-name "File containing lsof output: ")))))
+			   (t (read-file-name "File containing lsof output: ")))
+		     t))
   (when (< (regexp-opt-depth pidrx) 1) (error "No match group in regexp"))
   (let ((pids (mapcar 'car (syslog-count-matches pidrx)))
-	(ro buffer-read-only))
+	(ro buffer-read-only)
+	names)
     (save-excursion
       (condition-case err
-	  (progn
-	    (setq buffer-read-only nil)
-	    (mapc (lambda (p)
-		    (goto-char (point-min))
-		    (let ((rx (if (< (regexp-opt-depth pidrx) 1)
-				  pidrx
-				(replace-regexp-in-string "\\\\(.*?\\\\)" p pidrx))))
-		      (replace-regexp rx (syslog-pid-to-comm p lsof))))
-		  pids)
-	    (setq buffer-read-only ro))
+	  (setq buffer-read-only nil
+		names (mapcar (lambda (p)
+				(goto-char (point-min))
+				(let ((rx (if (< (regexp-opt-depth pidrx) 1)
+					      pidrx
+					    (replace-regexp-in-string "\\\\(.*?\\\\)" p pidrx)))
+				      (name (syslog-pid-to-comm p lsof)))
+				  (replace-regexp rx name)
+				  name))
+			      pids)
+		buffer-read-only ro)
 	(error (setq buffer-read-only ro)
-	       (error "%s: %s" (car err) (cdr err)))))))
+	       (error "%s: %s" (car err) (cdr err))))
+      (cl-mapc (lambda (n f)
+		 (highlight-regexp (regexp-quote n) f))
+	       names
+	       (if (listp faces)
+		   face
+		 syslog-hi-face-defaults)))))
 
 ;; simple-call-tree-info: CHECK  
 (cl-defun syslog-replace-pipes (piperx &optional (pids "^\\([0-9]+\\)") lsof)
