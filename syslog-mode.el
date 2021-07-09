@@ -843,9 +843,47 @@ case will be ignored when searching for matches."
       matches)))
 
 ;; simple-call-tree-info: TODO
-(defun syslog-collect-matches (rx &optional sep count)
-  "Collect & concatenate strings matching regexp RX (or its match groups)."
-  )
+(defun syslog-extract-matches (rx &optional sep count outbuf overwrite)
+  "Extract strings matching regexp RX (or its match groups), and print to *Syslog extract* buffer.
+Separate the matches with SEP if non-nil. If COUNT is non-nil then only collect
+the first COUNT matches. When called interactively the extracted strings will be printed
+to the *Syslog extract* buffer, otherwise a buffer or buffer name can be supplied in OUTBUF.
+If OUTBUF is nil then the extract will be returned as a string.
+If OVERWRITE is non-nil then the buffer will be overwritten otherwise it will be appended to."
+  (interactive (list (read-regexp "Regexp matching strings to collect: "
+				  '("\"\\([^\"]*\\)\""))
+		     (read-string "Separator: ")
+		     (when current-prefix-arg
+		       (prefix-numeric-value current-prefix-arg))
+		     (get-buffer-create "*Syslog extract*")
+		     (when (with-current-buffer (get-buffer "*Syslog extract*")
+			     (goto-char (point-min))
+			     (re-search-forward "\\S-" nil t))
+		       (y-or-n-p "Overwrite existing text in *Syslog extract* buffer"))))
+  (let ((ngrps (regexp-opt-depth rx))
+	str)
+    (cl-flet ((addmatch (m) (setq str (concat str sep (substring-no-properties m)))
+			(when count (setq count (1- count)))))
+      (save-excursion
+	(if (> ngrps 0)
+	    (while (and (re-search-forward rx nil t)
+			(or (not count) (> count 0)))
+	      (cl-loop for i from 1
+		       for match = (match-string i)
+		       if match do (addmatch match)
+		       else return nil))
+	  (while (and (re-search-forward rx nil t)
+		      (or (not count) (> count 0)))
+	    (addmatch (match-string 0))))))
+    (if (not outbuf)
+	str
+      (with-current-buffer outbuf
+	(when overwrite
+	  (delete-region (point-min) (point-max)))
+	(goto-char (point-max))
+	(insert "\n" str))
+      (when (called-interactively-p 'any)
+	(display-buffer outbuf)))))
 
 ;; simple-call-tree-info: DONE
 (defun syslog-boot-start ()
