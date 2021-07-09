@@ -224,6 +224,7 @@
     (define-key map "p" 'syslog-prepend-files)
     (define-key map "v" 'syslog-view)
     (define-key map "c" 'syslog-count-matches)
+    (define-key map "x" 'syslog-extract-matches)
     (define-key map "k" 'hide-lines-kill-hidden)
     (define-key map "W" 'syslog-whois-reverse-lookup)
     (define-key map "q" 'quit-window)
@@ -774,6 +775,7 @@ buffer respectively."
       ["Find file at point" ffap :help "Find file at point" :key "f"]
       ["Whois" syslog-whois-reverse-lookup :help "Perform whois lookup on hostname at point" :key "W"]
       ["Count matches" syslog-count-matches :help "Count strings which match the given pattern" :key "c"]
+      ["Extract matches" syslog-extract-matches :help "Extract & concatenate strings which match the given pattern" :key "x"]
       ["Dired" (lambda nil (interactive) (dired syslog-log-file-directory)) :help "Enter logfiles directory" :keys "D"]
       ["Shell command" syslog-shell-command :help "Execute shell command (as root if prefix arg used)" :key "!"]
       ["Highlight..." (keymap "Highlight"
@@ -844,7 +846,7 @@ case will be ignored when searching for matches."
 
 ;; simple-call-tree-info: TODO
 (defun syslog-extract-matches (rx &optional sep count outbuf overwrite)
-  "Extract strings matching regexp RX (or its match groups), and print to *Syslog extract* buffer.
+  "Extract & concatenate strings matching regexp RX (or its match groups).
 Separate the matches with SEP if non-nil. If COUNT is non-nil then only collect
 the first COUNT matches. When called interactively the extracted strings will be printed
 to the *Syslog extract* buffer, otherwise a buffer or buffer name can be supplied in OUTBUF.
