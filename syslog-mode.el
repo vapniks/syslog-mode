@@ -624,9 +624,7 @@ With prefix ARG: remove matching blocks."
 	  (message "No matches found")))))
 
 ;; simple-call-tree-info: TODO  allow more faces?
-(cl-defun highlight-regexp-unique (regexp &optional
-					  (facerx nil)
-					  (faces syslog-hi-face-defaults))
+(cl-defun highlight-regexp-unique (regexp &optional (facerx nil) faces)
   "Highlight each unique string matched by REGEXP with a different face.
 Interactively, prompt for REGEXP using `read-regexp', and prompt for a
 subset of FACES (default `syslog-hi-face-default') to use for highlighting either:
@@ -659,7 +657,7 @@ that will be used for doing the highlighting."
 	 (unused-faces (set-difference
 			(cl-remove-if-not
 			 (lambda (f) (string-match facerx (symbol-name f)))
-			 faces)
+			 (or faces syslog-hi-face-defaults))
 			(mapcar (lambda (p) (eval (cadadr p)))
 				hi-lock-interactive-patterns)))
 	 (matchrx "[^(]*\\\\(\\(.*?\\)\\\\)"))
