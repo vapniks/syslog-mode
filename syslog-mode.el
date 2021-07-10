@@ -1070,16 +1070,6 @@ The ARG and SEARCH-STRING arguments are the same as for `whois'."
   (let ((whois-server-name whois-reverse-lookup-server))
     (whois arg search-string)))
 
-;; simple-call-tree-info: TODO
-(defun syslog-highlight-uniquely (rx)
-  "Highlight each unique string matching RX with a different colour.
-If"
-  (interactive
-   (list
-    (hi-lock-regexp-okay
-     (read-regexp "Regexp to highlight" 'regexp-history-last))))
-  )
-
 ;; simple-call-tree-info: DONE
 (cl-defun syslog-lsof (&optional (pids nil) (filtercmd nil)
 				 (sudop nil) (flags "-n -P -L -E"))
