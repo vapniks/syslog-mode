@@ -213,7 +213,9 @@
     (define-key map (kbd "h p") 'highlight-phrase)
     (define-key map (kbd "h l") 'highlight-lines-matching-regexp)
     (define-key map (kbd "h u") 'unhighlight-regexp)
+    (define-key map (kbd "h U") 'highlight-regexp-unique)
     (define-key map (kbd "C-/") 'syslog-filter-dates)
+
     (define-key map "D" (lambda nil (interactive) (dired syslog-log-file-directory)))
     (define-key map "j" 'ffap)
     (define-key map "f" 'ffap)
