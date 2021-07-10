@@ -746,15 +746,16 @@ Each view is a list of:
 		       (choice (const :tag "No file labels" nil)
 			       (const :tag "Add file labels" t))
 		       (repeat :tag "Treatment(s)"
-			       (choice (cons 
-					(function :tag "Function")
-					(repeat
-					 :tag "Args"
-					 (choice :tag "Arg"
-						 (sexp)
-						 (const :tag "Prompt user when view is invoked"
-							'interactive))))
-				       (cons (regexp
+			       (choice (cons :tag "Apply function"
+					     (function :tag "Function")
+					     (repeat
+					      :tag "Args"
+					      (choice :tag "Arg"
+						      (sexp)
+						      (const :tag "Prompt user when view is invoked"
+							     'interactive))))
+				       (cons :tag "Replace string"
+					     (regexp
 					      :help-echo "Regexp containing a match group"
 					      :validate
 					      (lambda (w)
