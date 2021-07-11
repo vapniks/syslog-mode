@@ -945,6 +945,12 @@ buffer respectively."
 
 ;; simple-call-tree-info: CHECK
 (defun syslog-unique-matches (rx &optional ignorecase)
+  "Find unique strings matching RX or it's non-shy match groups if it has any.
+Return value is an alist whose car values are the unique matched strings,
+and the cdr values are integers indicating the match group that the string
+was matched with, or 0 if RX contains no non-shy match groups.
+If optional argument IGNORECASE is non-nil then case will be ignored during
+matching."
   (let ((ngrps (regexp-opt-depth rx))
 	(case-fold-search ignorecase)
 	matches)
@@ -1178,10 +1184,10 @@ If the process name cannot be determined then the pid will be returned as a stri
 			return (match-string 1 str))
 	       pid)))))
 
-;; simple-call-tree-info: DONE
+;; simple-call-tree-info: REFACTOR  can this be refactored to use syslog-unique-matches and allow pidrx with no shy-group? 
 (cl-defun syslog-replace-pids (pidrx &optional (lsof nil) (faces t))
   "Replace PIDs with process names in buffer.
-PIDRX should be a regexp containing a single non-shy match group for matching PIDs.
+PIDRX should be a regexp matching the pids or containing a non-shy match group for matching PIDs.
 The LSOF arg is interpreted in the same way as `syslog-pid-to-comm'.
 The FACES arg is an optional list of faces to use for highlighting the process names. 
 By default this is set to t which means highlighting face will be picked automatically
@@ -1198,8 +1204,7 @@ ps shell command will be used to find process names."
 			   (current-prefix-arg nil)
 			   (t (read-file-name "File containing lsof output: ")))
 		     t))
-  (when (< (regexp-opt-depth pidrx) 1) (error "No match group in regexp"))
-  (let ((pids (mapcar 'car (syslog-count-matches pidrx)))
+  (let ((pids (mapcar 'car (syslog-unique-matches pidrx)))
 	(ro buffer-read-only)
 	names)
     (save-excursion
@@ -1208,7 +1213,7 @@ ps shell command will be used to find process names."
 		names (mapcar (lambda (p)
 				(goto-char (point-min))
 				(let ((rx (if (< (regexp-opt-depth pidrx) 1)
-					      pidrx
+					      p
 					    (replace-regexp-in-string "\\\\(.*?\\\\)" p pidrx)))
 				      (name (syslog-pid-to-comm p lsof)))
 				  (replace-regexp rx name)
@@ -1217,14 +1222,9 @@ ps shell command will be used to find process names."
 		buffer-read-only ro)
 	(error (setq buffer-read-only ro)
 	       (error "%s: %s" (car err) (cdr err))))
-      (cl-mapc (lambda (n f)
-		 (highlight-regexp (regexp-quote n) f))
-	       names
-	       (if (listp faces)
-		   face
-		 syslog-hi-face-defaults)))))
+      (highlight-regexp-unique (mapconcat 'identity names "\\|")))))
 
-;; simple-call-tree-info: CHECK  
+;; simple-call-tree-info: REFACTOR  can I use highlight-regexp-unique here?
 (cl-defun syslog-replace-pipes (piperx &optional (pids "^\\([0-9]+\\)") lsof)
   "Replace pipe inode numbers with info about processes using the pipe obtained from lsof.
 PIPERX should be a regular expression containing the string \"<INODE>\" which will be
@@ -1270,6 +1270,10 @@ be prompted for, and they will be passed to the lsof -p option."
 	    (setq buffer-read-only ro))
 	(error (setq buffer-read-only ro)
 	       (error "%s: %s" (car err) (cdr err)))))))
+
+;; simple-call-tree-info: TODO
+(defun simple-call-tree-replace-pids-and-pipes nil
+  )
 
 ;; simple-call-tree-info: DONE
 (defface syslog-ip
