@@ -1184,6 +1184,20 @@ If the process name cannot be determined then the pid will be returned as a stri
 			return (match-string 1 str))
 	       pid)))))
 
+;; simple-call-tree-info: TODO
+(defmacro syslog-alter-buffer (&rest forms)
+  "Execute FORMS with `buffer-read-only' disabled then restore to its previous value.
+If an error occurs while executing FORMS then `buffer-read-only' will be restored to 
+it's previous value. Position of point will also be restored."
+  `(let ((ro buffer-read-only))
+     (save-excursion
+       (condition-case err
+	   (progn (setq buffer-read-only nil)
+		  ,@forms
+		  (setq buffer-read-only ro))
+	 (error (setq buffer-read-only ro)
+		(error "%s: %s" (car err) (cdr err)))))))
+
 ;; simple-call-tree-info: REFACTOR  can this be refactored to use syslog-unique-matches and allow pidrx with no shy-group? 
 (cl-defun syslog-replace-pids (pidrx &optional (lsof nil) (faces t))
   "Replace PIDs with process names in buffer.
@@ -1205,24 +1219,19 @@ ps shell command will be used to find process names."
 			   (t (read-file-name "File containing lsof output: ")))
 		     t))
   (let ((pids (mapcar 'car (syslog-unique-matches pidrx)))
-	(ro buffer-read-only)
 	names)
-    (save-excursion
-      (condition-case err
-	  (setq buffer-read-only nil
-		names (mapcar (lambda (p)
-				(goto-char (point-min))
-				(let ((rx (if (< (regexp-opt-depth pidrx) 1)
-					      p
-					    (replace-regexp-in-string "\\\\(.*?\\\\)" p pidrx)))
-				      (name (syslog-pid-to-comm p lsof)))
-				  (replace-regexp rx name)
-				  name))
-			      pids)
-		buffer-read-only ro)
-	(error (setq buffer-read-only ro)
-	       (error "%s: %s" (car err) (cdr err))))
-      (highlight-regexp-unique (mapconcat 'identity names "\\|")))))
+    (syslog-alter-buffer
+     (highlight-regexp-unique
+      (mapconcat 'identity
+		 (mapcar (lambda (p)
+			   (goto-char (point-min))
+			   (let ((rx (if (< (regexp-opt-depth pidrx) 1)
+					 p
+				       (replace-regexp-in-string "\\\\(.*?\\\\)" p pidrx)))
+				 (name (syslog-pid-to-comm p lsof)))
+			     (replace-regexp rx name)
+			     name))
+			 pids) "\\|")))))
 
 ;; simple-call-tree-info: REFACTOR  can I use highlight-regexp-unique here?
 (cl-defun syslog-replace-pipes (piperx &optional (pids "^\\([0-9]+\\)") lsof)
@@ -1248,28 +1257,21 @@ be prompted for, and they will be passed to the lsof -p option."
 			     (read-buffer "Buffer containing lsof output: " nil t)))
 			   (current-prefix-arg nil)
 			   (t (read-file-name "File containing lsof output: ")))))
-  (save-excursion
-    (let ((ro buffer-read-only))
-      (condition-case err
-	  (progn
-	    (setq buffer-read-only nil)
-	    (dolist (pipe (syslog-lsof-get-pipes
-			   (if (and (stringp pids)
-				    (string-match "\\\\(" pids))
-			       (mapcar (lambda (m) (string-to-number (car m)))
-				       (syslog-count-matches pids))
-			     pids)
-			   lsof))
-	      (let ((rx (replace-regexp-in-string "<INODE>" (concat "\\(" (car pipe) "\\)") piperx t t))
-		    (str (mapconcat (lambda (x)
-				      (replace-regexp-in-string "[0-9]+," "" x))
-				    (cdr pipe) ":")))
-		(goto-char (point-min))
-		(while (re-search-forward rx nil t)
-		  (replace-match str t t nil 1))))
-	    (setq buffer-read-only ro))
-	(error (setq buffer-read-only ro)
-	       (error "%s: %s" (car err) (cdr err)))))))
+  (syslog-alter-buffer
+   (dolist (pipe (syslog-lsof-get-pipes
+		  (if (and (stringp pids)
+			   (string-match "\\\\(" pids))
+		      (mapcar (lambda (m) (string-to-number (car m)))
+			      (syslog-count-matches pids))
+		    pids)
+		  lsof))
+     (let ((rx (replace-regexp-in-string "<INODE>" (concat "\\(" (car pipe) "\\)") piperx t t))
+	   (str (mapconcat (lambda (x)
+			     (replace-regexp-in-string "[0-9]+," "" x))
+			   (cdr pipe) ":")))
+       (goto-char (point-min))
+       (while (re-search-forward rx nil t)
+	 (replace-match str t t nil 1))))))
 
 ;; simple-call-tree-info: TODO
 (defun simple-call-tree-replace-pids-and-pipes nil
