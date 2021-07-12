@@ -624,49 +624,42 @@ With prefix ARG: remove matching blocks."
 	  (message "No matches found")))))
 
 ;; simple-call-tree-info: TODO  allow more faces?
-(defun highlight-regexp-unique (regexp &optional facerx faces)
+(defun highlight-regexp-unique (regexp &optional faces)
   "Highlight each unique string matched by REGEXP with a different face.
 Interactively, prompt for REGEXP using `read-regexp', and prompt for a
-subset of FACES (default `syslog-hi-face-default') to use for highlighting either:
- \"foreground\" (faces that change the foreground colour),
- \"background\" (faces that change the background colour), 
- or \"choose\" to specify a regexp (FACERX) to match the face names. 
-If a prefix arg is used then only the \"choose\" option is available,
-and the specified regexp will be used to filter all defined faces.
-When called non-interactively, faces can be either a list of faces, nil for
-the default value (`syslog-hi-face-default'), or any other value for all defined 
-faces.
+set of FACES to use for highlighting. The face sets offered are the named 
+sets in `syslog-hi-face-defaults', or \"choose\" in which case a further
+regexp will be prompted for and used to select from all defined faces.
 
-If REGEXP contains non-shy match groups, then only those parts of the
-match will be treated as unique strings & highlighted (rather than the whole regexp).
+When called non-interactively, FACES can be either a list of faces, a regexp
+for filtering all defined faces, or nil to use all faces in `syslog-hi-face-defaults'.
+
+If REGEXP contains non-shy match groups, then only those parts of the match will 
+be treated as unique strings & highlighted (rather than the whole regexp).
 In this case overlays will always be used (which can be slow if there are many matches).
 If there are no non-shy match groups, and variable `font-lock-mode' is enabled then 
 that will be used for doing the highlighting."
   (interactive
    (list (hi-lock-regexp-okay
 	  (read-regexp "Regexp to highlight" 'regexp-history-last))
-	 (let ((choice (if current-prefix-arg
-			   "choose"
-			 (completing-read
-			  "Highlight type: " '("background" "foreground" "choose")))))
-	   (cond ((equal choice "background") "-[^b]\\|[^-].")
-		 ((equal choice "foreground") "-b$")
-		 ((equal choice "choose")
-		  (read-regexp "Regexp matching face names to use (default \".*\"): "
-			       ".*"))))
-	 (if current-prefix-arg (face-list) syslog-hi-face-defaults)))
+	 (let ((choice (completing-read
+			"Highlight type: "
+			(nconc (mapcar 'car syslog-hi-face-defaults)
+			       '("choose")))))
+	   (if (equal choice "choose")
+	       (read-regexp "Regexp matching face names to use (default \"hi-.*\"): "
+			    "hi-.*")
+	     (cdr (assoc choice syslog-hi-face-defaults))))))
   (unless hi-lock-mode (hi-lock-mode 1))
-  (let* ((faces (cond ((null faces) syslog-hi-face-defaults)
+  (let* ((faces (cond ((null faces) (mapcan 'cdr syslog-hi-face-defaults))
 		      ((listp faces) faces)
-		      (t (face-list))))
-	 (unused-faces (set-difference
-			(if (> (length facerx) 0)
-			    (cl-remove-if-not
-			     (lambda (f) (string-match facerx (symbol-name f)))
-			     faces)
-			  faces)
-			(mapcar (lambda (p) (eval (cadadr p)))
-				hi-lock-interactive-patterns)))
+		      ((stringp faces)
+		       (cl-remove-if-not
+			(lambda (f) (string-match faces (symbol-name f)))
+			(face-list)))))
+	 (unused-faces (set-difference faces 
+				       (mapcar (lambda (p) (eval (cadadr p)))
+					       hi-lock-interactive-patterns)))
 	 (matchrx "[^(]*\\\\(\\(.*?\\)\\\\)"))
     (cl-flet ((repmatch (i) (let (ss)
 			      (while (> i 0)
@@ -820,9 +813,9 @@ It should contain one non-shy subexpression matching the datetime string."
   :group 'hi-lock-faces)
 
 ;; simple-call-tree-info: CHECK
-(defcustom syslog-hi-face-defaults '(hi-red hi-blue hi-green hi-yellow hi-pink
-					    hi-red-b hi-blue-b hi-green-b hi-yellow-b
-					    hi-pink-b hi-black-b hi-black-hb)
+(defcustom syslog-hi-face-defaults '(("background" hi-red hi-blue hi-green hi-yellow hi-pink)
+				     ("foreground" hi-red-b hi-blue-b hi-green-b hi-yellow-b
+				      hi-pink-b hi-black-b hi-black-hb))
   "List of faces (as symbols) to use for automatic highlighting."
   :group 'syslog
   :type '(repeat (string :tag "Face")))
