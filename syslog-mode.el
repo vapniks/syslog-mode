@@ -43,17 +43,31 @@
 ;; "C-down" : syslog-boot-start
 ;; "R"      : revert-buffer
 ;; "/"      : syslog-filter-lines
+;; "C-/"    : syslog-filter-dates
 ;; "g"      : hide-lines-show-all
+;; "k"      : hide-lines-kill-hidden
 ;; "h r"    : highlight-regexp
 ;; "h p"    : highlight-phrase
 ;; "h l"    : highlight-lines-matching-regexp
 ;; "h u"    : unhighlight-regexp
+;; "h U"    : unhiglight all regexps
+;; "h q"    : highlight-regexp-unique
 ;; "C-/"    : syslog-filter-dates
 ;; "D"      : open dired buffer in log directory (`syslog-log-file-directory')
-;; "j"      : ffap
+;; "c"      : syslog-count-matches
+;; "x"      : syslog-extract-matches
+;; "j"/"f"  : ffap
+;; "!"      : syslog-shell-command
+;; "v"      : syslog-view
+;; "W"      : syslog-whois-reverse-lookup
+;; "o"      : syslog-open-files
+;; "a"      : syslog-append-files
+;; "p"      : syslog-prepend-files
+;; "t"      : syslog-toggle-filenames
 ;; "<"      : syslog-previous-file
 ;; ">"      : syslog-next-file
-;; "o"      : syslog-open-files
+;; "<M-up>" : syslog-move-previous-file
+;; "<M-down>": syslog-move-next-file
 ;; "q"      : quit-window
 
 ;;; Commands:
@@ -213,7 +227,8 @@
     (define-key map (kbd "h p") 'highlight-phrase)
     (define-key map (kbd "h l") 'highlight-lines-matching-regexp)
     (define-key map (kbd "h u") 'unhighlight-regexp)
-    (define-key map (kbd "h U") 'highlight-regexp-unique)
+    (define-key map (kbd "h U") (lambda nil (interactive) (unhighlight-regexp t)))
+    (define-key map (kbd "h q") 'highlight-regexp-unique)
     (define-key map (kbd "C-/") 'syslog-filter-dates)
 
     (define-key map "D" (lambda nil (interactive) (dired syslog-log-file-directory)))
