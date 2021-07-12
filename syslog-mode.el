@@ -70,6 +70,8 @@
 ;; "<M-down>": syslog-move-next-file
 ;; "q"      : quit-window
 
+;; To update lists of commands & options show below: M-x auto-document
+
 ;;; Commands:
 ;;
 ;; Below is a complete list of commands:
@@ -84,7 +86,7 @@
 ;;    Prepend FILES into buffer BUF.
 ;;    Keybinding: M-x syslog-prepend-files
 ;;  `syslog-open-files'
-;;    Insert log FILES into new buffer.
+;;    Insert log FILES into new buffer, and switch to that buffer.
 ;;    Keybinding: o
 ;;  `syslog-view'
 ;;    Open a view of syslog files with optional filters and highlights applied.
@@ -107,21 +109,30 @@
 ;;  `syslog-filter-lines'
 ;;    Restrict buffer to blocks of text between matching regexps.
 ;;    Keybinding: /
+;;  `highlight-regexp-unique'
+;;    Highlight each unique string matched by REGEXP with a different face.
+;;    Keybinding: q
 ;;  `syslog-filter-dates'
 ;;    Restrict buffer to lines between times START and END (Emacs time lists).
 ;;    Keybinding: C-/
 ;;  `syslog-mode'
-;;    Major mode for working with system logs.
+;;    Major mode for working with system logs, and strace output.
 ;;    Keybinding: M-x syslog-mode
 ;;  `syslog-count-matches'
-;;    Count strings which match the given pattern.
+;;    Count all matches to regexp RX in current buffer.
 ;;    Keybinding: c
+;;  `syslog-extract-matches'
+;;    Extract & concatenate strings matching regexp RX (or its match groups).
+;;    Keybinding: x
 ;;  `syslog-boot-start'
 ;;    Jump forward in the log to when the system booted.
 ;;    Keybinding: <C-down>
 ;;  `syslog-whois-reverse-lookup'
 ;;    This is a wrapper around the `whois' command using symbol at point as default search string.
 ;;    Keybinding: W
+;;  `syslog-transform-strace'
+;;    Transform strace output in the current buffer.
+;;    Keybinding: M-x syslog-transform-strace
 ;;
 ;;; Customizable Options:
 ;;
@@ -135,9 +146,13 @@
 ;;    default = nil
 ;;  `syslog-datetime-regexp'
 ;;    A regular expression matching the date-time at the beginning of each line in the log file.
+;;    default = "^\\(?:[^ :]+: \\)?\\(\\(?:\\(?:[[:alpha:]]\\{3\\}\\)?[[:space:]]*[[:alpha:]]\\{3\\}\\s-+[0-9]+\\s-+[0-9:]+\\)\\|\\(?:[0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}\\s-+[0-9]\\{2\\}:[0-9]\\{2\\}:[0-9]\\{2\\}\\)\\)"
 ;;  `syslog-log-file-directory'
 ;;    The directory in which log files are stored.
 ;;    default = "/var/log/"
+;;  `syslog-hi-face-defaults'
+;;    Alist of face sets to use for automatic highlighting.
+;;    default = (quote ((background hi-red hi-blue hi-green hi-yellow ...) (foreground hi-red-b hi-blue-b hi-green-b hi-yellow-b ...)))
 
 ;; All of the above can customized by:
 ;;      M-x customize-group RET syslog-mode RET
@@ -159,6 +174,13 @@
 
 ;;; Change log:
 ;;
+;; This is out of date, please refer to the git commits on github:
+;; https://github.com/vapniks/syslog-mode
+;; 12-07-2021    Joe Bloggs
+;;    Many changes: added transform functions to syslog-views option,
+;;    highlight-regexp-unique, syslog-extract-matches
+;;    and extra functions and font-locking for strace output files.
+;; 
 ;; 21-03-2013    Joe Bloggs
 ;;    Added functions and keybindings for filtering
 ;;    lines by regexps or dates, and for highlighting,

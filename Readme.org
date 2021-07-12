@@ -1,18 +1,21 @@
 * Commentary
-This library provides a major-mode for viewing syslog files.
+This library provides a major-mode for viewing syslog & strace files.
 You can highlight and filter the lines of the file by regular expressions and by timestamp.
 * Keybindings
 - "C-down" : syslog-boot-start
 - "R"      : revert-buffer
 - "/"      : syslog-filter-lines
+- "C-/"    : syslog-filter-dates
 - "g"      : hide-lines-show-all
 - "h r"    : highlight-regexp
 - "h p"    : highlight-phrase
 - "h l"    : highlight-lines-matching-regexp
+- "h q"    : highlight-regexp-unique
 - "h u"    : unhighlight-regexp
+- "h U"    : unhighlight all regexps
 - "C-/"    : syslog-filter-dates
 - "D"      : open dired buffer in log directory (`syslog-log-file-directory')
-- "j"      : ffap
+- "j"/"f"  : ffap
 - "<"      : syslog-previous-file
 - ">"      : syslog-next-file
 - "o"      : syslog-open-files
@@ -20,6 +23,7 @@ You can highlight and filter the lines of the file by regular expressions and by
 - "p"      : syslog-prepend-files
 - "v"      : syslog-view
 - "c"      : syslog-count-matches
+- "x"      : syslog-extract-matches
 - "k"      : hide-lines-kill-hidden
 - "W"      : syslog-whois-reverse-lookup
 - "!"      : syslog-shell-command
@@ -41,12 +45,15 @@ Below are complete command list:
  - `syslog-move-previous-file' : Move to the next file in the current `syslog-mode' buffer. (Keybinding: <M-up>)
  - `syslog-toggle-filenames' : Toggle the display of filenames before each line. (Keybinding: t)
  - `syslog-filter-lines' : Restrict buffer to blocks of text between matching regexps. (Keybinding: /)
+ - `highlight-regexp-unique' : Highlight each unique string matched by REGEXP with a different face (Keybinding: h q)
  - `syslog-filter-dates' : Restrict buffer to lines between times START and END (Emacs time lists). (Keybinding: C-/)
  - `syslog-mode' : Major mode for working with system logs. (Keybinding: M-x syslog-mode)
  - `syslog-count-matches' : Count strings which match the given pattern. (Keybinding: c)
+ - `syslog-extract-matches' : Extract & concatenate string matching regexp RX (or its match groups). (Keybinding: x)
  - `syslog-boot-start' : Jump forward in the log to when the system booted. (Keybinding: <C-down>)
  - `syslog-whois-reverse-lookup' : This is a wrapper around the `whois' command using symbol at point as default search string. (Keybinding: W)
-
+ - `syslog-transform-strace' : Transform strace output in the current buffer. (Keybinding: M-x syslog-transform-strace)
+   
 * Customizable Options:
 Below are customizable option list:
 
@@ -54,11 +61,12 @@ Below are customizable option list:
  - `syslog-views' : A list of views. (default = nil)
  - `syslog-datetime-regexp' A regular expression matching the date-time at the beginning of each line in the log file.
  - `syslog-log-file-directory' : The directory in which log files are stored. (default = "/var/log/")
-
+ - `syslog-hi-face-defaults' : Alist of face sets to use for automatic highlighting.
 * Installation
 
- - If you have [[http://www.marmalade-repo.org/][marmalade-repo.org]], this syslog-mode is part of the emacs packages you can install.  Just type M-x package-install syslog-mode marmalade 
- - Otherwise download the library from here Lisp:syslog-mode, and put it in a directory in the emacs load path, like ~/.emacs.d
+ - This library is available on MELPA: https://melpa.org/#/?q=syslog
+ - Otherwise download the library from here: https://github.com/vapniks/syslog-mode, and put it in a directory in the
+   emacs load path, like ~/.emacs.d
  - Add (require 'syslog-mode) in your ~/.emacs file
 
 * License
