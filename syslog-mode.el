@@ -60,6 +60,7 @@
 ;; "!"      : syslog-shell-command
 ;; "v"      : syslog-view
 ;; "W"      : syslog-whois-reverse-lookup
+;; "m"      : manual-entry
 ;; "o"      : syslog-open-files
 ;; "a"      : syslog-append-files
 ;; "p"      : syslog-prepend-files
@@ -266,6 +267,7 @@
     (define-key map "x" 'syslog-extract-matches)
     (define-key map "k" 'hide-lines-kill-hidden)
     (define-key map "W" 'syslog-whois-reverse-lookup)
+    (define-key map "m" 'manual-entry)
     (define-key map "q" 'quit-window)
     (define-key map "!" 'syslog-shell-command)
     (define-key map (kbd "<M-down>") 'syslog-move-next-file)
