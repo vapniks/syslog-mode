@@ -657,13 +657,15 @@ that will be used for doing the highlighting."
 	 (if current-prefix-arg (face-list) syslog-hi-face-defaults)))
   (unless hi-lock-mode (hi-lock-mode 1))
   (let* ((facerx (or facerx ".*"))
+	 (faces (cond ((listp faces) faces)
+		      ((null faces) syslog-hi-face-defaults)
+		      (t (face-list))))
 	 (unused-faces (set-difference
-			(cl-remove-if-not
-			 (lambda (f) (string-match facerx (symbol-name f)))
-			 (cond ((listp faces) faces)
-			       ((null faces) syslog-hi-face-defaults)
-			       (t (face-list)))
-			 (or faces syslog-hi-face-defaults))
+			(if (> (length facerx) 0)
+			    (cl-remove-if-not
+			     (lambda (f) (string-match facerx (symbol-name f)))
+			     faces)
+			  faces)
 			(mapcar (lambda (p) (eval (cadadr p)))
 				hi-lock-interactive-patterns)))
 	 (matchrx "[^(]*\\\\(\\(.*?\\)\\\\)"))
