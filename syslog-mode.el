@@ -1277,30 +1277,45 @@ with a prefix arg a buffer containing lsof output will be prompted for."
 	 (replace-match str t t nil 1))))))
 
 ;; simple-call-tree-info: CHECK
-(cl-defun syslog-transform-strace (lsof &optional (facerx t) faces)
+(defun syslog-transform-strace (lsof &optional faces)
   "Transform strace output in the current buffer.
 This is a wrapper for `syslog-replace-pids' & `syslog-replace-pipes':
 pids will be replaced with process names, and pipe inode numbers
 will be replaced with comma separated lists of file descriptors
-and associated processes connected to the pipe."
-  (interactive (cons (if current-prefix-arg
-			 (get-buffer
-			  (read-buffer "Buffer containing lsof output: " nil t))
-		       (read-file-name "File containing lsof output: "))
+and associated processes connected to the pipe.
+
+LSOF can be a file, buffer or list of strings containing lsof output.
+If nil then lsof will be invoked with a list of pids extracted from the
+beginning of lines in current buffer.
+When called interactively with no prefix arg a file will be prompted for,
+with a single prefix arg a buffer will be prompted for, and any other prefix
+arg will invoke a call to the lsof shell command.
+
+The FACES arg is the same as for `highlight-regexp-unique' (which see)."
+  (interactive (cons (cond ((equal current-prefix-arg '(4))
+			    (get-buffer
+			     (read-buffer "Buffer containing lsof output: "
+					  nil t)))
+			   (current-prefix-arg nil)
+			   (t (read-file-name "File containing lsof output: ")))
 		     (let ((choice (completing-read
 				    "Highlight type: "
-				    '("background" "foreground" "choose"))))
-		       (cond ((equal choice "background") (list "-[^b]\\|[^-]." nil))
-			     ((equal choice "foreground") (list "-b$" nil))
-			     ((equal choice "choose")
-			      (list (read-regexp
-				     "Regexp matching face names to use (default \"^hi-.*\"): "
-				     "^hi-.*")
-				    t))))))
-  (syslog-replace-pipes "pipe:\\[\\([0-9]+\\)\\]" lsof)
-  (highlight-regexp-unique
-   (mapconcat 'identity (syslog-replace-pids "^[0-9]+" lsof) "\\|")
-   facerx faces))
+				    (nconc (mapcar 'car syslog-hi-face-defaults)
+					   '("choose")))))
+		       (if (equal choice "choose")
+			   (read-regexp "Regexp matching face names to use (default \"hi-.*\"): "
+					"hi-.*")
+			 (cdr (assoc choice syslog-hi-face-defaults))))))
+  (let ((lsof (or lsof
+		  (syslog-lsof (mapconcat 'car
+					  (syslog-unique-matches "^[0-9]+")
+					  ",")
+			       "grep ' FIFO '")
+		  (error "No output from lsof command"))))
+    (syslog-replace-pipes "pipe:\\[\\([0-9]+\\)\\]" lsof)
+    (highlight-regexp-unique
+     (mapconcat 'identity (syslog-replace-pids "^[0-9]+" lsof) "\\|")
+     faces)))
 
 ;; simple-call-tree-info: DONE
 (defface syslog-ip
