@@ -646,8 +646,9 @@ set of FACES to use for highlighting. The face sets offered are the named
 sets in `syslog-hi-face-defaults', or \"choose\" in which case a further
 regexp will be prompted for and used to select from all defined faces.
 
-When called non-interactively, FACES can be either a list of faces, a regexp
-for filtering all defined faces, or nil to use all faces in `syslog-hi-face-defaults'.
+When called non-interactively, FACES can be either a symbol (the car of one of the 
+face sets defined in `syslog-hi-face-defaults'), a list of faces, a regexp for 
+filtering all defined faces, or nil to use all faces in `syslog-hi-face-defaults'.
 
 If REGEXP contains non-shy match groups, then only those parts of the match will 
 be treated as unique strings & highlighted (rather than the whole regexp).
@@ -664,11 +665,12 @@ that will be used for doing the highlighting."
 	       (read-regexp "Regexp matching face names to use (default \"hi-.*\"): "
 			    "hi-.*"
 			    'syslog-face-regexp-history)
-	     (cdr (assoc choice syslog-hi-face-defaults))))))
+	     (intern-soft choice)))))
   (hi-lock-regexp-okay regexp)
   (when (stringp faces) (hi-lock-regexp-okay faces))
   (unless hi-lock-mode (hi-lock-mode 1))
   (let* ((faces (cond ((null faces) (mapcan 'cdr syslog-hi-face-defaults))
+		      ((symbolp faces) (cdr (assoc faces syslog-hi-face-defaults)))
 		      ((listp faces) faces)
 		      ((stringp faces)
 		       (cl-remove-if-not
@@ -830,10 +832,11 @@ It should contain one non-shy subexpression matching the datetime string."
   :group 'hi-lock-faces)
 
 ;; simple-call-tree-info: CHECK
-(defcustom syslog-hi-face-defaults '(("background" hi-red hi-blue hi-green hi-yellow hi-pink)
-				     ("foreground" hi-red-b hi-blue-b hi-green-b hi-yellow-b
-				      hi-pink-b hi-black-b hi-black-hb))
-  "List of faces (as symbols) to use for automatic highlighting."
+(defcustom syslog-hi-face-defaults '((background hi-red hi-blue hi-green hi-yellow hi-pink)
+				     (foreground hi-red-b hi-blue-b hi-green-b hi-yellow-b
+						 hi-pink-b hi-black-b hi-black-hb))
+  "Alist of face sets to use for automatic highlighting.
+The car of each set is a symbol naming the set, and the cdr is a list of faces (as symbols)."
   :group 'syslog
   :type '(repeat (string :tag "Face")))
 
@@ -1313,7 +1316,7 @@ The FACES arg is the same as for `highlight-regexp-unique' (which see)."
 		       (if (equal choice "choose")
 			   (read-regexp "Regexp matching face names to use (default \"hi-.*\"): "
 					"hi-.*")
-			 (cdr (assoc choice syslog-hi-face-defaults))))))
+			 (intern-soft choice)))))
   (let ((lsof (or lsof
 		  (syslog-lsof (mapconcat 'car
 					  (syslog-unique-matches "^[0-9]+")
