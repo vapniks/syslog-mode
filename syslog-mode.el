@@ -1108,34 +1108,32 @@ FLAGS is a list of flags for lsof, and is set to \"-n -P -L -E\" by default."
 	(rename-buffer "*lsof output*" t)))
     output))
 
-;; simple-call-tree-info: DONE
-(defun syslog-lsof-get-pipes (&optional pids lsof)
-  "Return info about unix pipes from lsof output.
-If PIDS is non-nil it should be a list of running process IDs or a string
-to pass to the lsof -p option. 
-If PIDS is nil then LSOF should be non-nil, and pipe info will be extracted
-from the buffer, file or lines supplied by that arg instead (see `syslog-pid-to-comm').
+;; simple-call-tree-info: CHECK
+(defun syslog-lsof-get-pipes (lsof)
+  "Return info about unix pipes from LSOF output.
+Pipe info will be extracted from the buffer, file or lines supplied the LSOF arg.
 The return value is a list of lists, each containing info about a particular pipe.
 The first element of each list is a string containing the inode for the pipe, 
 and subsequent elements contain pipe endpoint info as returned by the lsof command.
 See the lsof manpage for more info."
-  (let* ((lines (if pids
-		    (syslog-lsof pids "grep ' FIFO '")
-		  (unless lsof (error "At least one non-nil argument must be supplied"))
-		  (cl-remove-if-not (lambda (l) (string-match " FIFO " l))
-				    (let* ((str (with-current-buffer
-						    (if (stringp lsof)
-							(find-file-noselect lsof)
-						      lsof)
-						  (buffer-substring-no-properties
-						   (point-min) (point-max))))
-					   (lns (split-string str "\n" t))
-					   (ln1 (split-string (car lns) " " t)))
-				      ;; check that lsof output has required columns
-				      (unless (and (string= (nth 7 ln1) "NODE")
-						   (string= (nth 8 ln1) "NAME"))
-					(error "Invalid format for lsof output"))
-				      lns))))
+  (let* ((lines (cl-remove-if-not
+		 (lambda (l) (string-match " FIFO " l))
+		 (let* ((lns (if (listp lsof)
+				 lsof
+			       (split-string
+				(with-current-buffer
+				    (if (stringp lsof)
+					(find-file-noselect lsof)
+				      lsof)
+				  (buffer-substring-no-properties
+				   (point-min) (point-max)))
+				"\n" t)))
+			(ln1 (split-string (car lns) " " t)))
+		   ;; check that lsof output has required columns
+		   (unless (and (string= (nth 7 ln1) "NODE")
+				(string= (nth 8 ln1) "NAME"))
+		     (error "Invalid format for lsof output"))
+		   lns)))
 	 (pipes (mapcar (lambda (l)
 			  (let ((parts (split-string l "\s+")))
 			    (cons (nth 7 parts) (nthcdr 9 parts)))) 
@@ -1184,7 +1182,7 @@ If the process name cannot be determined then the pid will be returned as a stri
 			return (match-string 1 str))
 	       pid)))))
 
-;; simple-call-tree-info: TODO
+;; simple-call-tree-info: CHECK
 (defmacro syslog-alter-buffer (&rest forms)
   "Execute FORMS with `buffer-read-only' disabled then restore to its previous value.
 If an error occurs while executing FORMS then `buffer-read-only' will be restored to 
@@ -1198,74 +1196,59 @@ it's previous value. Position of point will also be restored."
 	 (error (setq buffer-read-only ro)
 		(error "%s: %s" (car err) (cdr err)))))))
 
-;; simple-call-tree-info: REFACTOR  can this be refactored to use syslog-unique-matches and allow pidrx with no shy-group? 
-(cl-defun syslog-replace-pids (pidrx &optional (lsof nil) (faces t))
-  "Replace PIDs with process names in buffer.
-PIDRX should be a regexp matching the pids or containing a non-shy match group for matching PIDs.
-The LSOF arg is interpreted in the same way as `syslog-pid-to-comm'.
-The FACES arg is an optional list of faces to use for highlighting the process names. 
-By default this is set to t which means highlighting face will be picked automatically
-from `syslog-hi-face-defaults'. If FACES is nil then process names will not be highlighted.
+;; simple-call-tree-info: CHECK
+(cl-defun syslog-replace-pids (pidrx &optional lsof)
+  "Replace PIDs with process names in buffer, and return the list of process names.
+PIDRX should be a regexp matching the pids or containing a non-shy match group for 
+matching pids. The LSOF arg is interpreted in the same way as `syslog-pid-to-comm'.
+
 When called interactively with no prefix arg, a file containing lsof output will be
 prompted for, with a single prefix arg a buffer will be prompted for, otherwise the
-ps shell command will be used to find process names."
+ps shell command will be used to find process names.
+
+Note: if PIDRX doesn't contain any non-shy group then it will be used for finding pids,
+but any string matching the discovered pids (even in different locations to the match)
+will be replaced. If you only want to do the replacements in the positions matched by 
+PIDRX use a non-shy group to surround the pid."
   (interactive (list (read-regexp
 		      "Regexp with match group for PID"
-		      '("^\\([0-9]+\\)" "pid=\\([0-9]+\\)"))
-		     (cond ((equal current-prefix-arg '(4))
-			    (get-buffer
-			     (read-buffer "Buffer containing lsof output: " nil t)))
-			   (current-prefix-arg nil)
-			   (t (read-file-name "File containing lsof output: ")))
-		     t))
-  (let ((pids (mapcar 'car (syslog-unique-matches pidrx)))
-	names)
-    (syslog-alter-buffer
-     (highlight-regexp-unique
-      (mapconcat 'identity
-		 (mapcar (lambda (p)
-			   (goto-char (point-min))
-			   (let ((rx (if (< (regexp-opt-depth pidrx) 1)
-					 p
-				       (replace-regexp-in-string "\\\\(.*?\\\\)" p pidrx)))
-				 (name (syslog-pid-to-comm p lsof)))
-			     (replace-regexp rx name)
-			     name))
-			 pids) "\\|")))))
-
-;; simple-call-tree-info: REFACTOR  can I use highlight-regexp-unique here?
-(cl-defun syslog-replace-pipes (piperx &optional (pids "^\\([0-9]+\\)") lsof)
-  "Replace pipe inode numbers with info about processes using the pipe obtained from lsof.
-PIPERX should be a regular expression containing the string \"<INODE>\" which will be
-replaced with the pipe inode.
-PIDS should be a regexp for matching PIDs in the current buffer (see `syslog-replace-pids'), 
-or a list of integer process IDs, or a string to pass to the -p option of lsof.
-If PIDS is nil then LSOF should be non-nil, and pipe info will be extracted from the buffer, 
-file or lines supplied by that arg instead (see `syslog-pid-to-comm').
-
-When called interactively with no prefix arg a file containing lsof output will be 
-prompted for, with a single prefix arg a buffer containing lsof output will be prompted 
-for, and with any other prefix arg a regexp for matching PIDS in the current buffer will 
-be prompted for, and they will be passed to the lsof -p option."
-  (interactive (list (read-regexp "Regexp containing \"<INODE>\"" '("pipe:\\[<INODE>\\]"))
-		     (when (and current-prefix-arg
-				(not (equal current-prefix-arg '(4))))
-		       (read-regexp "Regexp with match group for PIDs"
-				    '("^\\([0-9]+\\)" "pid=\\([0-9]+\\)")))
+		      '("^[0-9]+" "pid=\\([0-9]+\\)"))
 		     (cond ((equal current-prefix-arg '(4))
 			    (get-buffer
 			     (read-buffer "Buffer containing lsof output: " nil t)))
 			   (current-prefix-arg nil)
 			   (t (read-file-name "File containing lsof output: ")))))
+  (let ((pids (mapcar 'car (syslog-unique-matches pidrx)))
+	names)
+    (syslog-alter-buffer
+     (setq names
+	   (mapcar (lambda (p)
+		     (goto-char (point-min))
+		     (let ((rx (if (< (regexp-opt-depth pidrx) 1)
+				   p
+				 (replace-regexp-in-string "\\\\(.*?\\\\)" p pidrx)))
+			   (name (syslog-pid-to-comm p lsof)))
+		       (replace-regexp rx name)
+		       name))
+		   pids)))))
+
+;; simple-call-tree-info: CHECK
+(cl-defun syslog-replace-pipes (piperx lsof)
+  "Replace pipe inode numbers with info about processes using the info obtained from LSOF.
+PIPERX should be a regular expression containing the string \"<INODE>\" which will be
+replaced with the pipe inode. The LSOF arg is interpreted in the same way as `syslog-pid-to-comm'.
+
+When called interactively with no prefix arg a file containing lsof output will be prompted for, 
+with a prefix arg a buffer containing lsof output will be prompted for."
+  (interactive (list (read-regexp "Regexp containing \"<INODE>\"" '("pipe:\\[<INODE>\\]"))
+		     (if current-prefix-arg
+			 (read-buffer "Buffer containing lsof output: " nil t)
+		       (read-file-name "File containing lsof output: "))))
   (syslog-alter-buffer
-   (dolist (pipe (syslog-lsof-get-pipes
-		  (if (and (stringp pids)
-			   (string-match "\\\\(" pids))
-		      (mapcar (lambda (m) (string-to-number (car m)))
-			      (syslog-count-matches pids))
-		    pids)
-		  lsof))
-     (let ((rx (replace-regexp-in-string "<INODE>" (concat "\\(" (car pipe) "\\)") piperx t t))
+   (dolist (pipe (syslog-lsof-get-pipes lsof))
+     (let ((rx (replace-regexp-in-string
+		"<INODE>"
+		(concat "\\(" (car pipe) "\\)") piperx t t))
 	   (str (mapconcat (lambda (x)
 			     (replace-regexp-in-string "[0-9]+," "" x))
 			   (cdr pipe) ":")))
@@ -1273,8 +1256,20 @@ be prompted for, and they will be passed to the lsof -p option."
        (while (re-search-forward rx nil t)
 	 (replace-match str t t nil 1))))))
 
-;; simple-call-tree-info: TODO
-(defun simple-call-tree-replace-pids-and-pipes nil
+;; simple-call-tree-info: TODO  
+(defun syslog-transform-strace (lsof &optional (facerx t))
+  "Transform strace output in the current buffer"
+  (interactive (list (cond ((equal current-prefix-arg '(4))
+			    (get-buffer
+			     (read-buffer "Buffer containing lsof output: " nil t)))
+			   (current-prefix-arg nil)
+			   (t (read-file-name "File containing lsof output: ")))
+		     ))
+  (syslog-replace-pipes "pipe:\\[<INODE>\\]" (unless lsof "^\\([0-9]+\\)") lsof)
+  (highlight-regexp-unique
+   (mapconcat 'identity (syslog-replace-pids "^[0-9]" lsof) "\\|")
+   facerx)
+  
   )
 
 ;; simple-call-tree-info: DONE
