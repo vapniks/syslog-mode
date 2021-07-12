@@ -633,6 +633,9 @@ subset of FACES (default `syslog-hi-face-default') to use for highlighting eithe
  or \"choose\" to specify a regexp (FACERX) to match the face names. 
 If a prefix arg is used then only the \"choose\" option is available,
 and the specified regexp will be used to filter all defined faces.
+When called non-interactively, faces can be either a list of faces, nil for
+the default value (`syslog-hi-face-default'), or any other value for all defined 
+faces.
 
 If REGEXP contains non-shy match groups, then only those parts of the
 match will be treated as unique strings & highlighted (rather than the whole regexp).
@@ -657,6 +660,9 @@ that will be used for doing the highlighting."
 	 (unused-faces (set-difference
 			(cl-remove-if-not
 			 (lambda (f) (string-match facerx (symbol-name f)))
+			 (cond ((listp faces) faces)
+			       ((null faces) syslog-hi-face-defaults)
+			       (t (face-list)))
 			 (or faces syslog-hi-face-defaults))
 			(mapcar (lambda (p) (eval (cadadr p)))
 				hi-lock-interactive-patterns)))
