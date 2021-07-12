@@ -1236,18 +1236,20 @@ PIDRX use a non-shy group to surround the pid."
 			   (name (syslog-pid-to-comm p lsof)))
 		       (replace-regexp rx name)
 		       name))
-		   pids)))))
+		   pids)))
+    names))
 
 ;; simple-call-tree-info: CHECK
 (cl-defun syslog-replace-pipes (piperx lsof)
   "Replace pipe inode numbers with info about processes using the info obtained from LSOF.
 PIPERX should be a regular expression containing a single non-shy match group for matching
-the inode numbers of the pipes. 
+the inode numbers of the pipes (the match group should ONLY match the inode number). 
 The LSOF arg is interpreted in the same way as `syslog-pid-to-comm'.
 
 When called interactively with no prefix arg a file containing lsof output will be prompted for, 
 with a prefix arg a buffer containing lsof output will be prompted for."
-  (interactive (list (read-regexp "Regexp containing \"<INODE>\"" '("pipe:\\[<INODE>\\]"))
+  (interactive (list (read-regexp "Regexp containing a non-shy match group"
+				  '("pipe:\\[\\([0-9]+\\)\\]"))
 		     (if current-prefix-arg
 			 (read-buffer "Buffer containing lsof output: " nil t)
 		       (read-file-name "File containing lsof output: "))))
