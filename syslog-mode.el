@@ -480,8 +480,8 @@ highlight those regexps with."
 			(args3 (cl-loop
 				for arg in args1
 				for i from 0
-				for arg2 = (nth i args2)
-				collect (if (eq (eval arg2) 'interactive)
+				for arg2 = (eval (nth i args2))
+				collect (if (eq arg2 'interactive)
 					    (eval arg)
 					  arg2))))
 		   (apply (car trt) args3)))
