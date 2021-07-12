@@ -904,7 +904,7 @@ buffer respectively."
 ;;;###autoload
 ;; simple-call-tree-info: DONE
 (defun syslog-mode ()
-  "Major mode for working with system logs.
+  "Major mode for working with system logs, and strace output.
 
 \\{syslog-mode-map}"
   (interactive)
@@ -954,7 +954,10 @@ buffer respectively."
       ["---" "---"]))
   ;; font locking
   (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults '(syslog-font-lock-keywords t t nil ))
+  (setq font-lock-defaults
+	(if (string-match "\\..?trace$" buffer-file-name)
+	    '((strace-font-lock-keywords))
+	  '(syslog-font-lock-keywords t t nil )))
   (buffer-disable-undo)
   (toggle-read-only 1)
   (run-hooks 'syslog-mode-hook))
@@ -1385,7 +1388,7 @@ The FACES arg is the same as for `highlight-regexp-unique' (which see)."
 ;; Keywords
 ;; TODO: Seperate the keywords into a list for each format, rather than one for all.
 ;;       Better matching of dates (even when not at beginning of line).
-;; simple-call-tree-info: DONE
+;; simple-call-tree-info: TODO
 (defvar syslog-font-lock-keywords
   '(("\"[^\"]*\"" . 'font-lock-string-face)
     ("'[^']*'" . 'font-lock-string-face)
@@ -1420,6 +1423,21 @@ The FACES arg is the same as for `highlight-regexp-unique' (which see)."
     ("(==)" 0 'syslog-debug append)
     ("(\\+\\+)" 0 'syslog-debug append))
   "Expressions to hilight in `syslog-mode'.")
+
+(defvar syslog-strace-font-lock-keywords
+  '(("^\\([0-9]+\\) " . (1 font-lock-warning-face))
+    ("^[0-9]+ \\([a-zA-Z0-9_]*\\)(" . (1 font-lock-constant-face))
+    (" = 0x[[:xdigit:]]+ \\([[:upper:]]+\\).*$" . (1 font-lock-warning-face))
+    (" = -?[[:digit:]?]+ \\([[:upper:]]+\\).*$" . (1 font-lock-warning-face))
+    (" = \\(0x[[:xdigit:]]+\\).*$" . (1 font-lock-keyword-face))
+    (" = \\(-?[[:digit:]?]+\\).*$" . (1 font-lock-keyword-face))
+    ("[ =\(\[\{]\\([[:upper:]_|]+\\)[] |\,\(\)\}]" . (1 font-lock-constant-face))
+    (" \\((.*)\\)$" . (1 font-lock-comment-face))
+    ("\\(/\\*.*\\*/\\)" . (1 font-lock-comment-face))
+    ("0x[[:xdigit:]]+" . font-lock-type-face)
+    ("-?[[:digit:]]+" . font-lock-type-face)
+    )
+  "Font locking definitions for trace output in syslog mode.")
 
 ;;; Setup functions
 ;; simple-call-tree-info: DONE
