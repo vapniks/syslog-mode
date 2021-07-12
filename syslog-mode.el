@@ -655,8 +655,7 @@ In this case overlays will always be used (which can be slow if there are many m
 If there are no non-shy match groups, and variable `font-lock-mode' is enabled then 
 that will be used for doing the highlighting."
   (interactive
-   (list (hi-lock-regexp-okay
-	  (read-regexp "Regexp to highlight" 'regexp-history-last))
+   (list (read-regexp "Regexp to highlight" 'regexp-history-last)
 	 (let ((choice (completing-read
 			"Highlight type: "
 			(nconc (mapcar 'car syslog-hi-face-defaults)
@@ -665,6 +664,7 @@ that will be used for doing the highlighting."
 	       (read-regexp "Regexp matching face names to use (default \"hi-.*\"): "
 			    "hi-.*")
 	     (cdr (assoc choice syslog-hi-face-defaults))))))
+  (hi-lock-regexp-okay regexp)
   (unless hi-lock-mode (hi-lock-mode 1))
   (let* ((faces (cond ((null faces) (mapcan 'cdr syslog-hi-face-defaults))
 		      ((listp faces) faces)
