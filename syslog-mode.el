@@ -1314,7 +1314,10 @@ The FACES arg is the same as for `highlight-regexp-unique' (which see)."
 		  (error "No output from lsof command"))))
     (syslog-replace-pipes "pipe:\\[\\([0-9]+\\)\\]" lsof)
     (highlight-regexp-unique
-     (mapconcat 'identity (syslog-replace-pids "^[0-9]+" lsof) "\\|")
+     (let ((arg (mapconcat 'identity (syslog-replace-pids "^[0-9]+" lsof) "\\|")))
+       (if (> (length arg) 0)
+	   arg
+	 (error "No pids found in buffer")))
      faces)))
 
 ;; simple-call-tree-info: DONE
