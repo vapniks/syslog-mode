@@ -662,9 +662,11 @@ that will be used for doing the highlighting."
 			       '("choose")))))
 	   (if (equal choice "choose")
 	       (read-regexp "Regexp matching face names to use (default \"hi-.*\"): "
-			    "hi-.*")
+			    "hi-.*"
+			    'syslog-face-regexp-history)
 	     (cdr (assoc choice syslog-hi-face-defaults))))))
   (hi-lock-regexp-okay regexp)
+  (when (stringp faces) (hi-lock-regexp-okay faces))
   (unless hi-lock-mode (hi-lock-mode 1))
   (let* ((faces (cond ((null faces) (mapcan 'cdr syslog-hi-face-defaults))
 		      ((listp faces) faces)
@@ -834,6 +836,9 @@ It should contain one non-shy subexpression matching the datetime string."
   "List of faces (as symbols) to use for automatic highlighting."
   :group 'syslog
   :type '(repeat (string :tag "Face")))
+
+(defvar syslog-face-regexp-history nil
+  "History list for commands that read regexps for matching faces.")
 
 ;;;###autoload
 ;; simple-call-tree-info: DONE
