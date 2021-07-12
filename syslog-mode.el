@@ -1246,7 +1246,7 @@ PIDRX use a non-shy group to surround the pid."
   "Replace pipe inode numbers with info about processes using the info obtained from LSOF.
 PIPERX should be a regular expression containing a single non-shy match group for matching
 the inode numbers of the pipes (the match group should ONLY match the inode number). 
-The LSOF arg is interpreted in the same way as `syslog-pid-to-comm'.
+The LSOF arg can be a file, buffer or list of strings containing output from lsof.
 
 When called interactively with no prefix arg a file containing lsof output will be prompted for, 
 with a prefix arg a buffer containing lsof output will be prompted for."
@@ -1276,19 +1276,20 @@ This is a wrapper for `syslog-replace-pids' & `syslog-replace-pipes':
 pids will be replaced with process names, and pipe inode numbers
 will be replaced with comma separated lists of file descriptors
 and associated processes connected to the pipe."
-  (interactive (list (if current-prefix-arg
+  (interactive (cons (if current-prefix-arg
 			 (get-buffer
 			  (read-buffer "Buffer containing lsof output: " nil t))
 		       (read-file-name "File containing lsof output: "))
 		     (let ((choice (completing-read
 				    "Highlight type: "
 				    '("background" "foreground" "choose"))))
-		       (cond ((equal choice "background") "-[^b]\\|[^-].")
-			     ((equal choice "foreground") "-b$")
+		       (cond ((equal choice "background") (list "-[^b]\\|[^-]." nil))
+			     ((equal choice "foreground") (list "-b$" nil))
 			     ((equal choice "choose")
-			      (read-regexp "Regexp matching face names to use (default \".*\"): "
-					   ".*"))))
-		     (if current-prefix-arg (face-list) syslog-hi-face-defaults)))
+			      (list (read-regexp
+				     "Regexp matching face names to use (default \"^hi-.*\"): "
+				     "^hi-.*")
+				    t))))))
   (syslog-replace-pipes "pipe:\\[\\([0-9]+\\)\\]" lsof)
   (highlight-regexp-unique
    (mapconcat 'identity (syslog-replace-pids "^[0-9]+" lsof) "\\|")
