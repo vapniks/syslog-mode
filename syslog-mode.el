@@ -624,7 +624,7 @@ With prefix ARG: remove matching blocks."
 	  (message "No matches found")))))
 
 ;; simple-call-tree-info: TODO  allow more faces?
-(cl-defun highlight-regexp-unique (regexp &optional (facerx nil) faces)
+(defun highlight-regexp-unique (regexp &optional facerx faces)
   "Highlight each unique string matched by REGEXP with a different face.
 Interactively, prompt for REGEXP using `read-regexp', and prompt for a
 subset of FACES (default `syslog-hi-face-default') to use for highlighting either:
@@ -640,7 +640,7 @@ faces.
 If REGEXP contains non-shy match groups, then only those parts of the
 match will be treated as unique strings & highlighted (rather than the whole regexp).
 In this case overlays will always be used (which can be slow if there are many matches).
-If there are no non-shy match groups, and `font-lock-mode' is enabled then 
+If there are no non-shy match groups, and variable `font-lock-mode' is enabled then 
 that will be used for doing the highlighting."
   (interactive
    (list (hi-lock-regexp-okay
