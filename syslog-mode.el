@@ -1267,21 +1267,30 @@ with a prefix arg a buffer containing lsof output will be prompted for."
        (while (re-search-forward rx nil t)
 	 (replace-match str t t nil 1))))))
 
-;; simple-call-tree-info: TODO  
-(defun syslog-transform-strace (lsof &optional (facerx t))
-  "Transform strace output in the current buffer"
-  (interactive (list (cond ((equal current-prefix-arg '(4))
-			    (get-buffer
-			     (read-buffer "Buffer containing lsof output: " nil t)))
-			   (current-prefix-arg nil)
-			   (t (read-file-name "File containing lsof output: ")))
-		     ))
-  (syslog-replace-pipes "pipe:\\[<INODE>\\]" (unless lsof "^\\([0-9]+\\)") lsof)
+;; simple-call-tree-info: CHECK
+(cl-defun syslog-transform-strace (lsof &optional (facerx t) faces)
+  "Transform strace output in the current buffer.
+This is a wrapper for `syslog-replace-pids' & `syslog-replace-pipes':
+pids will be replaced with process names, and pipe inode numbers
+will be replaced with comma separated lists of file descriptors
+and associated processes connected to the pipe."
+  (interactive (list (if current-prefix-arg
+			 (get-buffer
+			  (read-buffer "Buffer containing lsof output: " nil t))
+		       (read-file-name "File containing lsof output: "))
+		     (let ((choice (completing-read
+				    "Highlight type: "
+				    '("background" "foreground" "choose"))))
+		       (cond ((equal choice "background") "-[^b]\\|[^-].")
+			     ((equal choice "foreground") "-b$")
+			     ((equal choice "choose")
+			      (read-regexp "Regexp matching face names to use (default \".*\"): "
+					   ".*"))))
+		     (if current-prefix-arg (face-list) syslog-hi-face-defaults)))
+  (syslog-replace-pipes "pipe:\\[\\([0-9]+\\)\\]" lsof)
   (highlight-regexp-unique
-   (mapconcat 'identity (syslog-replace-pids "^[0-9]" lsof) "\\|")
-   facerx)
-  
-  )
+   (mapconcat 'identity (syslog-replace-pids "^[0-9]+" lsof) "\\|")
+   facerx faces))
 
 ;; simple-call-tree-info: DONE
 (defface syslog-ip
