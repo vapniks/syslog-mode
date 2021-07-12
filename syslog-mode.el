@@ -1292,7 +1292,7 @@ with a single prefix arg a buffer will be prompted for, and any other prefix
 arg will invoke a call to the lsof shell command.
 
 The FACES arg is the same as for `highlight-regexp-unique' (which see)."
-  (interactive (cons (cond ((equal current-prefix-arg '(4))
+  (interactive (list (cond ((equal current-prefix-arg '(4))
 			    (get-buffer
 			     (read-buffer "Buffer containing lsof output: "
 					  nil t)))
