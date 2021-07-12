@@ -657,8 +657,8 @@ that will be used for doing the highlighting."
 	 (if current-prefix-arg (face-list) syslog-hi-face-defaults)))
   (unless hi-lock-mode (hi-lock-mode 1))
   (let* ((facerx (or facerx ".*"))
-	 (faces (cond ((listp faces) faces)
-		      ((null faces) syslog-hi-face-defaults)
+	 (faces (cond ((null faces) syslog-hi-face-defaults)
+		      ((listp faces) faces)
 		      (t (face-list))))
 	 (unused-faces (set-difference
 			(if (> (length facerx) 0)
