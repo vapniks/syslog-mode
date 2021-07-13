@@ -1462,8 +1462,7 @@ The FACES arg is the same as for `highlight-regexp-unique' (which see)."
     (" \\((.*)\\)$" . (1 font-lock-comment-face))
     ("\\(/\\*.*\\*/\\)" . (1 font-lock-comment-face))
     ("0x[[:xdigit:]]+" . font-lock-type-face)
-    ("-?[[:digit:]]+" . font-lock-type-face)
-    )
+    ("-?[[:digit:]]+" . font-lock-type-face))
   "Font locking definitions for trace output in syslog mode.")
 
 ;;; Setup functions
