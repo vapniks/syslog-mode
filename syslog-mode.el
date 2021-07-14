@@ -677,7 +677,7 @@ With prefix ARG: remove matching blocks."
       (if (= n (length (overlays-in (point-min) (point-max))))
 	  (message "No matches found")))))
 
-;; simple-call-tree-info: TODO  allow more faces?
+;; simple-call-tree-info: DONE
 (defun highlight-regexp-unique (regexp &optional faces)
   "Highlight each unique string matched by REGEXP with a different face.
 Interactively, prompt for REGEXP using `read-regexp', and prompt for a
@@ -853,7 +853,7 @@ It should contain one non-shy subexpression matching the datetime string."
   :type 'directory)
 
 ;; Add some extra faces for highlighting
-;; simple-call-tree-info: CHECK
+;; simple-call-tree-info: DONE  
 (defface hi-red
   '((((background dark)) (:background "red" :foreground "black"))
     (t (:background "red")))
@@ -1024,7 +1024,7 @@ buffer respectively."
 (defvar syslog-boot-start-regexp "unix: SunOS"
   "Regexp to match the first line of boot sequence.")
 
-;; simple-call-tree-info: CHECK
+;; simple-call-tree-info: DONE  
 (defun syslog-unique-matches (rx &optional ignorecase)
   "Find unique strings matching RX or it's non-shy match groups if it has any.
 Return value is an alist whose car values are the unique matched strings,
@@ -1095,7 +1095,7 @@ case will be ignored when searching for matches."
 	(cl-format t "~:{~a:~s ~}" matches)
       matches)))
 
-;; simple-call-tree-info: TODO
+;; simple-call-tree-info: CHECK  
 (defun syslog-extract-matches (rx &optional sep count outbuf overwrite)
   "Extract & concatenate strings matching regexp RX (or its match groups).
 Separate the matches with SEP if non-nil. If COUNT is non-nil then only collect
@@ -1386,7 +1386,7 @@ The FACES arg is the same as for `highlight-regexp-unique' (which see)."
 	 (error "No pids found in buffer")))
      faces)))
 
-;; simple-call-tree-info: TODO
+;; simple-call-tree-info: DONE  
 (defcustom syslog-notes-files nil
   "An alist used by `syslog-load-notes' for choosing a notes file to load.
 The car of each element in the list is a regexp used for matching against
@@ -1398,7 +1398,7 @@ The notes file should contain .... TODO"
   :type '(alist :key-type (regexp :help-echo "Regexp for matching file visited by buffer")
 		:value-type (file :help-echo "Syslog notes file")))
 
-;; simple-call-tree-info: TODO
+;; simple-call-tree-info: DONE  
 (defvar-local syslog-notes nil
   "List of syslog notes for current buffer.
 Each entry is a list containing 3 items in the following order:
@@ -1409,7 +1409,7 @@ Either one of 1. & 2. may be omitted, but not both.
 Word matches have higher precedence than line matches, 
 but lower precedence than combined word & line matches.")
 
-;; simple-call-tree-info: TODO
+;; simple-call-tree-info: CHECK  
 (defun syslog-show-note nil
   "In the minibuffer display note associated with the word at point.
 The note is chosen from the current value of `syslog-notes'."
@@ -1454,7 +1454,7 @@ The file is chosen using `syslog-notes-files'."
 	(concat (file-name-directory (symbol-file 'syslog-mode))
 		file)))))
 
-;; simple-call-tree-info: TODO
+;; simple-call-tree-info: DONE  
 (defun syslog-load-notes nil
   "Load appropriate notes file for the current buffer.
 The file is chosen using `syslog-notes-files'."
@@ -1467,7 +1467,7 @@ The file is chosen using `syslog-notes-files'."
       (message "No notes file associated with this buffer (create one with: M-x syslog-edit-notes)")
       nil)))
 
-;; simple-call-tree-info: TODO
+;; simple-call-tree-info: CHECK  
 (defun syslog-edit-notes nil
   "Edit syslog notes file associated with current buffer.
 If this is none, then create new notes file, and add it to `syslog-notes-files'."
@@ -1559,7 +1559,7 @@ If this is none, then create new notes file, and add it to `syslog-notes-files'.
 ;; Keywords
 ;; TODO: Seperate the keywords into a list for each format, rather than one for all.
 ;;       Better matching of dates (even when not at beginning of line).
-;; simple-call-tree-info: TODO
+;; simple-call-tree-info: CHECK  
 (defvar syslog-font-lock-keywords
   '(("\"[^\"]*\"" . 'font-lock-string-face)
     ("'[^']*'" . 'font-lock-string-face)
@@ -1595,6 +1595,7 @@ If this is none, then create new notes file, and add it to `syslog-notes-files'.
     ("(\\+\\+)" 0 'syslog-debug append))
   "Expressions to hilight in `syslog-mode'.")
 
+;; simple-call-tree-info: CHECK  
 (defvar syslog-strace-font-lock-keywords
   '(("^\\([0-9]+\\) " . (1 font-lock-warning-face))
     ("^[0-9]+ \\([a-zA-Z0-9_]*\\)(" . (1 font-lock-constant-face))
