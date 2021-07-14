@@ -1393,7 +1393,8 @@ The car of each element in the list is a regexp used for matching against
 the file visited in the current buffer, and the cdr is a notes file to load
 in case of a match. The first matching element will be used.
 
-The notes file should contain .... TODO"
+The notes file should contain an s-expression setting the local value of `syslog-notes':
+ (setq-local syslog-notes ...)"
   :group 'syslog
   :type '(alist :key-type (regexp :help-echo "Regexp for matching file visited by buffer")
 		:value-type (file :help-echo "Syslog notes file")))
