@@ -965,19 +965,35 @@ buffer respectively."
       ["Extract matches" syslog-extract-matches :help "Extract & concatenate strings which match the given pattern" :key "x"]
       ["Dired" (lambda nil (interactive) (dired syslog-log-file-directory)) :help "Enter logfiles directory" :keys "D"]
       ["Shell command" syslog-shell-command :help "Execute shell command (as root if prefix arg used)" :key "!"]
-      ["Highlight..." (keymap "Highlight"
-			      (regexp menu-item "Regexp" highlight-regexp
-				      :help "Highlight each match of regexp"
-				      :keys "h r")
-			      (phrase menu-item "Phrase" highlight-phrase
-				      :help "Highlight each match of phrase"
-				      :keys "h p")
-			      (lines menu-item "Lines matching regexp" highlight-lines-matching-regexp
-				     :help "Highlight lines containing match of regexp"
-				     :keys "h l")
-			      (unhighlight menu-item "Unhighlight regexp" unhighlight-regexp
-					   :help "Remove highlighting"
-					   :keys "h u"))]
+      ["Notes..." (keymap "Notes"
+			  (show-note menu-item "Show note" syslog-show-note
+				     :help "Show note for word at point"
+				     :keys "?")
+			  (load-notes menu-item "Load notes" syslog-load-notes
+				      :help "Load notes associated with current buffer")
+			  (edit-notes menu-item "Edit notes" syslog-edit-notes
+				      :help "Edit notes associated with current buffer"))]
+      ["Highlighting..." (keymap "Highlight"
+				 (regexp menu-item "Regexp" highlight-regexp
+					 :help "Highlight each match of regexp"
+					 :keys "h r")
+				 (regexp-unique menu-item "Regexp unique" highlight-regexp-unique
+						:help "Highlight each unique match of regexp differently"
+						:keys "h q")
+				 (phrase menu-item "Phrase" highlight-phrase
+					 :help "Highlight each match of phrase"
+					 :keys "h p")
+				 (lines menu-item "Lines matching regexp" highlight-lines-matching-regexp
+					:help "Highlight lines containing match of regexp"
+					:keys "h l")
+				 (unhighlight menu-item "Unhighlight regexp" unhighlight-regexp
+					      :help "Remove highlighting"
+					      :keys "h u")
+				 (unhighlight-all menu-item "Unhighlight all"
+						  (lambda nil (interactive) (unhighlight-regexp t))
+						  :help "Remove all highlighting"
+						  :keys "h U"
+						  ))]
       ["Open stored view..." syslog-view :help "Open a stored view of syslog files" :key "v"]
       ["Edit stored views..." (lambda nil (interactive) (customize-variable 'syslog-views)) :help "Customize `syslog-views'"]
       ["---" "---"]))
