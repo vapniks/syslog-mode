@@ -1423,7 +1423,7 @@ The note is chosen from the current value of `syslog-notes'."
 					(line-end-position))))
 				    lst)))
     (if syslog-notes
-	(let* ((word (word-at-point))
+	(let* ((word (symbol-name-nearest-point))
 	       (haswrd (mapcar 'cdr (cl-remove-if-not
 				     (lambda (e) (string-match (car e) word))
 				     syslog-notes)))
