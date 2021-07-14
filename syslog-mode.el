@@ -1507,6 +1507,55 @@ If this is none, then create new notes file, and add it to `syslog-notes-files'.
 	(insert "(setq-local\n syslog-notes\n '((\"EXAMPLE\" \"^.*stuff.*\" \"An example note. Delete this entry\")))"))
       (add-to-list 'syslog-notes-files (cons (regexp-opt (list bfn)) file)))))
 
+;; simple-call-tree-info: CHECK
+(defun syslog-show-manpage-region (page startrx endrx)
+  "Display region of manpage PAGE between regexps STARTRX & ENDRX in the minibuffer.
+This function can be useful in `syslog-notes' definitions in combination with `apply-partially'."
+  (let (case-fold-search
+	start end
+	(Man-notify-method 'meek)
+	(manbuf (Man-getpage-in-background page)))
+    (with-current-buffer manbuf
+      (delete-window (get-buffer-window manbuf))
+      (save-excursion
+	(goto-char (point-min))
+	(re-search-forward startrx)
+	(forward-line 1)
+	(setq start (point))
+	(re-search-forward endrx)
+	(move-beginning-of-line nil)
+	(setq end (point))
+	(message
+	 (replace-regexp-in-string "\\`\\s-+\\|\\s-+\\'" ""
+				   (buffer-substring-no-properties start end)))))))
+
+;; simple-call-tree-info: CHECK
+(defun syslog-show-manpage-region-for-word (page n word)
+  "Display description of WORD extracted from PAGE manpage.
+The description is found by searching for indented text that comes after the
+first appearance of WORD on a line proceeded only by whitespace.
+N should be the minimum length of words that delimit description sections.
+This function can be useful in `syslog-notes' definitions in combination with `apply-partially'."
+  (let (case-fold-search
+	start end ws
+	(Man-notify-method 'meek)
+	(manbuf (Man-getpage-in-background page)))
+    (with-current-buffer manbuf
+      (delete-window (get-buffer-window manbuf))
+      (save-excursion
+	(goto-char (point-min))
+	(re-search-forward (concat "^\\(\\s-+\\)" word))
+	(setq ws (match-string 1))
+	(forward-line 1)
+	(setq start (point))
+	(re-search-forward
+	 (concat "^" ws "[A-Z_]\\{" (number-to-string n) ",\\}"))
+	(move-beginning-of-line nil)
+	(setq end (point))
+	(message
+	 (replace-regexp-in-string "\\`\\s-+\\|\\s-+\\'" ""
+				   (buffer-substring-no-properties start end)))))))
+
 ;; simple-call-tree-info: DONE
 (defface syslog-ip
   '((t :underline t :slant italic :weight bold))
