@@ -1,6 +1,7 @@
 * Commentary
 This library provides a major-mode for viewing syslog & strace files.
-You can highlight and filter the lines of the file by regular expressions and by timestamp.
+You can highlight and filter the lines of the file by regular expressions and by timestamp,
+view notes associated with files, extract text, count matches, etc.
 * Keybindings
 - "C-down" : syslog-boot-start
 - "R"      : revert-buffer
