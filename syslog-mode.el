@@ -211,6 +211,7 @@
 (require 'hi-lock)
 (require 'net-utils)
 (require 'ov)
+(require 'thingatpt)
 
 ;;; Code:
 
@@ -270,6 +271,7 @@
     (define-key map "m" 'manual-entry)
     (define-key map "q" 'quit-window)
     (define-key map "!" 'syslog-shell-command)
+    (define-key map "?" 'syslog-show-note)
     (define-key map (kbd "<M-down>") 'syslog-move-next-file)
     (define-key map (kbd "<M-up>") 'syslog-move-previous-file)
     (define-key map "t" 'syslog-toggle-filenames)
@@ -1355,6 +1357,105 @@ The FACES arg is the same as for `highlight-regexp-unique' (which see)."
 	 (error "No pids found in buffer")))
      faces)))
 
+;; simple-call-tree-info: TODO
+(defcustom syslog-notes-files nil
+  "An alist used by `syslog-load-notes' for choosing a notes file to load.
+The car of each element in the list is a regexp used for matching against
+the file visited in the current buffer, and the cdr is a notes file to load
+in case of a match. The first matching element will be used.
+
+The notes file should contain .... TODO"
+  :group 'syslog
+  :type '(alist :key-type (regexp :help-echo "Regexp for matching file visited by buffer")
+		:value-type (file :help-echo "Syslog notes file")))
+
+;; simple-call-tree-info: TODO
+(defvar-local syslog-notes nil
+  "List of syslog notes for current buffer.")
+;; simple-call-tree-info: TODO
+(defun syslog-show-note nil
+  "In the minibuffer display note associated with the word at point."
+  (interactive)
+  (cl-flet ((findmatch (lst)
+		       (cl-assoc-if (lambda (regex)
+				      (string-match
+				       regex
+				       (buffer-substring-no-properties
+					(line-beginning-position)
+					(line-end-position))))
+				    lst)))
+    (if syslog-notes
+	(let* ((word (word-at-point))
+	       (haswrd (mapcar 'cdr (cl-remove-if-not
+				     (lambda (e) (equal word (car e)))
+				     syslog-notes)))
+	       (nowrd (mapcar 'cdr (cl-remove-if 'car syslog-notes)))
+	       (wrdrx (cl-remove-if-not 'car haswrd))
+	       (wrdnorx (cl-remove-if 'car haswrd))
+	       (rxnowrd (cl-remove-if-not 'car nowrd))
+	       (note (cadr (or (findmatch wrdrx)
+			       (car wrdnorx)
+			       (findmatch rxnowrd)))))
+	  (message (or note (concat
+			     "No notes found for " word
+			     " (to create one: M-x syslog-edit-notes)"))))
+      (when (and (y-or-n-p "No notes loaded, load now? ")
+		 (syslog-load-notes))
+	(syslog-show-note)))))
+
+(defun syslog-notes-file nil
+  "Return the syslog notes file associated with the current buffer, or nil if none exists."
+  (let* ((bfn (expand-file-name buffer-file-name))
+	 (file (cdr (cl-assoc-if (lambda (f) (string-match f bfn))
+				 syslog-notes-files))))
+    (when file
+      (if (file-name-directory file)
+	  file
+	(concat (file-name-directory (symbol-file 'syslog-mode))
+		file)))))
+;; simple-call-tree-info: TODO
+(defun syslog-load-notes nil
+  "Load appropriate notes file for the current buffer."
+  (interactive)
+  (let* ((file (syslog-notes-file)))
+    (if file
+	(if (file-readable-p file)
+	    (load-file file)
+	  (error "Unable to load %s" file))
+      (message "No notes file associated with this buffer (create one with: M-x syslog-edit-notes)")
+      nil)))
+
+;; simple-call-tree-info: TODO
+(defun syslog-edit-notes nil
+  "Edit syslog notes associated with current buffer.
+If there are none, then create new notes file."
+  (interactive)
+  (let* ((file (syslog-notes-file)))
+    (if (and file (file-exists-p file))
+	(find-file file)
+      (setq file
+	    (read-file-name
+	     "Select/create a notes file to associate with this buffer: "
+	     (file-name-directory (symbol-file 'syslog-mode))
+	     (concat (buffer-file-name) "_notes.el") nil
+	     (file-name-nondirectory (concat (buffer-file-name) "_notes.el"))
+	     (lambda (f) (string-match "\\.el" (file-name-nondirectory f)))))
+      (find-file file)
+      (if (file-exists-p file)
+	  (when (save-excursion
+		  (not (and (eq major-mode 'emacs-lisp-mode)
+			    (goto-char (point-min))
+			    (search-forward "syslog-notes" nil t))))
+	    (error "This is not a syslog notes file"))
+	(insert ";; This file contains notes for emacs `syslog-mode' used by the `syslog-show-note' function.\n")
+	(insert ";; Each entry in the `syslog-notes' list defined below should contain:\n")
+	(insert ";; a word matching the word at point, a regexp matching the line, and the note itself (a string).\n")
+	(insert ";; Either one of the 1st (word) or 2nd (regexp) elements may be omitted, but not both.")
+	(insert ";; Word matches have higher precedence than line matches, but lower precedence than combined word & line matches.")
+	(insert ";; After editing save & kill this buffer, and then in the syslog-mode buffer do: M-x syslog-load-notes\n")
+	(insert ";; To always use this file add an entry to the `syslog-notes-files' user option.\n")
+	(insert "(setq-local\n syslog-notes\n '((\"EXAMPLE\" \"^.*stuff.*\" \"An example note. Delete this entry\")))"))
+      (add-to-list 'syslog-notes-files (cons (regexp-opt (list bfn)) file)))))
 ;; simple-call-tree-info: DONE
 (defface syslog-ip
   '((t :underline t :slant italic :weight bold))
