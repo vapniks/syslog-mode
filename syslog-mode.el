@@ -1405,7 +1405,8 @@ The notes file should contain an s-expression setting the local value of `syslog
 Each entry is a list containing 3 items in the following order:
  1. a regexp to match the word at point
  2. a regexp to match the current line
- 3. the note to be displayed (a string)
+ 3. the note to be displayed: either a string, or a function of 
+    one argument (the word at point) that returns a string
 Either one of 1. & 2. may be omitted, but not both.
 Word matches have higher precedence than line matches, 
 but lower precedence than combined word & line matches.")
@@ -1435,9 +1436,14 @@ The note is chosen from the current value of `syslog-notes'."
 	       (note (cadr (or (findmatch wrdrx)
 			       (car wrdnorx)
 			       (findmatch rxnowrd)))))
-	  (message (or note (concat
-			     "No notes found for " word
-			     " (to create one: M-x syslog-edit-notes)"))))
+	  (message (cond ((null note)
+			  (concat
+			   "No notes found for " word
+			   " (to create one: M-x syslog-edit-notes)"))
+			 ((functionp note) (funcall note word))
+			 ((stringp note) note)
+			 (t (error "Invalid note entry in %s"
+				   (syslog-notes-file))))))
       (when (and (y-or-n-p "No notes loaded, load now? ")
 		 (syslog-load-notes))
 	(syslog-show-note)))))
@@ -1492,7 +1498,8 @@ If this is none, then create new notes file, and add it to `syslog-notes-files'.
 	    (error "This is not a syslog notes file"))
 	(insert ";; This file contains notes for emacs `syslog-mode' used by the `syslog-show-note' function.\n")
 	(insert ";; Each entry in the `syslog-notes' list defined below should contain:\n")
-	(insert ";; a regexp matching the word at point, a regexp matching the line, and the note itself (a string).\n")
+	(insert ";; a regexp matching the word at point, a regexp matching the line, and the note itself\n")
+	(insert ";; (a string or a function of one argument that returns a string)\n")
 	(insert ";; Either one of the 1st or 2nd elements may be omitted, but not both.")
 	(insert ";; Word matches have higher precedence than line matches, but lower precedence than combined word & line matches.")
 	(insert ";; After editing save & kill this buffer, and then in the syslog-mode buffer do: M-x syslog-load-notes\n")
