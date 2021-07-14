@@ -1402,7 +1402,7 @@ The notes file should contain .... TODO"
 (defvar-local syslog-notes nil
   "List of syslog notes for current buffer.
 Each entry is a list containing 3 items in the following order:
- 1. a word to match the word at point
+ 1. a regexp to match the word at point
  2. a regexp to match the current line
  3. the note to be displayed (a string)
 Either one of 1. & 2. may be omitted, but not both.
@@ -1425,7 +1425,7 @@ The note is chosen from the current value of `syslog-notes'."
     (if syslog-notes
 	(let* ((word (word-at-point))
 	       (haswrd (mapcar 'cdr (cl-remove-if-not
-				     (lambda (e) (equal word (car e)))
+				     (lambda (e) (string-match (car e) word))
 				     syslog-notes)))
 	       (nowrd (mapcar 'cdr (cl-remove-if 'car syslog-notes)))
 	       (wrdrx (cl-remove-if-not 'car haswrd))
@@ -1491,8 +1491,8 @@ If this is none, then create new notes file, and add it to `syslog-notes-files'.
 	    (error "This is not a syslog notes file"))
 	(insert ";; This file contains notes for emacs `syslog-mode' used by the `syslog-show-note' function.\n")
 	(insert ";; Each entry in the `syslog-notes' list defined below should contain:\n")
-	(insert ";; a word matching the word at point, a regexp matching the line, and the note itself (a string).\n")
-	(insert ";; Either one of the 1st (word) or 2nd (regexp) elements may be omitted, but not both.")
+	(insert ";; a regexp matching the word at point, a regexp matching the line, and the note itself (a string).\n")
+	(insert ";; Either one of the 1st or 2nd elements may be omitted, but not both.")
 	(insert ";; Word matches have higher precedence than line matches, but lower precedence than combined word & line matches.")
 	(insert ";; After editing save & kill this buffer, and then in the syslog-mode buffer do: M-x syslog-load-notes\n")
 	(insert ";; To always use this file add an entry to the `syslog-notes-files' user option.\n")
