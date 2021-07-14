@@ -58,6 +58,7 @@
 ;; "x"      : syslog-extract-matches
 ;; "j"/"f"  : ffap
 ;; "!"      : syslog-shell-command
+;; "?"      : syslog-show-note
 ;; "v"      : syslog-view
 ;; "W"      : syslog-whois-reverse-lookup
 ;; "m"      : manual-entry
@@ -134,6 +135,15 @@
 ;;  `syslog-transform-strace'
 ;;    Transform strace output in the current buffer.
 ;;    Keybinding: M-x syslog-transform-strace
+;;  `syslog-show-note'
+;;    In the minibuffer display note associated with the word at point.
+;;    Keybinding: ?
+;;  `syslog-load-notes'
+;;    Load appropriate notes file for the current buffer.
+;;    Keybinding: M-x syslog-load-notes
+;;  `syslog-edit-notes'
+;;    Edit syslog notes associated with current buffer.
+;;    Keybinding: M-x syslog-edit-notes
 ;;
 ;;; Customizable Options:
 ;;
@@ -154,6 +164,9 @@
 ;;  `syslog-hi-face-defaults'
 ;;    Alist of face sets to use for automatic highlighting.
 ;;    default = (quote ((background hi-red hi-blue hi-green hi-yellow ...) (foreground hi-red-b hi-blue-b hi-green-b hi-yellow-b ...)))
+;;  `syslog-notes-files'
+;;    An alist used by `syslog-load-notes' for choosing a notes file to load.
+;;    default = nil
 
 ;; All of the above can customized by:
 ;;      M-x customize-group RET syslog-mode RET

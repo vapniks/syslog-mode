@@ -28,6 +28,7 @@ You can highlight and filter the lines of the file by regular expressions and by
 - "W"      : syslog-whois-reverse-lookup
 - "m"      : manual-entry
 - "!"      : syslog-shell-command
+- "?"      : syslog-show-note
 - "M-down" : syslog-move-next-file
 - "M-up"   : syslog-move-previous-file
 - "t"      : syslog-toggle-filenames
@@ -36,6 +37,9 @@ You can highlight and filter the lines of the file by regular expressions and by
 Below are complete command list:
 
  - `syslog-shell-command' : Execute a shell COMMAND synchronously, with prefix arg (SUDOP) run under sudo. (Keybinding: !)
+ - `syslog-show-note' : In the minibuffer display note associated with the word at point.
+ - `syslog-load-notes' : Load appropriate notes file for the current buffer.
+ - `syslog-edit-notes' : Edit syslog notes associated with current buffer.
  - `syslog-append-files' : Append FILES into buffer BUF. (Keybinding: a)
  - `syslog-prepend-files' : Prepend FILES into buffer BUF. (Keybinding: M-x syslog-prepend-files)
  - `syslog-open-files' : Insert log FILES into new buffer. (Keybinding: o)
@@ -63,6 +67,7 @@ Below are customizable option list:
  - `syslog-datetime-regexp' A regular expression matching the date-time at the beginning of each line in the log file.
  - `syslog-log-file-directory' : The directory in which log files are stored. (default = "/var/log/")
  - `syslog-hi-face-defaults' : Alist of face sets to use for automatic highlighting.
+ - `syslog-notes-files' : An alist used by `syslog-load-notes' for choosing a notes file to load.
 * Installation
 
  - This library is available on MELPA: https://melpa.org/#/?q=syslog
