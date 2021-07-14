@@ -1560,6 +1560,7 @@ This function can be useful in `syslog-notes' definitions in combination with `a
 ;; simple-call-tree-info: CHECK
 (defun syslog-get-matches-from-manpage (page regex &optional face)
   "Return list of matches to REGEX in manpage PAGE.
+If REGEX has a non-shy match group then matches to the first such group will be returned.
 If optional symbol FACE is supplied then only matches with that face property
 will be returned.
 Searching is done case sensitively."
@@ -1578,6 +1579,23 @@ Searching is done case sensitively."
 	     'matches (substring-no-properties
 		       (match-string (if (> n 0) 1 0))))))))
     matches))
+
+;; simple-call-tree-info: CHECK
+(defun syslog-get-manpage-indent (page regex)
+  "Return indentation of first match to REGEX in manpage PAGE.
+If REGEX contains a non-shy match group, return the indentation
+of the first such match."
+  (let ((manbuf (Man-getpage-in-background page))
+	(n (regexp-opt-depth regex))
+	case-fold-search)
+    (with-current-buffer manbuf
+      (delete-window (get-buffer-window manbuf))      
+      (goto-char (point-min))
+      (unless (re-search-forward regex nil t)
+	(error "Cannot find match to \"%s\" in %s manpage"
+	       regex page))
+      (- (match-beginning (if (> n 0) 1 0))
+	 (line-beginning-position)))))
 
 ;; simple-call-tree-info: DONE
 (defface syslog-ip
