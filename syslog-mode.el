@@ -1535,6 +1535,7 @@ This function can be useful in `syslog-notes' definitions in combination with `a
 The description is found by searching for indented text that comes after the
 first appearance of WORD on a line proceeded only by whitespace.
 N should be the minimum length of words that delimit description sections.
+Searching is done case sensitively.
 This function can be useful in `syslog-notes' definitions in combination with `apply-partially'."
   (let (case-fold-search
 	start end ws
@@ -1555,6 +1556,28 @@ This function can be useful in `syslog-notes' definitions in combination with `a
 	(message
 	 (replace-regexp-in-string "\\`\\s-+\\|\\s-+\\'" ""
 				   (buffer-substring-no-properties start end)))))))
+
+;; simple-call-tree-info: CHECK
+(defun syslog-get-matches-from-manpage (page regex &optional face)
+  "Return list of matches to REGEX in manpage PAGE.
+If optional symbol FACE is supplied then only matches with that face property
+will be returned.
+Searching is done case sensitively."
+  (let ((manbuf (Man-getpage-in-background page))
+	(n (regexp-opt-depth regex))
+	case-fold-search matches)
+    (with-current-buffer manbuf
+      (delete-window (get-buffer-window manbuf))
+      (save-excursion
+	(goto-char (point-min))
+	(while (re-search-forward regex nil t)
+	  (when (or (not face)
+		    (eq (get-text-property (1- (point)) 'face)
+			face))
+	    (add-to-list
+	     'matches (substring-no-properties
+		       (match-string (if (> n 0) 1 0))))))))
+    matches))
 
 ;; simple-call-tree-info: DONE
 (defface syslog-ip
