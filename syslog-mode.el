@@ -1400,10 +1400,19 @@ The notes file should contain .... TODO"
 
 ;; simple-call-tree-info: TODO
 (defvar-local syslog-notes nil
-  "List of syslog notes for current buffer.")
+  "List of syslog notes for current buffer.
+Each entry is a list containing 3 items in the following order:
+ 1. a word to match the word at point
+ 2. a regexp to match the current line
+ 3. the note to be displayed (a string)
+Either one of 1. & 2. may be omitted, but not both.
+Word matches have higher precedence than line matches, 
+but lower precedence than combined word & line matches.")
+
 ;; simple-call-tree-info: TODO
 (defun syslog-show-note nil
-  "In the minibuffer display note associated with the word at point."
+  "In the minibuffer display note associated with the word at point.
+The note is chosen from the current value of `syslog-notes'."
   (interactive)
   (cl-flet ((findmatch (lst)
 		       (cl-assoc-if (lambda (regex)
@@ -1432,8 +1441,10 @@ The notes file should contain .... TODO"
 		 (syslog-load-notes))
 	(syslog-show-note)))))
 
+;; simple-call-tree-info: DONE
 (defun syslog-notes-file nil
-  "Return the syslog notes file associated with the current buffer, or nil if none exists."
+  "Return the syslog notes file associated with the current buffer, or nil if none exists.
+The file is chosen using `syslog-notes-files'."
   (let* ((bfn (expand-file-name buffer-file-name))
 	 (file (cdr (cl-assoc-if (lambda (f) (string-match f bfn))
 				 syslog-notes-files))))
@@ -1442,9 +1453,11 @@ The notes file should contain .... TODO"
 	  file
 	(concat (file-name-directory (symbol-file 'syslog-mode))
 		file)))))
+
 ;; simple-call-tree-info: TODO
 (defun syslog-load-notes nil
-  "Load appropriate notes file for the current buffer."
+  "Load appropriate notes file for the current buffer.
+The file is chosen using `syslog-notes-files'."
   (interactive)
   (let* ((file (syslog-notes-file)))
     (if file
@@ -1456,8 +1469,8 @@ The notes file should contain .... TODO"
 
 ;; simple-call-tree-info: TODO
 (defun syslog-edit-notes nil
-  "Edit syslog notes associated with current buffer.
-If there are none, then create new notes file."
+  "Edit syslog notes file associated with current buffer.
+If this is none, then create new notes file, and add it to `syslog-notes-files'."
   (interactive)
   (let* ((file (syslog-notes-file)))
     (if (and file (file-exists-p file))
@@ -1485,6 +1498,7 @@ If there are none, then create new notes file."
 	(insert ";; To always use this file add an entry to the `syslog-notes-files' user option.\n")
 	(insert "(setq-local\n syslog-notes\n '((\"EXAMPLE\" \"^.*stuff.*\" \"An example note. Delete this entry\")))"))
       (add-to-list 'syslog-notes-files (cons (regexp-opt (list bfn)) file)))))
+
 ;; simple-call-tree-info: DONE
 (defface syslog-ip
   '((t :underline t :slant italic :weight bold))
