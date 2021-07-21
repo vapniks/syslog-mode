@@ -1511,94 +1511,167 @@ If this is none, then create new notes file, and add it to `syslog-notes-files'.
       (add-to-list 'syslog-notes-files (cons (regexp-opt (list bfn)) file)))))
 
 ;; simple-call-tree-info: CHECK
-(defun syslog-show-manpage-region (page startrx endrx)
-  "Display region of manpage PAGE between regexps STARTRX & ENDRX in the minibuffer.
-This function can be useful in `syslog-notes' definitions in combination with `apply-partially'."
-  (let (case-fold-search
-	start end
-	(Man-notify-method 'meek)
-	(manbuf (Man-getpage-in-background page)))
-    (with-current-buffer manbuf
-      (delete-window (get-buffer-window manbuf))
-      (save-excursion
-	(goto-char (point-min))
-	(re-search-forward startrx)
-	(forward-line 1)
-	(setq start (point))
-	(re-search-forward endrx)
-	(move-beginning-of-line nil)
-	(setq end (point))
-	(message
-	 (replace-regexp-in-string "\\`\\s-+\\|\\s-+\\'" ""
-				   (buffer-substring-no-properties start end)))))))
+(defmacro syslog-process-manpage (page &rest body)
+  "Execute BODY in buffer containing contents of manpage PAGE.
+Do not display the manpage."
+  (declare (debug (sexp body)) (indent 1))
+  (let ((manbuf (gensym)))
+    `(let (case-fold-search
+	   (Man-notify-method 'meek)
+	   (,manbuf (Man-getpage-in-background ,page)))
+       (while (and (get-buffer-process ,manbuf)
+		   (eq (process-status ,manbuf) 'run))
+	 (sleep-for 0.1))
+       (with-current-buffer ,manbuf
+	 (delete-window (get-buffer-window ,manbuf))
+	 (save-excursion
+	   (goto-char (point-min))
+	   ,@body)))))
 
 ;; simple-call-tree-info: CHECK
-(defun syslog-show-manpage-region-for-word (page n word)
-  "Display description of WORD extracted from PAGE manpage.
-The description is found by searching for indented text that comes after the
-first appearance of WORD on a line proceeded only by whitespace.
-N should be the minimum length of words that delimit description sections.
-Searching is done case sensitively.
-This function can be useful in `syslog-notes' definitions in combination with `apply-partially'."
-  (let (case-fold-search
-	start end ws
-	(Man-notify-method 'meek)
-	(manbuf (Man-getpage-in-background page)))
-    (with-current-buffer manbuf
-      (delete-window (get-buffer-window manbuf))
-      (save-excursion
-	(goto-char (point-min))
-	(re-search-forward (concat "^\\(\\s-+\\)" word))
-	(setq ws (match-string 1))
-	(forward-line 1)
-	(setq start (point))
-	(re-search-forward
-	 (concat "^" ws "[A-Z_]\\{" (number-to-string n) ",\\}"))
-	(move-beginning-of-line nil)
-	(setq end (point))
-	(message
-	 (replace-regexp-in-string "\\`\\s-+\\|\\s-+\\'" ""
-				   (buffer-substring-no-properties start end)))))))
+(defun syslog-search-regexp-and-face (regex &optional matchface noerr)
+  "Search forward for REGEX, and optionally check that it has face MATCHFACE.
+If no match is found an error will be thrown unless NOERR is non-nil in which
+case nil will be returned (t is returned if a match is found)."
+  (let ((found t))
+    (if (re-search-forward regex nil t)
+	(while (and matchface
+		    (not (eq (get-text-property (1- (point)) 'face)
+			     matchface)))
+	  (unless (re-search-forward regex nil t)
+	    (if noerr ;;set mathface to nil to break out of loop
+		(setq found nil matchface nil)
+	      (error "Cannot find match for %s with face %s" regex matchface))))
+      (if noerr
+	  (setq found nil)
+	(error "Cannot find match for %s" regex)))
+    found))
 
 ;; simple-call-tree-info: CHECK
-(defun syslog-get-matches-from-manpage (page regex &optional face)
+(defun syslog-extract-manpage-regions (page regex1 regex2 &optional face1 face2)
+  "Return list of regions of manpage PAGE delimited by regexps REGEX1 & REGEX2.
+Optional args FACE1 & FACE2 specify faces for the last char of the matches
+to REGEX1 & REGEX2. REGEX1 should contain a single non-shy match group whose
+matching content will be returned in a cons cell (the car) with the matched
+region (the cdr)."
+  (syslog-process-manpage page
+    (let ((n (regexp-opt-depth regex1))
+	  start end regions word)
+      (while (syslog-search-regexp-and-face regex1 face1 t)
+	(setq start (match-end 0)
+	      word (match-string (if (> n 0) 1 0)))
+	(when (syslog-search-regexp-and-face regex2 face2 t)
+	  (setq end (match-beginning 0))
+	  (add-to-list 'regions
+		       (cons (substring-no-properties word)
+			     (replace-regexp-in-string
+			      "\\`\\s-+\\|\\s-+\\'" ""
+			      (buffer-substring-no-properties start end))))
+	  (forward-line 0)))
+      regions)))
+
+;; simple-call-tree-info: TODO
+(cl-defun syslog-show-note-from-manpage (page word &optional (indent 7) (face 'Man-overstrike))
+  "Show the description of WORD from manpage PAGE.
+The description is taken from indented text following the first appearance
+of WORD at indentation level INDENT and face FACE in the manpage.
+The description is assumed to end when the indentation level of the text
+returns to INDENT."
+  (let ((indstr (number-to-string indent)))
+    (message
+     (cdar (syslog-extract-manpage-regions
+	    page
+	    (concat (concat "^\\s-\\{" indstr "\\}")
+		    "\\<" (regexp-quote word) "\\>")
+	    (concat "^\\s-\\{," indstr "\\}\\S-")
+	    face)))))
+
+;; simple-call-tree-info: CHECK
+(defun syslog-extract-matches-from-manpage (page regex &optional face)
   "Return list of matches to REGEX in manpage PAGE.
 If REGEX has a non-shy match group then matches to the first such group will be returned.
-If optional symbol FACE is supplied then only matches with that face property
-will be returned.
+If optional symbol FACE is supplied then only matches with that face property will be returned. 
 Searching is done case sensitively."
-  (let ((manbuf (Man-getpage-in-background page))
-	(n (regexp-opt-depth regex))
-	case-fold-search matches)
-    (with-current-buffer manbuf
-      (delete-window (get-buffer-window manbuf))
+  (syslog-process-manpage page
+    (let ((n (regexp-opt-depth regex))
+	  matches)
       (save-excursion
 	(goto-char (point-min))
-	(while (re-search-forward regex nil t)
-	  (when (or (not face)
-		    (eq (get-text-property (1- (point)) 'face)
-			face))
-	    (add-to-list
-	     'matches (substring-no-properties
-		       (match-string (if (> n 0) 1 0))))))))
-    matches))
+	(while (syslog-search-regexp-and-face regex face t)
+	  (add-to-list 'matches
+		       (substring-no-properties
+			(match-string (if (> n 0) 1 0))))))
+      matches)))
 
 ;; simple-call-tree-info: CHECK
-(defun syslog-get-manpage-indent (page regex)
-  "Return indentation of first match to REGEX in manpage PAGE.
-If REGEX contains a non-shy match group, return the indentation
-of the first such match."
-  (let ((manbuf (Man-getpage-in-background page))
-	(n (regexp-opt-depth regex))
-	case-fold-search)
-    (with-current-buffer manbuf
-      (delete-window (get-buffer-window manbuf))      
-      (goto-char (point-min))
-      (unless (re-search-forward regex nil t)
-	(error "Cannot find match to \"%s\" in %s manpage"
-	       regex page))
-      (- (match-beginning (if (> n 0) 1 0))
-	 (line-beginning-position)))))
+(cl-defun syslog-text-notes-from-manpages (manpages &optional
+						    (regex "[A-Z_]+")
+						    (indent 7)
+						    (face 'Man-overstrike))
+  "Extract notes from manpages, and inserts elisp code to update `syslog-notes'.
+MANPAGES should be a list, each element of which has the form:
+ (PAGE REGEX INDENT EXCEPTIONS)
+where: 
+ PAGE   is a manpage name.
+ REGEX  is a regexp matching text that precedes the start of each region of text 
+        to be extracted (apart from the initial whitespace).
+ INDENT is a number indicating the level of indentation of that text, and also 
+        the maximum level of indentation of text immediately following the end 
+        of the region.
+ EXCEPTIONS is a list of words whose descriptions will be omitted from the results. 
+
+The only mandatory entry of the previously mentioned list is PAGE. The default values 
+for REGEX & INDENT are obtained from the function arguments of the same name.
+
+In addition to matching start position by regexp, the FACE argument will be used 
+to match the face, unless this argument is nil.
+
+The inserted code, when evaluated, will nconc a list of (WORD nil NOTE) triples to 
+the current value of `syslog-notes'. You may need to make some alterations before
+evaluating it."
+  (insert "(setq-local syslog-notes\n (nconc syslog-notes\n '(")
+  (cl-loop for (page rx1 ind exceptions) in manpages ;;TODO: exceptions, indentation
+	   for indstr = (number-to-string (or ind indent))
+	   for rxA = (concat "^\\s-\\{" indstr "\\}" (or rx1 regex))
+	   for rxB = (concat "^\\s-\\{," indstr "\\}\\S-")
+	   for regions = (syslog-extract-manpage-regions page rxA rxB face)
+	   do (dolist (region regions)
+		(let ((word (replace-regexp-in-string "^\\s-*\\|\\s-*$" ""
+						      (car region))))
+		  (unless (member word exceptions)
+		    (insert (format "(%S nil %S)\n" word (cdr region))))))
+	   finally (insert ")))")))
+
+;; simple-call-tree-info: TODO
+(defmacro syslog-create-manpage-notes-function (page indent face)
+  "Create a function for viewing notes from a specific manpage.
+PAGE, INDENT & FACE are arguments for `syslog-show-note-from-manpage'.
+The function will have the form: syslog-show-PAGE-note."
+  `(defun ,(intern (format "syslog-show-%s-note" page)) (word)
+     (syslog-show-note-from-manpage ,page word ,indent ,face)))
+
+;; simple-call-tree-info: TODO
+(cl-defun syslog-function-notes-from-manpages (manpages &optional
+							(regex "[A-Z_]+")
+							(indent 7)
+							(face 'Man-overstrike))
+  "This is similar to `syslog-text-notes-from-manpages' but adds functions instead of text.
+The inserted code will add (WORD nil FUNC) triples to `syslog-notes', where
+FUNC is a function that is called by `syslog-show-note' to extract and display
+the appropriate note from a manpage.
+This has the advantage of creating a shorter `syslog-notes' definition, but the 
+disadvantage of making `syslog-show-note' a bit slower and creating manpage 
+buffers when it's used."
+  (cl-loop for (page rx1 ind exceptions) in manpages
+	   for indstr = (number-to-string (or ind indent))
+	   for rxA = (concat "^\\s-\\{" indstr "\\}" (or rx1 regex))
+	   for words = (mapcar (lambda (m) (replace-regexp-in-string "^\\s-+\\|\\s-+$" "" m))
+			       (syslog-extract-matches-from-manpage page rxA face))
+	   do (insert (format "(syslog-create-manpage-notes-function %S %s '%S)\n"
+			      page indstr face))
+	   (insert (format "(dolist (word '%S)\n" words))
+	   (insert (format "  (push (list word nil 'syslog-show-%s-note) syslog-notes))\n"
+			   page))))
 
 ;; simple-call-tree-info: DONE
 (defface syslog-ip
