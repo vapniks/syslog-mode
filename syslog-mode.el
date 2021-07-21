@@ -1579,7 +1579,7 @@ match will be returned in the car."
 	  (forward-line 0)))
       regions)))
 
-;; simple-call-tree-info: TODO
+;; simple-call-tree-info: CHANGE  
 (cl-defun syslog-show-note-from-manpage (page word &optional (indent 7) (face 'Man-overstrike))
   "Show the description of WORD from manpage PAGE.
 The description is taken from indented text following the first appearance
@@ -1655,7 +1655,7 @@ evaluating it."
 		    (insert (format "(%S nil %S)\n" word (cdr region))))))
 	   finally (insert ")))")))
 
-;; simple-call-tree-info: TODO
+;; simple-call-tree-info: DONE  
 (defmacro syslog-create-manpage-notes-function (page indent face)
   "Create a function for viewing notes from a specific manpage.
 PAGE, INDENT & FACE are arguments for `syslog-show-note-from-manpage'.
@@ -1663,9 +1663,9 @@ The function will have the form: syslog-show-PAGE-note."
   `(defun ,(intern (format "syslog-show-%s-note" page)) (word)
      (syslog-show-note-from-manpage ,page word ,indent ,face)))
 
-;; simple-call-tree-info: TODO
+;; simple-call-tree-info: DONE
 (cl-defun syslog-function-notes-from-manpages (manpages &optional
-							(regex "\\<[A-Z_]+\\>")
+							(regex "\\(\\<[A-Z_]+\\>\\)")
 							(indent 7)
 							(face 'Man-overstrike))
   "This is similar to `syslog-text-notes-from-manpages' but adds functions instead of text.
