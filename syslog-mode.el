@@ -36,7 +36,7 @@
 ;;; Commentary:
 ;;
 ;;; Commentary:
-;; * Handy functions for looking at system logs.
+;; * Handy functions for looking at system logs, and strace output.
 ;; * Fontifys the date and su messages.
 
 ;;; Keybindings
@@ -1467,7 +1467,9 @@ The file is chosen using `syslog-notes-files'."
 ;; simple-call-tree-info: DONE  
 (defun syslog-load-notes nil
   "Load appropriate notes file for the current buffer.
-The file is chosen using `syslog-notes-files'."
+The file is chosen using `syslog-notes-files'.
+Notes files can be created using `syslog-text-notes-from-manpages',
+and `syslog-function-notes-from-manpages'."
   (interactive)
   (let* ((file (syslog-notes-file)))
     (if file
