@@ -1607,7 +1607,7 @@ Searching is done case sensitively."
 
 ;; simple-call-tree-info: CHECK
 (cl-defun syslog-text-notes-from-manpages (manpages &optional
-						    (regex "[A-Z_]+")
+						    (regex "\\<[A-Z_]+\\>")
 						    (indent 7)
 						    (face 'Man-overstrike))
   "Extract notes from manpages, and inserts elisp code to update `syslog-notes'.
@@ -1654,7 +1654,7 @@ The function will have the form: syslog-show-PAGE-note."
 
 ;; simple-call-tree-info: TODO
 (cl-defun syslog-function-notes-from-manpages (manpages &optional
-							(regex "[A-Z_]+")
+							(regex "\\<[A-Z_]+\\>")
 							(indent 7)
 							(face 'Man-overstrike))
   "This is similar to `syslog-text-notes-from-manpages' but adds functions instead of text.
