@@ -1526,7 +1526,8 @@ Do not display the manpage."
   (let ((manbuf (gensym)))
     `(let (case-fold-search
 	   (Man-notify-method 'meek)
-	   (,manbuf (Man-getpage-in-background ,page)))
+	   (,manbuf (Man-getpage-in-background
+		     (Man-translate-references ,page))))
        (while (and (get-buffer-process ,manbuf)
 		   (eq (process-status ,manbuf) 'run))
 	 (sleep-for syslog-manpage-wait))
