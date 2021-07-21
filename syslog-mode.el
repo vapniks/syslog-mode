@@ -1414,6 +1414,12 @@ Either one of 1. & 2. may be omitted, but not both.
 Word matches have higher precedence than line matches, 
 but lower precedence than combined word & line matches.")
 
+;; simple-call-tree-info: DONE
+(defcustom syslog-manpage-wait 0.2
+  "Amount of time to wait for manpage to finish rendering, when processing manpages."
+  :group 'syslog
+  :type 'float)
+
 ;; simple-call-tree-info: CHECK  
 (defun syslog-show-note nil
   "In the minibuffer display note associated with the word at point.
@@ -1523,7 +1529,7 @@ Do not display the manpage."
 	   (,manbuf (Man-getpage-in-background ,page)))
        (while (and (get-buffer-process ,manbuf)
 		   (eq (process-status ,manbuf) 'run))
-	 (sleep-for 0.1))
+	 (sleep-for syslog-manpage-wait))
        (with-current-buffer ,manbuf
 	 (delete-window (get-buffer-window ,manbuf))
 	 (save-excursion
