@@ -12,7 +12,7 @@
 ;;
 ;; Features that might be required by this library:
 ;;
-;; hide-lines cl ido dash dired+ ov thingatpt hi-lock net-utils
+;; hide-lines cl ido dired+ ov thingatpt hi-lock net-utils
 ;;
 
 ;;; This file is NOT part of GNU Emacs
@@ -225,6 +225,7 @@
 (require 'net-utils)
 (require 'ov)
 (require 'thingatpt)
+(require 'man nil t)
 
 ;;; Code:
 
