@@ -1265,18 +1265,20 @@ If the process name cannot be determined then the pid will be returned as a stri
 	       pid)))))
 
 ;; simple-call-tree-info: CHECK
-(defmacro syslog-alter-buffer (&rest forms)
-  "Execute FORMS with `buffer-read-only' disabled then restore to its previous value.
-If an error occurs while executing FORMS then `buffer-read-only' will be restored to 
+(defmacro syslog-alter-buffer (&rest body)
+  "Execute BODY with `buffer-read-only' disabled then restore to its previous value.
+If an error occurs while executing BODY then `buffer-read-only' will be restored to 
 it's previous value. Position of point will also be restored."
-  `(let ((ro buffer-read-only))
-     (save-excursion
-       (condition-case err
-	   (progn (setq buffer-read-only nil)
-		  ,@forms
-		  (setq buffer-read-only ro))
-	 (error (setq buffer-read-only ro)
-		(error "%s: %s" (car err) (cdr err)))))))
+  (declare (debug (body)) (indent 1))
+  (let ((ro (gensym)))
+    `(let ((,ro buffer-read-only))
+       (save-excursion
+	 (condition-case err
+	     (progn (setq buffer-read-only nil)
+		    ,@body
+		    (setq buffer-read-only ,ro))
+	   (error (setq buffer-read-only ,ro)
+		  (error "%s: %s" (car err) (cdr err))))))))
 
 ;; simple-call-tree-info: CHECK
 (cl-defun syslog-replace-pids (pidrx &optional lsof)
