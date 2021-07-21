@@ -1553,9 +1553,10 @@ case nil will be returned (t is returned if a match is found)."
 (defun syslog-extract-manpage-regions (page regex1 regex2 &optional face1 face2)
   "Return list of regions of manpage PAGE delimited by regexps REGEX1 & REGEX2.
 Optional args FACE1 & FACE2 specify faces for the last char of the matches
-to REGEX1 & REGEX2. REGEX1 should contain a single non-shy match group whose
+to REGEX1 & REGEX2. REGEX1 may contain a single non-shy match group whose
 matching content will be returned in a cons cell (the car) with the matched
-region (the cdr)."
+region (the cdr), otherwise if there is no non-shy match group, the whole
+match will be returned in the car."
   (syslog-process-manpage page
     (let ((n (regexp-opt-depth regex1))
 	  start end regions word)
@@ -1602,12 +1603,13 @@ Searching is done case sensitively."
 	(while (syslog-search-regexp-and-face regex face t)
 	  (add-to-list 'matches
 		       (substring-no-properties
-			(match-string (if (> n 0) 1 0))))))
+			(match-string (if (> n 0) 1 0)))
+		       t)))
       matches)))
 
 ;; simple-call-tree-info: CHECK
 (cl-defun syslog-text-notes-from-manpages (manpages &optional
-						    (regex "\\<[A-Z_]+\\>")
+						    (regex "\\(\\<[A-Z_]+\\>\\)")
 						    (indent 7)
 						    (face 'Man-overstrike))
   "Extract notes from manpages, and inserts elisp code to update `syslog-notes'.
@@ -1616,7 +1618,10 @@ MANPAGES should be a list, each element of which has the form:
 where: 
  PAGE   is a manpage name.
  REGEX  is a regexp matching text that precedes the start of each region of text 
-        to be extracted (apart from the initial whitespace).
+        to be extracted (apart from the initial whitespace). If REGEX contains
+        a non-shy match group, the match to the group will be used as to returned
+        WORD, otherwise the entire match with leading & trailing whitespace will
+        be used.
  INDENT is a number indicating the level of indentation of that text, and also 
         the maximum level of indentation of text immediately following the end 
         of the region.
