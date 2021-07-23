@@ -1626,7 +1626,7 @@ where:
  PAGE   is a manpage name.
  REGEX  is a regexp matching text that precedes the start of each region of text 
         to be extracted (apart from the initial whitespace). If REGEX contains
-        a non-shy match group, the match to the group will be used as to returned
+        a non-shy match group, the match to the group will be used as the returned
         WORD, otherwise the entire match with leading & trailing whitespace will
         be used.
  INDENT is a number indicating the level of indentation of that text, and also 
