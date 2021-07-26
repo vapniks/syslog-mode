@@ -1515,6 +1515,7 @@ If this is none, then create new notes file, and add it to `syslog-notes-files'.
 	(insert ";; Word matches have higher precedence than line matches, but lower precedence than combined word & line matches.")
 	(insert ";; After editing save & kill this buffer, and then in the syslog-mode buffer do: M-x syslog-load-notes\n")
 	(insert ";; To always use this file add an entry to the `syslog-notes-files' user option.\n")
+	(insert ";; See also `syslog-text-notes-from-manpages' and `syslog-function-notes-from-manpages'.\n")
 	(insert "(setq-local\n syslog-notes\n '((\"EXAMPLE\" \"^.*stuff.*\" \"An example note. Delete this entry\")))"))
       (add-to-list 'syslog-notes-files (cons (regexp-opt (list bfn)) file)))))
 
