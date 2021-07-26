@@ -1564,21 +1564,22 @@ to REGEX1 & REGEX2. REGEX1 may contain a single non-shy match group whose
 matching content will be returned in a cons cell (the car) with the matched
 region (the cdr), otherwise if there is no non-shy match group, the whole
 match will be returned in the car."
-  (syslog-process-manpage page
-    (let ((n (regexp-opt-depth regex1))
-	  start end regions word)
-      (while (syslog-search-regexp-and-face regex1 face1 t)
-	(setq start (match-end 0)
-	      word (match-string (if (> n 0) 1 0)))
-	(when (syslog-search-regexp-and-face regex2 face2 t)
-	  (setq end (match-beginning 0))
-	  (add-to-list 'regions
-		       (cons (substring-no-properties word)
-			     (replace-regexp-in-string
-			      "\\`\\s-+\\|\\s-+\\'" ""
-			      (buffer-substring-no-properties start end))))
-	  (forward-line 0)))
-      regions)))
+  (syslog-process-manpage
+   page
+   (let ((n (regexp-opt-depth regex1))
+	 start end regions word)
+     (while (syslog-search-regexp-and-face regex1 face1 t)
+       (setq start (match-end 0)
+	     word (match-string-no-properties (if (> n 0) 1 0)))
+       (when (syslog-search-regexp-and-face regex2 face2 t)
+	 (setq end (match-beginning 0))
+	 (add-to-list 'regions
+		      (cons word
+			    (replace-regexp-in-string
+			     "\\`\\s-+\\|\\s-+\\'" ""
+			     (buffer-substring-no-properties start end))))
+	 (forward-line 0)))
+     regions)))
 
 ;; simple-call-tree-info: CHANGE  
 (cl-defun syslog-show-note-from-manpage (page word &optional (indent 7) (face 'Man-overstrike))
