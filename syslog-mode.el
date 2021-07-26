@@ -1043,18 +1043,17 @@ matching."
 				(setf (cdr pair) (cons i (cdr pair))))
 			    (add-to-list
 			     'matches
-			     (cons (substring-no-properties m)
-				   (list i)))))))
+			     (cons m (list i)))))))
       (save-excursion
 	(goto-char (point-min))
 	(if (> ngrps 0)
 	    (while (re-search-forward rx nil t)
 	      (cl-loop for i from 1
-		       for match = (match-string i)
+		       for match = (match-string-no-properties i)
 		       if match do (addmatch match i)
 		       else return nil))
 	  (while (re-search-forward rx nil t)
-	    (addmatch (match-string 0) 0)))))
+	    (addmatch (match-string-no-properties 0) 0)))))
     matches))
 
 ;; simple-call-tree-info: DONE
@@ -1080,17 +1079,17 @@ case will be ignored when searching for matches."
 			      (setf (cdr pair) (1+ (cdr pair)))
 			    (add-to-list
 			     'matches
-			     (cons (substring-no-properties m) 1))))))
+			     (cons m 1))))))
       (save-excursion
 	(goto-char (point-min))
 	(if (> ngrps 0)
 	    (while (re-search-forward rx nil t)
 	      (cl-loop for i from 1
-		       for match = (match-string i)
+		       for match = (match-string-no-properties i)
 		       if match do (addmatch match)
 		       else return nil))
 	  (while (re-search-forward rx nil t)
-	    (addmatch (match-string 0))))))
+	    (addmatch (match-string-no-properties 0))))))
     (setq matches (sort matches (lambda (a b) (> (cdr a) (cdr b)))))
     (if display
 	(cl-format t "~:{~a:~s ~}" matches)
@@ -1116,19 +1115,19 @@ If OVERWRITE is non-nil then the buffer will be overwritten otherwise it will be
 		       (y-or-n-p "Overwrite existing text in *Syslog extract* buffer"))))
   (let ((ngrps (regexp-opt-depth rx))
 	str)
-    (cl-flet ((addmatch (m) (setq str (concat str sep (substring-no-properties m)))
+    (cl-flet ((addmatch (m) (setq str (concat str sep m))
 			(when count (setq count (1- count)))))
       (save-excursion
 	(if (> ngrps 0)
 	    (while (and (re-search-forward rx nil t)
 			(or (not count) (> count 0)))
 	      (cl-loop for i from 1
-		       for match = (match-string i)
+		       for match = (match-string-no-properties i)
 		       if match do (addmatch match)
 		       else return nil))
 	  (while (and (re-search-forward rx nil t)
 		      (or (not count) (> count 0)))
-	    (addmatch (match-string 0))))))
+	    (addmatch (match-string-no-properties 0))))))
     (if (not outbuf)
 	str
       (with-current-buffer outbuf
@@ -1610,12 +1609,11 @@ Searching is done case sensitively."
 	(goto-char (point-min))
 	(while (syslog-search-regexp-and-face regex face t)
 	  (add-to-list 'matches
-		       (substring-no-properties
-			(match-string (if (> n 0) 1 0)))
+		       (match-string-no-properties (if (> n 0) 1 0))
 		       t)))
       matches)))
 
-;; simple-call-tree-info: CHECK
+;; simple-call-tree-info: TODO  fix to work with termios manpage
 (cl-defun syslog-text-notes-from-manpages (manpages &optional
 						    (regex "\\(\\<[A-Z_]+\\>\\)")
 						    (indent 7)
