@@ -1615,7 +1615,7 @@ Searching is done case sensitively."
       matches)))
 
 ;; simple-call-tree-info: TODO  fix to work with termios manpage
-(cl-defun syslog-text-notes-from-manpages (manpages &optional
+(cl-defun syslog-text-notes-from-manpages (manpages &key
 						    (regex "\\(\\<[A-Z_]+\\>\\)")
 						    (indent 7)
 						    (face 'Man-overstrike))
@@ -1635,15 +1635,15 @@ where:
  EXCEPTIONS is a list of words whose descriptions will be omitted from the results. 
 
 The only mandatory entry of the previously mentioned list is PAGE. The default values 
-for REGEX & INDENT are obtained from the function arguments of the same name.
+for REGEX & INDENT are obtained from the keyword arguments of the same name.
 
-In addition to matching start position by regexp, the FACE argument will be used 
-to match the face, unless this argument is nil.
+In addition to matching start position by regexp, the :FACE keyword argument will be 
+used to match the face, unless this argument is nil.
 
 The inserted code, when evaluated, will nconc a list of (WORD nil NOTE) triples to 
 the current value of `syslog-notes'. You may need to make some alterations before
 evaluating it."
-  (insert "(setq-local syslog-notes\n (nconc syslog-notes\n '(")
+  (insert "\n(setq-local\n syslog-notes\n (nconc\n syslog-notes\n '(")
   (cl-loop for (page rx1 ind exceptions) in manpages ;;TODO: exceptions, indentation
 	   for indstr = (number-to-string (or ind indent))
 	   for rxA = (concat "^\\s-\\{" indstr "\\}" (or rx1 regex))
@@ -1668,7 +1668,7 @@ The function will have the form: syslog-show-PAGE-note."
 				    word ,indent ,face)))
 
 ;; simple-call-tree-info: DONE
-(cl-defun syslog-function-notes-from-manpages (manpages &optional
+(cl-defun syslog-function-notes-from-manpages (manpages &key
 							(regex "\\(\\<[A-Z_]+\\>\\)")
 							(indent 7)
 							(face 'Man-overstrike))
@@ -1685,11 +1685,11 @@ properly using this method (if the word to extract is a subword of another)."
 	   for rxA = (concat "^\\s-\\{" indstr "\\}" (or rx1 regex))
 	   for words = (mapcar (lambda (m) (replace-regexp-in-string "^\\s-+\\|\\s-+$" "" m))
 			       (syslog-extract-matches-from-manpage page rxA face))
-	   do (insert (format "(syslog-create-manpage-notes-function %S %s '%S)\n"
+	   do (insert (format "\n(syslog-create-manpage-notes-function %S %s '%S)\n"
 			      page indstr face))
 	   (insert (format "(dolist (word '%S)\n" words))
 	   (insert (format "  (push (list word nil 'syslog-show-%s-note) syslog-notes))\n"
-			   (replace-regexp-in-string "\\Sw" "_" page)))))
+	   		   (replace-regexp-in-string "\\Sw" "_" page)))))
 
 ;; simple-call-tree-info: DONE
 (defface syslog-ip
