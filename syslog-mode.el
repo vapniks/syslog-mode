@@ -1699,9 +1699,9 @@ the word in the syslog buffer differs from the corresponding word in the manpage
 ;; simple-call-tree-info: DONE
 (cl-defun syslog-function-notes-from-manpages (manpages &key
 							(regex "\\(\\<[A-Z_]+\\>\\)")
-							(transformers nil)
-							(indent 7)
 							(face 'Man-overstrike)
+							(indent 7)
+							(transformers nil)
 							(exceptions nil))
   "Similar to `syslog-text-notes-from-manpages' but adds functions instead of text.
 The inserted code will add (WORD nil FUNC) triples to `syslog-notes', where
@@ -1719,9 +1719,11 @@ The advantage of using this function rather than `syslog-text-notes-from-manpage
 it results in a shorter `syslog-notes' definition, and the manpages do not need to be
 loaded until the notes are first displayed with `syslog-show-notes'. The disadvantage is
 that `syslog-show-notes' will slower (since it has to extract the note each time)."
-  (cl-loop for (page rx1 ind trans excpts) in manpages
-	   for indstr = (number-to-string (or ind indent))
-	   for rxA = (concat "^\\s-\\{" indstr "\\}" (or rx1 regex))
+  (cl-loop for (page . rest) in manpages
+	   for trans = (or (plist-get rest :transformer)
+			   (plist-get rest :transformers))
+	   for indstr = (number-to-string (or (plist-get rest :ind) indent))
+	   for rxA = (concat "^\\s-\\{" indstr "\\}" (or (plist-get rest :rx1) regex))
 	   for words = (mapcar (lambda (m)
 				 (funcall
 				  (or (car (or trans transformers)) 'identity)
@@ -1730,7 +1732,7 @@ that `syslog-show-notes' will slower (since it has to extract the note each time
 	   do (insert (format "\n(syslog-create-manpage-notes-function %S %s '%S %S)\n"
 			      page indstr face (cdr (or trans transformers))))
 	   (insert (format "(dolist (word '%S)\n"
-			   (set-difference words (or excpts exceptions)
+			   (set-difference words (or (plist-get rest :exceptions) exceptions)
 					   :test 'equal)))
 	   (insert (format "  (push (list word nil 'syslog-show-%s-note) syslog-notes))\n"
 	   		   (replace-regexp-in-string "\\Sw" "_" page)))))
