@@ -1728,7 +1728,9 @@ that `syslog-show-notes' will slower (since it has to extract the note each time
 			       (syslog-extract-matches-from-manpage page rxA face))
 	   do (insert (format "\n(syslog-create-manpage-notes-function %S %s '%S %S)\n"
 			      page indstr face (cdr (or trans transformers))))
-	   (insert (format "(dolist (word '%S)\n" (set-difference words (or excpts exceptions))))
+	   (insert (format "(dolist (word '%S)\n"
+			   (set-difference words (or excpts exceptions)
+					   :test 'equal)))
 	   (insert (format "  (push (list word nil 'syslog-show-%s-note) syslog-notes))\n"
 	   		   (replace-regexp-in-string "\\Sw" "_" page)))))
 
