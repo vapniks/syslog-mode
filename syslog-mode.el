@@ -1626,7 +1626,8 @@ Searching is done case sensitively."
 
 ;; simple-call-tree-info: CHECK
 (cl-defun syslog-text-notes-from-manpages (manpages &key
-						    (regex "\\(\\<[A-Z_]+\\>\\)")
+						    (wordrx "\\(\\<[A-Z_]+\\>\\)")
+						    (linerx nil)
 						    (face 'Man-overstrike)						    
 						    (indent 7)
 						    (transformer nil)
@@ -1635,22 +1636,24 @@ Searching is done case sensitively."
 MANPAGES should be a list whose car is the name of a manpage, and whose cdr is
 a property list of the following optional keywords & arguments:
 
- :REGEX - a regexp matching text that precedes the start of each region of text 
-        to be extracted (apart from the initial whitespace). If the value of :REGEX 
-        contains a non-shy match group, the match to the group will be used as the 
-        returned WORD, otherwise the entire match with leading & trailing whitespace 
-        will be used.
- :FACE - a face symbol which the preceding text must also match (unless face is nil).
- :INDENT - a number indicating the level of indentation of the preceeding text, 
-        and also the maximum level of indentation of text immediately following the 
-        end of the region.
+ :WORDRX - a regexp for matching text preceeding the start of each region of text 
+        to be extracted. If the value of :WORDRX contains a non-shy match group it 
+        will be used for the returned WORD (to be matched in the syslog buffer), 
+        otherwise the entire match with leading and trailing whitespace will be used
+        (see also :TRANSFORMER below).
+ :LINERX - a regexp that (if non-nil) the current line must match in order to view 
+        notes extracted from this manpage.
+ :FACE - a face symbol which (if non-nil) the text preceeding the region must match.
+ :INDENT - a number indicating the level of indentation of the text preceeding the
+        region, and also the maximum level of indentation of text immediately following 
+        the end of the region.
  :TRANSFORMER - a function for transforming the returned WORD before inserting it
         into `syslog-notes'. Use this if the words matched in the manpage differ
         from the corresponding words in the syslog buffer. 
         In `syslog-function-notes-from-manpages' this should be a cons cell containing
         a transformer function (the car) and an untransformer function (the cdr).
         If either of those entries is nil the identity function will be used.
-        Note: trailing whitespace is removed before the transformer function is applied.
+        Note: leading & trailing whitespace is removed before applying the transformer.
  :EXCEPTIONS - a list of words (after transformation) whose descriptions will be 
         omitted from the results. 
 
@@ -1665,7 +1668,7 @@ evaluating it."
 	   for trans = (or (plist-get rest :transformer)
 			   (plist-get rest :transformers))
 	   for indstr = (number-to-string (or (plist-get rest :indent) indent))
-	   for rxA = (concat "^\\s-\\{" indstr "\\}" (or (plist-get rest :regex) regex))
+	   for rxA = (concat "^\\s-\\{" indstr "\\}" (or (plist-get rest :wordrx) wordrx))
 	   for rxB = (concat "^\\s-\\{," indstr "\\}\\S-")
 	   for regions = (syslog-extract-manpage-regions
 			  page rxA rxB (or (plist-get rest :face) face))
@@ -1678,7 +1681,10 @@ evaluating it."
 				     (replace-regexp-in-string "^\\s-*\\|\\s-*$" ""
 							       (car region)))))
 		  (unless (member word (or (plist-get rest :exceptions) exceptions))
-		    (insert (format "(%S nil %S)\n" word (cdr region))))))
+		    (insert (format "(%S %S %S)\n"
+				    word
+				    (or (plist-get rest :linerx) linerx)
+				    (cdr region))))))
 	   finally (insert ")))")))
 
 ;; simple-call-tree-info: DONE  
@@ -1697,12 +1703,14 @@ the word in the syslog buffer differs from the corresponding word in the manpage
 				    ,indent ,face)))
 
 ;; simple-call-tree-info: DONE
-(cl-defun syslog-function-notes-from-manpages (manpages &key
-							(regex "\\(\\<[A-Z_]+\\>\\)")
-							(face 'Man-overstrike)
-							(indent 7)
-							(transformers nil)
-							(exceptions nil))
+(cl-defun syslog-function-notes-from-manpages (manpages
+					       &key
+					       (wordrx "\\(\\<[A-Z_]+\\>\\)")
+					       (linerx nil)
+					       (face 'Man-overstrike)
+					       (indent 7)
+					       (transformers nil)
+					       (exceptions nil))
   "Similar to `syslog-text-notes-from-manpages' but adds functions instead of text.
 The inserted code will add (WORD nil FUNC) triples to `syslog-notes', where
 WORD is a word in a syslog buffer whose description is required, and FUNC is a function 
@@ -1723,7 +1731,7 @@ that `syslog-show-notes' will slower (since it has to extract the note each time
 	   for trans = (or (plist-get rest :transformer)
 			   (plist-get rest :transformers))
 	   for indstr = (number-to-string (or (plist-get rest :ind) indent))
-	   for rxA = (concat "^\\s-\\{" indstr "\\}" (or (plist-get rest :rx1) regex))
+	   for rxA = (concat "^\\s-\\{" indstr "\\}" (or (plist-get rest :wordrx) wordrx))
 	   for words = (mapcar (lambda (m)
 				 (funcall
 				  (or (car (or trans transformers)) 'identity)
@@ -1734,8 +1742,9 @@ that `syslog-show-notes' will slower (since it has to extract the note each time
 	   (insert (format "(dolist (word '%S)\n"
 			   (set-difference words (or (plist-get rest :exceptions) exceptions)
 					   :test 'equal)))
-	   (insert (format "  (push (list word nil 'syslog-show-%s-note) syslog-notes))\n"
-	   		   (replace-regexp-in-string "\\Sw" "_" page)))))
+	   (insert (format "  (push (list word %S 'syslog-show-%s-note) syslog-notes))\n"
+			   (or (plist-get rest :linerx) linerx)
+			   (replace-regexp-in-string "\\Sw" "_" page)))))
 
 ;; simple-call-tree-info: DONE
 (defface syslog-ip
