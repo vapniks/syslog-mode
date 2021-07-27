@@ -1627,9 +1627,9 @@ Searching is done case sensitively."
 ;; simple-call-tree-info: CHECK
 (cl-defun syslog-text-notes-from-manpages (manpages &key
 						    (regex "\\(\\<[A-Z_]+\\>\\)")
-						    (transformer nil)
+						    (face 'Man-overstrike)						    
 						    (indent 7)
-						    (face 'Man-overstrike)
+						    (transformer nil)
 						    (exceptions nil))
   "Extract notes from manpages, and inserts elisp code to update `syslog-notes'.
 MANPAGES should be a list whose car is the name of a manpage, and whose cdr is
