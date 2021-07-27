@@ -58,7 +58,7 @@
 ;; "x"      : syslog-extract-matches
 ;; "j"/"f"  : ffap
 ;; "!"      : syslog-shell-command
-;; "?"      : syslog-show-note
+;; "?"      : syslog-show-notes
 ;; "v"      : syslog-view
 ;; "W"      : syslog-whois-reverse-lookup
 ;; "m"      : manual-entry
@@ -135,7 +135,7 @@
 ;;  `syslog-transform-strace'
 ;;    Transform strace output in the current buffer.
 ;;    Keybinding: M-x syslog-transform-strace
-;;  `syslog-show-note'
+;;  `syslog-show-notes'
 ;;    In the minibuffer display note associated with the word at point.
 ;;    Keybinding: ?
 ;;  `syslog-load-notes'
@@ -285,7 +285,7 @@
     (define-key map "m" 'manual-entry)
     (define-key map "q" 'quit-window)
     (define-key map "!" 'syslog-shell-command)
-    (define-key map "?" 'syslog-show-note)
+    (define-key map "?" 'syslog-show-notes)
     (define-key map (kbd "<M-down>") 'syslog-move-next-file)
     (define-key map (kbd "<M-up>") 'syslog-move-previous-file)
     (define-key map "t" 'syslog-toggle-filenames)
@@ -980,7 +980,7 @@ buffer respectively."
       ["Dired" (lambda nil (interactive) (dired syslog-log-file-directory)) :help "Enter logfiles directory" :keys "D"]
       ["Shell command" syslog-shell-command :help "Execute shell command (as root if prefix arg used)" :key "!"]
       ["Notes..." (keymap "Notes"
-			  (show-note menu-item "Show note" syslog-show-note
+			  (show-note menu-item "Show note" syslog-show-notes
 				     :help "Show note for word at point"
 				     :keys "?")
 			  (load-notes menu-item "Load notes" syslog-load-notes
@@ -1421,7 +1421,7 @@ All matches of the highest precedence will be displayed.")
   :type 'float)
 
 ;; simple-call-tree-info: CHECK  
-(defun syslog-show-note nil
+(defun syslog-show-notes nil
   "In the minibuffer display notes associated with the word at point.
 The notes are chosen from the current value of `syslog-notes'.
 If there are notes which match the current word & line, then all those
@@ -1464,7 +1464,7 @@ will be displayed."
 		      " (to create one: M-x syslog-edit-notes)"))))
       (when (and (y-or-n-p "No notes loaded, load now? ")
 		 (syslog-load-notes))
-	(syslog-show-note)))))
+	(syslog-show-notes)))))
 
 ;; simple-call-tree-info: DONE
 (defun syslog-notes-file nil
@@ -1516,7 +1516,7 @@ If this is none, then create new notes file, and add it to `syslog-notes-files'.
 			    (goto-char (point-min))
 			    (search-forward "syslog-notes" nil t))))
 	    (error "This is not a syslog notes file"))
-	(insert ";; This file contains notes for emacs `syslog-mode' used by the `syslog-show-note' function.\n")
+	(insert ";; This file contains notes for emacs `syslog-mode' used by the `syslog-show-notes' function.\n")
 	(insert ";; Each entry in the `syslog-notes' list defined below should contain:\n")
 	(insert ";; a regexp matching the word at point, a regexp matching the line, and the note itself\n")
 	(insert ";; (a string or a function of one argument that returns a string)\n")
@@ -1703,7 +1703,7 @@ the word in the syslog buffer differs from the corresponding word in the manpage
   "Similar to `syslog-text-notes-from-manpages' but adds functions instead of text.
 The inserted code will add (WORD nil FUNC) triples to `syslog-notes', where
 WORD is a word in a syslog buffer whose description is required, and FUNC is a function 
-that is called by `syslog-show-note' to extract description from a manpage and display it.
+that is called by `syslog-show-notes' to extract description from a manpage and display it.
 
 If the words in the syslog buffer differ from the corresponding words in the manpage, then
 a pair of transformer functions need to be provided; one for transforming words in the 
@@ -1714,8 +1714,8 @@ keyword arg.
 
 The advantage of using this function rather than `syslog-text-notes-from-manpages' is that
 it results in a shorter `syslog-notes' definition, and the manpages do not need to be
-loaded until the notes are first displayed with `syslog-show-note'. The disadvantage is
-that `syslog-show-note' will slower (since it has to extract the note each time)."
+loaded until the notes are first displayed with `syslog-show-notes'. The disadvantage is
+that `syslog-show-notes' will slower (since it has to extract the note each time)."
   (cl-loop for (page rx1 ind trans exceptions) in manpages
 	   for indstr = (number-to-string (or ind indent))
 	   for rxA = (concat "^\\s-\\{" indstr "\\}" (or rx1 regex))
