@@ -1632,42 +1632,43 @@ Searching is done case sensitively."
 						    (face 'Man-overstrike)
 						    (exceptions nil))
   "Extract notes from manpages, and inserts elisp code to update `syslog-notes'.
-MANPAGES should be a list, each element of which has the form:
- (PAGE REGEX INDENT TRANSFORMER EXCEPTIONS)
-where: 
- PAGE   is a manpage name.
- REGEX  is a regexp matching text that precedes the start of each region of text 
-        to be extracted (apart from the initial whitespace). If REGEX contains
-        a non-shy match group, the match to the group will be used as the returned
-        WORD, otherwise the entire match with leading & trailing whitespace will
-        be used.
- INDENT is a number indicating the level of indentation of that text, and also 
-        the maximum level of indentation of text immediately following the end 
-        of the region.
- TRANSFORMER is a function for transforming the returned WORD before inserting it
+MANPAGES should be a list whose car is the name of a manpage, and whose cdr is
+a property list of the following optional keywords & arguments:
+
+ :REGEX - a regexp matching text that precedes the start of each region of text 
+        to be extracted (apart from the initial whitespace). If the value of :REGEX 
+        contains a non-shy match group, the match to the group will be used as the 
+        returned WORD, otherwise the entire match with leading & trailing whitespace 
+        will be used.
+ :FACE - a face symbol which the preceding text must also match (unless face is nil).
+ :INDENT - a number indicating the level of indentation of the preceeding text, 
+        and also the maximum level of indentation of text immediately following the 
+        end of the region.
+ :TRANSFORMER - a function for transforming the returned WORD before inserting it
         into `syslog-notes'. Use this if the words matched in the manpage differ
         from the corresponding words in the syslog buffer. 
         In `syslog-function-notes-from-manpages' this should be a cons cell containing
         a transformer function (the car) and an untransformer function (the cdr).
-        Note: trailing whitespace is removed before TRANSFORMER is applied.
- EXCEPTIONS is a list of words (after transformation) whose descriptions will be 
+        If either of those entries is nil the identity function will be used.
+        Note: trailing whitespace is removed before the transformer function is applied.
+ :EXCEPTIONS - a list of words (after transformation) whose descriptions will be 
         omitted from the results. 
 
-The only mandatory entry of the previously mentioned list is PAGE. The default values 
-for REGEX, INDENT & EXCEPTIONS are obtained from the keyword arguments of the same name.
-
-In addition to matching start position by regexp, the :FACE keyword argument will be 
-used to match the face, unless this argument is nil.
+Default values for any of the above (manpage specific) keywords are obtained from
+the main keyword args of the function.
 
 The inserted code, when evaluated, will nconc a list of (WORD nil NOTE) triples to 
 the current value of `syslog-notes'. You may need to make some alterations before
 evaluating it."
   (insert "\n(setq-local\n syslog-notes\n (nconc\n syslog-notes\n '(")
-  (cl-loop for (page rx1 ind trans excpts) in manpages
-	   for indstr = (number-to-string (or ind indent))
-	   for rxA = (concat "^\\s-\\{" indstr "\\}" (or rx1 regex))
+  (cl-loop for (page . rest) in manpages
+	   for trans = (or (plist-get rest :transformer)
+			   (plist-get rest :transformers))
+	   for indstr = (number-to-string (or (plist-get rest :indent) indent))
+	   for rxA = (concat "^\\s-\\{" indstr "\\}" (or (plist-get rest :regex) regex))
 	   for rxB = (concat "^\\s-\\{," indstr "\\}\\S-")
-	   for regions = (syslog-extract-manpage-regions page rxA rxB face)
+	   for regions = (syslog-extract-manpage-regions
+			  page rxA rxB (or (plist-get rest :face) face))
 	   do (dolist (region regions)
 		(let ((word (funcall (cond
 				      ((null trans) (or transformer 'identity))
@@ -1676,7 +1677,7 @@ evaluating it."
 				      (t (error "Invalid transformer arg")))
 				     (replace-regexp-in-string "^\\s-*\\|\\s-*$" ""
 							       (car region)))))
-		  (unless (member word (or excpts exceptions))
+		  (unless (member word (or (plist-get rest :exceptions) exceptions))
 		    (insert (format "(%S nil %S)\n" word (cdr region))))))
 	   finally (insert ")))")))
 
