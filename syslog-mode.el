@@ -1629,7 +1629,8 @@ Searching is done case sensitively."
 						    (regex "\\(\\<[A-Z_]+\\>\\)")
 						    (transformer nil)
 						    (indent 7)
-						    (face 'Man-overstrike))
+						    (face 'Man-overstrike)
+						    (exceptions nil))
   "Extract notes from manpages, and inserts elisp code to update `syslog-notes'.
 MANPAGES should be a list, each element of which has the form:
  (PAGE REGEX INDENT TRANSFORMER EXCEPTIONS)
@@ -1653,7 +1654,7 @@ where:
         omitted from the results. 
 
 The only mandatory entry of the previously mentioned list is PAGE. The default values 
-for REGEX & INDENT are obtained from the keyword arguments of the same name.
+for REGEX, INDENT & EXCEPTIONS are obtained from the keyword arguments of the same name.
 
 In addition to matching start position by regexp, the :FACE keyword argument will be 
 used to match the face, unless this argument is nil.
@@ -1662,7 +1663,7 @@ The inserted code, when evaluated, will nconc a list of (WORD nil NOTE) triples 
 the current value of `syslog-notes'. You may need to make some alterations before
 evaluating it."
   (insert "\n(setq-local\n syslog-notes\n (nconc\n syslog-notes\n '(")
-  (cl-loop for (page rx1 ind trans exceptions) in manpages
+  (cl-loop for (page rx1 ind trans excpts) in manpages
 	   for indstr = (number-to-string (or ind indent))
 	   for rxA = (concat "^\\s-\\{" indstr "\\}" (or rx1 regex))
 	   for rxB = (concat "^\\s-\\{," indstr "\\}\\S-")
@@ -1675,7 +1676,7 @@ evaluating it."
 				      (t (error "Invalid transformer arg")))
 				     (replace-regexp-in-string "^\\s-*\\|\\s-*$" ""
 							       (car region)))))
-		  (unless (member word exceptions)
+		  (unless (member word (or excpts exceptions))
 		    (insert (format "(%S nil %S)\n" word (cdr region))))))
 	   finally (insert ")))")))
 
