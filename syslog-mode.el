@@ -1700,7 +1700,8 @@ the word in the syslog buffer differs from the corresponding word in the manpage
 							(regex "\\(\\<[A-Z_]+\\>\\)")
 							(transformers nil)
 							(indent 7)
-							(face 'Man-overstrike))
+							(face 'Man-overstrike)
+							(exceptions nil))
   "Similar to `syslog-text-notes-from-manpages' but adds functions instead of text.
 The inserted code will add (WORD nil FUNC) triples to `syslog-notes', where
 WORD is a word in a syslog buffer whose description is required, and FUNC is a function 
@@ -1717,7 +1718,7 @@ The advantage of using this function rather than `syslog-text-notes-from-manpage
 it results in a shorter `syslog-notes' definition, and the manpages do not need to be
 loaded until the notes are first displayed with `syslog-show-notes'. The disadvantage is
 that `syslog-show-notes' will slower (since it has to extract the note each time)."
-  (cl-loop for (page rx1 ind trans exceptions) in manpages
+  (cl-loop for (page rx1 ind trans excpts) in manpages
 	   for indstr = (number-to-string (or ind indent))
 	   for rxA = (concat "^\\s-\\{" indstr "\\}" (or rx1 regex))
 	   for words = (mapcar (lambda (m)
@@ -1727,7 +1728,7 @@ that `syslog-show-notes' will slower (since it has to extract the note each time
 			       (syslog-extract-matches-from-manpage page rxA face))
 	   do (insert (format "\n(syslog-create-manpage-notes-function %S %s '%S %S)\n"
 			      page indstr face (cdr (or trans transformers))))
-	   (insert (format "(dolist (word '%S)\n" words));;TODO
+	   (insert (format "(dolist (word '%S)\n" (set-difference words (or excpts exceptions))))
 	   (insert (format "  (push (list word nil 'syslog-show-%s-note) syslog-notes))\n"
 	   		   (replace-regexp-in-string "\\Sw" "_" page)))))
 
