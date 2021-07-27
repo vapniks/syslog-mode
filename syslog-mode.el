@@ -1438,12 +1438,12 @@ The note is chosen from the current value of `syslog-notes'."
 				     (lambda (e) (string-match (car e) word))
 				     syslog-notes)))
 	       (nowrd (mapcar 'cdr (cl-remove-if 'car syslog-notes)))
+	       (nowrdrx (cl-remove-if-not 'car nowrd))	       
 	       (wrdrx (cl-remove-if-not 'car haswrd))
 	       (wrdnorx (cl-remove-if 'car haswrd))
-	       (rxnowrd (cl-remove-if-not 'car nowrd))
 	       (note (cadr (or (findmatch wrdrx)
 			       (car wrdnorx)
-			       (findmatch rxnowrd)))))
+			       (findmatch nowrdrx)))))
 	  (message (cond ((null note)
 			  (concat
 			   "No notes found for " word
