@@ -1672,7 +1672,7 @@ evaluating it."
 		(let ((word (funcall (cond
 				      ((null trans) (or transformer 'identity))
 				      ((functionp trans) trans)
-				      ((consp trans) (car trans))
+				      ((consp trans) (or (car trans) 'identity))
 				      (t (error "Invalid transformer arg")))
 				     (replace-regexp-in-string "^\\s-*\\|\\s-*$" ""
 							       (car region)))))
