@@ -1411,7 +1411,8 @@ Each entry is a list containing 3 items in the following order:
     one argument (the word at point) that returns a string
 Either one of 1. & 2. may be omitted, but not both.
 Word matches have higher precedence than line matches, 
-but lower precedence than combined word & line matches.")
+but lower precedence than combined word & line matches.
+All matches of the highest precedence will be displayed.")
 
 ;; simple-call-tree-info: DONE
 (defcustom syslog-manpage-wait 0.2
@@ -1421,37 +1422,46 @@ but lower precedence than combined word & line matches.")
 
 ;; simple-call-tree-info: CHECK  
 (defun syslog-show-note nil
-  "In the minibuffer display note associated with the word at point.
-The note is chosen from the current value of `syslog-notes'."
+  "In the minibuffer display notes associated with the word at point.
+The notes are chosen from the current value of `syslog-notes'.
+If there are notes which match the current word & line, then all those
+notes will be displayed, otherwise all notes matching the current word
+ (but with no line regexp) will be displayed, or if there are none of
+those then all notes matching the current line (but with no word regexp)
+will be displayed."
   (interactive)
-  (cl-flet ((findmatch (lst)
-		       (cl-assoc-if (lambda (regex)
-				      (string-match
-				       regex
-				       (buffer-substring-no-properties
-					(line-beginning-position)
-					(line-end-position))))
-				    lst)))
+  (cl-flet ((findmatches (lst)
+			 (cl-remove-if-not (lambda (elem)
+					     (string-match
+					      (car elem)
+					      (buffer-substring-no-properties
+					       (line-beginning-position)
+					       (line-end-position))))
+					   lst)))
     (if syslog-notes
 	(let* ((word (symbol-name-nearest-point))
 	       (haswrd (mapcar 'cdr (cl-remove-if-not
 				     (lambda (e) (string-match (car e) word))
 				     syslog-notes)))
 	       (nowrd (mapcar 'cdr (cl-remove-if 'car syslog-notes)))
-	       (nowrdrx (cl-remove-if-not 'car nowrd))	       
+	       (nowrdrx (cl-remove-if-not 'car nowrd))
 	       (wrdrx (cl-remove-if-not 'car haswrd))
 	       (wrdnorx (cl-remove-if 'car haswrd))
-	       (note (cadr (or (findmatch wrdrx)
-			       (car wrdnorx)
-			       (findmatch nowrdrx)))))
-	  (message (cond ((null note)
-			  (concat
-			   "No notes found for " word
-			   " (to create one: M-x syslog-edit-notes)"))
-			 ((functionp note) (funcall note word))
-			 ((stringp note) note)
-			 (t (error "Invalid note entry in %s"
-				   (syslog-notes-file))))))
+	       (notes (mapcar 'cdr (or (findmatches wrdrx)
+				       wrdnorx
+				       (findmatches nowrdrx))))
+	       (fullnote (mapconcat (lambda (note)
+				      (cond ((null note) "")
+					    ((functionp note) (funcall note word))
+					    ((stringp note) note)
+					    (t (error "Invalid note entry in %s"
+						      (syslog-notes-file)))))
+				    notes "\n")))
+	  (message (if (> (length fullnote) 0)
+		       fullnote
+		     (concat
+		      "No notes found for " word
+		      " (to create one: M-x syslog-edit-notes)"))))
       (when (and (y-or-n-p "No notes loaded, load now? ")
 		 (syslog-load-notes))
 	(syslog-show-note)))))
