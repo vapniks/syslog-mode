@@ -1405,22 +1405,22 @@ The notes file should contain an s-expression setting the local value of `syslog
 (defvar-local syslog-notes nil
   "List of syslog notes for current buffer.
 Each item is a list containing 3 to 5 entries in the following order:
- 1. a regexp to match the word at point
+ 1. a regexp to match the active region or word at point
  2. a regexp to match the current line
  3. the note to be displayed: either a string, or a function of two
-    arguments; the word and line matched by the regexps in entries 1. & 2.
+    arguments; the region/word and line matched by the regexps in entries 1. & 2.
     If either of those regexps has a non-shy match group, the match to
     the first such group will be used for the arg instead.
     The function should display a note.
- 4. an optional function for transforming the word match before it is
+ 4. an optional function for transforming the region/word match before it is
     passed to the function in entry 3.
  5. an optional function for transforming the line match before it is
     passed to the function in entry 3.
-Word matches have higher precedence than line matches, but lower precedence 
-than combined word & line matches. All matches of the highest precedence will 
+Region/word matches have higher precedence than line matches, but lower precedence 
+than combined region/word & line matches. All matches of the highest precedence will 
 be displayed.
 An entry with nil for entries 1 & 2 may be used for the default note. If it has
-a function in entry 3 the function will be passed the word and line at point.")
+a function in entry 3 the function will be passed the region/word and line at point.")
 
 ;; simple-call-tree-info: DONE
 (defcustom syslog-manpage-wait 0.2
