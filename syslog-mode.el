@@ -1456,7 +1456,10 @@ then that will be used."
     (if syslog-notes
 	(let* ((line (buffer-substring-no-properties (line-beginning-position)
 						     (line-end-position)))
-	       (word (region-or-word-at-point))
+	       (word (if mark-active
+			 (buffer-substring-no-properties
+			  (region-beginning) (region-end))
+		       (current-word)))
 	       (haswd (cl-remove-if-not (lambda (e)
 					  (and (car e) (string-match (car e) word)))
 					syslog-notes))
