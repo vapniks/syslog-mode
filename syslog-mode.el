@@ -1471,12 +1471,16 @@ then that will be used."
 			  wdnoln
 			  (findmatches lnnowd)))
 	       (fullnote (mapconcat (lambda (x)
-				      (let ((note (caddr x)))
+				      (let ((note (third x)))
 					(cond ((null note) "")
 					      ((functionp note)
 					       (funcall note
-							(getmatch (car x) word)
-							(getmatch (cadr x) line)))
+							(funcall
+							 (or (fourth x) 'identity)
+							 (getmatch (car x) word))
+							(funcall
+							 (or (fifth x) 'identity)
+							 (getmatch (cadr x) line))))
 					      ((stringp note) note)
 					      (t (error "Invalid note entry in %s"
 							(syslog-notes-file))))))
