@@ -1616,20 +1616,26 @@ match will be returned in the car."
      regions)))
 
 ;; simple-call-tree-info: CHANGE  
-(cl-defun syslog-show-note-from-manpage (word page &optional (indent 7) (face 'Man-overstrike))
-  "Show the description of WORD from manpage PAGE.
-The description is taken from indented text following the first appearance
+(cl-defun syslog-show-note-from-manpages (word pages &optional (indent 7) (face 'Man-overstrike))
+  "Show the description of WORD extracted from manpage(s) PAGES.
+PAGES can be either the name of a single manpage, or a list of manpage names.
+The manpage names may include section numbers, e.g. \"signal(7)\" or \"7 signal\".
+The description is taken by searching for the from indented text following the first appearance
 of WORD at indentation level INDENT and face FACE in the manpage.
 The description is assumed to end when the indentation level of the text
 returns to INDENT."
-  (let ((indstr (number-to-string indent)))
-    (message
-     (cdar (syslog-extract-manpage-regions
-	    page
-	    (concat (concat "^\\s-\\{" indstr "\\}")
-		    "\\<" (regexp-quote word) "\\>")
-	    (concat "^\\s-\\{," indstr "\\}\\S-")
-	    face)))))
+  (let* ((indstr (number-to-string indent))
+	 (pages (if (listp pages) pages (list pages)))
+	 (notes (cl-loop for page in pages
+			 for note = (cdar (syslog-extract-manpage-regions
+					   page
+					   (concat (concat "^\\s-\\{" indstr "\\}")
+						   "\\<" (regexp-quote word) "\\>")
+					   (concat "^\\s-\\{," indstr "\\}\\S-")
+					   face))
+			 if note concat (concat word " in " page " manpage: " note "\n"))))
+    (when (> (length notes) 0)
+      (substring notes nil -1))))
 
 ;; simple-call-tree-info: CHECK
 (defun syslog-extract-matches-from-manpage (page regex &optional face)
@@ -1714,17 +1720,17 @@ evaluating it."
 ;; simple-call-tree-info: DONE  
 (defmacro syslog-create-manpage-notes-function (page indent face &optional untransformer)
   "Create a function for viewing notes from a specific manpage.
-PAGE, INDENT & FACE are arguments for `syslog-show-note-from-manpage'.
+PAGE, INDENT & FACE are arguments for `syslog-show-note-from-manpages'.
 The function will have the form: syslog-show-PAGE-note.
 The UNTRANSFORMER arg can be a function to transform the word arg of the created
-function before passing it to `syslog-show-note-from-manpage'. Use this arg when
+function before passing it to `syslog-show-note-from-manpages'. Use this arg when
 the word in the syslog buffer differs from the corresponding word in the manpage."
   `(defun ,(intern (format "syslog-show-%s-note"
 			   (replace-regexp-in-string "\\Sw" "_" page)))
        (word)
-     (syslog-show-note-from-manpage (funcall ',(or untransformer 'identity) word)
-				    ,(Man-translate-references page)
-				    ,indent ,face)))
+     (syslog-show-note-from-manpages (funcall ',(or untransformer 'identity) word)
+				     ,(Man-translate-references page)
+				     ,indent ,face)))
 
 ;; simple-call-tree-info: DONE
 (cl-defun syslog-function-notes-from-manpages (manpages
