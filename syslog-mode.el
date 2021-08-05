@@ -1430,15 +1430,15 @@ a function in entry 3 the function will be passed the word and line at point.")
 
 ;; simple-call-tree-info: TODO if region is active use that instead of symbol-at-point
 (defun syslog-show-notes nil
-  "In the minibuffer display notes associated with the word at point.
+  "In the minibuffer display notes associated with the region or word at point.
 The notes are chosen from the current value of `syslog-notes'.
-If there are notes which match the current word & line, then all those
-notes will be displayed, otherwise all notes matching the current word
+If there are notes which match the current region/word & line, then all those
+notes will be displayed, otherwise all notes matching the current region/word
  (but with no line regexp) will be displayed, or if there are none of
-those then all notes matching the current line (but with no word regexp)
+those then all notes matching the current line (but with no region/word regexp)
 will be displayed.
-If there are no `syslog-notes' entries matching the word or line at point,
-and `syslog-notes' contains a default item(s) with no word or line entries
+If there are no `syslog-notes' entries matching the region/word or line at point,
+and `syslog-notes' contains a default item(s) with no region/word or line entries
 then that will be used."
   (interactive)
   (cl-flet ((findmatches (lst)
