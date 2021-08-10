@@ -1412,7 +1412,10 @@ where:
  LINERX is a regexp to match the current line. Non-shy match groups are treated 
         the same way as for WORDRX.
  NOTE   is the note to be displayed: either a string, or a function which will
-        be called with the remaining ARGS.
+        be called with the remaining ARGS. If it's a function it should either 
+        return a string to be displayed, or display the note itself. In the latter 
+        case the function should return some non-nil non-string value to prevent
+        `syslog-show-notes' from displaying any further notes from other matching items.
  ARGS   are arguments for the NOTES function. Any occurrence of the symbols
         `word' or `line' among ARGS will be replaced by the matches to WORDRX & LINERX 
         respectively. Any function among ARGS whose arglist consists of a single 
@@ -1431,7 +1434,7 @@ All matches of the highest precedence will be displayed.")
   :group 'syslog
   :type 'float)
 
-;; simple-call-tree-info: TODO allow notes function to display note its own way, instead of returning a string?
+;; simple-call-tree-info: CHECK
 (defun syslog-show-notes nil
   "In the minibuffer display notes associated with the region or word at point.
 The notes are chosen from the current value of `syslog-notes'.
@@ -1464,42 +1467,43 @@ then that will be used."
 		       (current-word)))
 	       (haswd (cl-remove-if-not (function wdmatch) syslog-notes))
 	       (nowd (cl-remove-if 'car syslog-notes))
-	       (notes (or (cl-remove-if-not (function lnmatch) haswd)
+	       (items (or (cl-remove-if-not (function lnmatch) haswd)
 			  (cl-remove-if 'cadr haswd)
 			  (cl-remove-if-not (function lnmatch) nowd)
 			  (cl-remove-if 'cadr nowd)))
-	       (fullnote (mapconcat (lambda (x)
-				      (let* ((wd (getmatch (car x) word))
-					     (ln (getmatch (cadr x) line))
-					     (note (third x))
-					     (args (mapcar
-						    (lambda (arg)
-						      (cond
-						       ((eq arg 'word) wd)
-						       ((eq arg 'line) ln)
-						       ((and (functionp arg)
-							     (equal
-							      (help-function-arglist arg)
-							      '(word)))
-							(funcall arg wd))
-						       ((and (functionp arg)
-							     (equal
-							      (help-function-arglist arg)
-							      '(line)))
-							(funcall arg ln))
-						       (t arg)))
-						    (cdddr x))))
-					(cond ((null note) "")
-					      ((functionp note) (apply note args))
-					      ((stringp note) note)
-					      (t (error "Invalid note entry in %s"
-							(syslog-notes-file))))))
-				    notes "\n")))
-	  (message (if (> (length fullnote) 0)
-		       fullnote
-		     (concat
-		      "No notes found for " word
-		      " (to create one: M-x syslog-edit-notes)"))))
+	       (note (cl-loop for item in items
+			      for value = (let* ((wd (getmatch (car item) word))
+						 (ln (getmatch (cadr item) line))
+						 (nt (third item))
+						 (args (mapcar
+							(lambda (arg)
+							  (cond
+							   ((eq arg 'word) wd)
+							   ((eq arg 'line) ln)
+							   ((and (functionp arg)
+								 (equal
+								  (help-function-arglist arg)
+								  '(word)))
+							    (funcall arg wd))
+							   ((and (functionp arg)
+								 (equal
+								  (help-function-arglist arg)
+								  '(line)))
+							    (funcall arg ln))
+							   (t arg)))
+							(cdddr item))))
+					    (cond ((null nt) "")
+						  ((functionp nt) (apply nt args))
+						  ((stringp nt) nt)
+						  (t (error "Invalid note entry in %s"
+							    (syslog-notes-file)))))
+			      if (stringp value) concat (concat value "\n")
+			      else if value return nil)))
+	  (when note
+	    (message (if (> (length note) 0)
+			 note
+		       (concat "No notes found for " word
+			       " (to create one: M-x syslog-edit-notes)")))))
       (when (and (y-or-n-p "No notes loaded, load now? ")
 		 (syslog-load-notes))
 	(syslog-show-notes)))))
