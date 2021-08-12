@@ -1401,7 +1401,7 @@ The notes file should contain an s-expression setting the local value of `syslog
   :type '(alist :key-type (regexp :help-echo "Regexp for matching file visited by buffer")
 		:value-type (file :help-echo "Syslog notes file")))
 
-;; simple-call-tree-info: CHECK
+;; simple-call-tree-info: CHECK  
 (defvar-local syslog-notes nil
   "List of syslog notes for current buffer.
 Each item is a list of the form (WORDRX LINERX NOTE . ARGS)
@@ -1434,7 +1434,7 @@ All matches of the highest precedence will be displayed.")
   :group 'syslog
   :type 'float)
 
-;; simple-call-tree-info: CHECK
+;; simple-call-tree-info: CHECK  
 (defun syslog-show-notes nil
   "In the minibuffer display notes associated with the region or word at point.
 The notes are chosen from the current value of `syslog-notes'.
@@ -1459,7 +1459,8 @@ then that will be used."
 					       str))
 			  str)))
     (if syslog-notes
-	(let* ((line (buffer-substring-no-properties (line-beginning-position)
+	(let* ((case-fold-search nil)
+	       (line (buffer-substring-no-properties (line-beginning-position)
 						     (line-end-position)))
 	       (word (if mark-active
 			 (buffer-substring-no-properties
@@ -1613,23 +1614,23 @@ matching content will be returned in a cons cell (the car) with the matched
 region (the cdr), otherwise if there is no non-shy match group, the whole
 match will be returned in the car."
   (syslog-process-manpage
-   page
-   (let ((n (regexp-opt-depth regex1))
-	 start end regions word)
-     (while (syslog-search-regexp-and-face regex1 face1 t)
-       (setq start (match-end 0)
-	     word (match-string-no-properties (if (> n 0) 1 0)))
-       (when (syslog-search-regexp-and-face regex2 face2 t)
-	 (setq end (match-beginning 0))
-	 (add-to-list 'regions
-		      (cons word
-			    (replace-regexp-in-string
-			     "\\`\\s-+\\|\\s-+\\'" ""
-			     (buffer-substring-no-properties start end))))
-	 (forward-line 0)))
-     regions)))
+      page
+    (let ((n (regexp-opt-depth regex1))
+	  start end regions word)
+      (while (syslog-search-regexp-and-face regex1 face1 t)
+	(setq start (match-end 0)
+	      word (match-string-no-properties (if (> n 0) 1 0)))
+	(when (syslog-search-regexp-and-face regex2 face2 t)
+	  (setq end (match-beginning 0))
+	  (add-to-list 'regions
+		       (cons word
+			     (replace-regexp-in-string
+			      "\\`\\s-+\\|\\s-+\\'" ""
+			      (buffer-substring-no-properties start end))))
+	  (forward-line 0)))
+      regions)))
 
-;; simple-call-tree-info: CHANGE  
+;; simple-call-tree-info: CHECK  
 (cl-defun syslog-show-note-from-manpages (word pages &optional (indent 7) (face 'Man-overstrike))
   "Show the description of WORD extracted from manpage(s) PAGES.
 PAGES can be either the name of a single manpage, or a list of manpage names.
@@ -1668,7 +1669,7 @@ Searching is done case sensitively."
 		       t)))
       matches)))
 
-;; simple-call-tree-info: CHECK
+;; simple-call-tree-info: TODO do I still need this?
 (cl-defun syslog-text-notes-from-manpages (manpages &key
 						    (wordrx "\\(\\<[A-Z_]+\\>\\)")
 						    (linerx nil)
@@ -1731,7 +1732,7 @@ evaluating it."
 				    (cdr region))))))
 	   finally (insert ")))")))
 
-;; simple-call-tree-info: DONE  
+;; simple-call-tree-info: TODO do I still need this?
 (defmacro syslog-create-manpage-notes-function (page indent face &optional untransformer)
   "Create a function for viewing notes from a specific manpage.
 PAGE, INDENT & FACE are arguments for `syslog-show-note-from-manpages'.
@@ -1746,7 +1747,7 @@ the word in the syslog buffer differs from the corresponding word in the manpage
 				     ,(Man-translate-references page)
 				     ,indent ,face)))
 
-;; simple-call-tree-info: DONE
+;; simple-call-tree-info: TODO  do I still need this?
 (cl-defun syslog-function-notes-from-manpages (manpages
 					       &key
 					       (wordrx "\\(\\<[A-Z_]+\\>\\)")
