@@ -1635,7 +1635,7 @@ match will be returned in the car."
   "Show the description of WORD extracted from manpage(s) PAGES.
 PAGES can be either the name of a single manpage, or a list of manpage names.
 The manpage names may include section numbers, e.g. \"signal(7)\" or \"7 signal\".
-The description is taken by searching for the from indented text following the first appearance
+The description is taken by searching for indented text following the first appearance
 of WORD at indentation level INDENT and face FACE in the manpage.
 The description is assumed to end when the indentation level of the text
 returns to INDENT."
