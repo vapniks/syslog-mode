@@ -1,7 +1,7 @@
 ;;; syslog-mode.el --- Major-mode for viewing log files
 
 ;; Filename: syslog-mode.el
-;; Description: Major-mode for viewing log files
+;; Description: Major-mode for viewing log files & strace output
 ;; Author: Harley Gorrell <harley@panix.com>
 ;; Maintainer: Joe Bloggs <vapniks@yahoo.com>
 ;; Created: 2003-03-17 18:50:12 Harley Gorrell
