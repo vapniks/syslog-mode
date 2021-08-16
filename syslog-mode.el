@@ -1734,7 +1734,7 @@ or the COUNT'th last match if COUNT is negative"
 	(re-search-forward regex nil nil count)
 	(recenter 0)))))
 
-;; simple-call-tree-info: TODO do I still need this?
+;; simple-call-tree-info: CHECK
 (cl-defun syslog-text-notes-from-manpages (manpages &key
 						    (wordrx "\\(\\<[A-Z_]+\\>\\)")
 						    (linerx nil)
@@ -1760,9 +1760,6 @@ a property list of the following optional keywords & arguments:
  :TRANSFORMER - a function for transforming the returned WORD before inserting it
         into `syslog-notes'. Use this if the words matched in the manpage differ
         from the corresponding words in the syslog buffer. 
-        In `syslog-function-notes-from-manpages' this should be a cons cell containing
-        a transformer function (the car) and an untransformer function (the cdr).
-        If either of those entries is nil the identity function will be used.
         Note: leading & trailing whitespace is removed before applying the transformer.
  :EXCEPTIONS - a list of words (after transformation) whose descriptions will be 
         omitted from the results. 
@@ -1796,65 +1793,6 @@ evaluating it."
 				    (or (plist-get rest :linerx) linerx)
 				    (cdr region))))))
 	   finally (insert ")))")))
-
-;; simple-call-tree-info: TODO do I still need this?
-(defmacro syslog-create-manpage-notes-function (page indent face &optional untransformer)
-  "Create a function for viewing notes from a specific manpage.
-PAGE, INDENT & FACE are arguments for `syslog-show-note-from-manpages'.
-The function will have the form: syslog-show-PAGE-note.
-The UNTRANSFORMER arg can be a function to transform the word arg of the created
-function before passing it to `syslog-show-note-from-manpages'. Use this arg when
-the word in the syslog buffer differs from the corresponding word in the manpage."
-  `(defun ,(intern (format "syslog-show-%s-note"
-			   (replace-regexp-in-string "\\Sw" "_" page)))
-       (word)
-     (syslog-show-note-from-manpages (funcall ',(or untransformer 'identity) word)
-				     ,(Man-translate-references page)
-				     ,indent ,face)))
-
-;; simple-call-tree-info: TODO  do I still need this?
-(cl-defun syslog-function-notes-from-manpages (manpages
-					       &key
-					       (wordrx "\\(\\<[A-Z_]+\\>\\)")
-					       (linerx nil)
-					       (face 'Man-overstrike)
-					       (indent 7)
-					       (transformers nil)
-					       (exceptions nil))
-  "Similar to `syslog-text-notes-from-manpages' but adds functions instead of text.
-The inserted code will add (WORD nil FUNC) triples to `syslog-notes', where
-WORD is a word in a syslog buffer whose description is required, and FUNC is a function 
-that is called by `syslog-show-notes' to extract description from a manpage and display it.
-
-If the words in the syslog buffer differ from the corresponding words in the manpage, then
-a pair of transformer functions need to be provided; one for transforming words in the 
-manpage buffer to corresponding words in the syslog buffer, and one for the opposite direction.
-This pair of functions should be the car & cdr of a cons cell which can be supplied in
-either the MANPAGES arg (see `syslog-text-notes-from-manpages') or the :TRANSFORMERS 
-keyword arg.
-
-The advantage of using this function rather than `syslog-text-notes-from-manpages' is that
-it results in a shorter `syslog-notes' definition, and the manpages do not need to be
-loaded until the notes are first displayed with `syslog-show-notes'. The disadvantage is
-that `syslog-show-notes' will slower (since it has to extract the note each time)."
-  (cl-loop for (page . rest) in manpages
-	   for trans = (or (plist-get rest :transformer)
-			   (plist-get rest :transformers))
-	   for indstr = (number-to-string (or (plist-get rest :ind) indent))
-	   for rxA = (concat "^\\s-\\{" indstr "\\}" (or (plist-get rest :wordrx) wordrx))
-	   for words = (mapcar (lambda (m)
-				 (funcall
-				  (or (car (or trans transformers)) 'identity)
-				  (replace-regexp-in-string "^\\s-+\\|\\s-+$" "" m)))
-			       (syslog-extract-matches-from-manpage page rxA face))
-	   do (insert (format "\n(syslog-create-manpage-notes-function %S %s '%S %S)\n"
-			      page indstr face (cdr (or trans transformers))))
-	   (insert (format "(dolist (word '%S)\n"
-			   (set-difference words (or (plist-get rest :exceptions) exceptions)
-					   :test 'equal)))
-	   (insert (format "  (push (list word %S 'syslog-show-%s-note) syslog-notes))\n"
-			   (or (plist-get rest :linerx) linerx)
-			   (replace-regexp-in-string "\\Sw" "_" page)))))
 
 ;; simple-call-tree-info: DONE
 (defface syslog-ip
