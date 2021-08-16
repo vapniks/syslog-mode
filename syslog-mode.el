@@ -1397,7 +1397,10 @@ The FACES arg is the same as for `highlight-regexp-unique' (which see)."
      faces)))
 
 ;; simple-call-tree-info: DONE  
-(defcustom syslog-notes-files nil
+(defcustom syslog-notes-files (list (cons
+				     ".*\\.strace"
+				     (concat (file-name-directory load-file-name)
+					     "strace_notes.el")))
   "An alist used by `syslog-load-notes' for choosing a notes file to load.
 The car of each element in the list is a regexp used for matching against
 the file visited in the current buffer, and the cdr is a notes file to load
