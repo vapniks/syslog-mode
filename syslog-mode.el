@@ -853,6 +853,11 @@ It should contain one non-shy subexpression matching the datetime string."
   :group 'syslog
   :type 'directory)
 
+(defcustom syslog-large-file-size 500000
+  "When `syslog-show-file-note' tries to load a file larger than this it prompts the user."
+  :group 'syslog
+  :type 'integer)
+
 ;; Add some extra faces for highlighting
 ;; simple-call-tree-info: DONE  
 (defface hi-red
@@ -1668,6 +1673,63 @@ Searching is done case sensitively."
 		       (match-string-no-properties (if (> n 0) 1 0))
 		       t)))
       matches)))
+
+;; simple-call-tree-info: CHECK
+(defun syslog-show-file-note (file line &optional count)
+  "Display a section of FILE in another window.
+If LINE is a positive number display that line at the top of the window.
+If LINE is a regexp display the first match at the top of the window.
+If COUNT is an integer display instead the COUNT'th match at the top,
+or the COUNT'th last match if COUNT is negative.
+If FILE is an org file, the buffer will be place in `org-mode', and widened
+around the displayed section.
+
+Note: if FILE is larger than `syslog-large-file-size' bytes the user will
+be prompted before loading the file (unless it's already loaded)."
+  (when (let ((fsize (file-attribute-size (file-attributes file))))
+	  (or (member (expand-file-name file)
+		      (mapcar 'buffer-file-name (buffer-list)))
+	      (< fsize syslog-large-file-size)
+	      (y-or-n-p (format "%s is a large file (%S bytes), continue? "
+				(file-name-nondirectory file) fsize))))
+    (message "Loading %s..." file)
+    (let ((buf (find-file-noselect file)))
+      (display-buffer buf)
+      (with-selected-window (get-buffer-window buf)
+	(widen)
+	(push-mark)
+	(cond ((integerp line) (goto-line line))
+	      ((stringp line)
+	       (goto-char (if (and count (< count 0))
+			      (point-max)
+			    (point-min)))
+	       (re-search-forward line nil nil count))
+	      (t (error "Invalid value for line arg: %S" line)))
+	(when (derived-mode-p 'org-mode)
+	  (org-show-context 'agenda))
+	(recenter 0))))
+  'stop)
+
+;; simple-call-tree-info: CHECK
+(defun syslog-show-info-node-note (node &optional regex count)
+  "Display info NODE in another window.
+If REGEX is non-nil recenter the buffer so that the first match is displayed
+at the top. If COUNT is an integer display instead the COUNT'th match at the top, 
+or the COUNT'th last match if COUNT is negative"
+  (let ((win (display-buffer
+	      (get-buffer-create
+	       (concat "*info-" (and (string-match "^(\\([^()]+\\))" node)
+				     (match-string 1 node))
+		       "*")))))
+    (with-selected-window win
+      (unless (eq major-mode 'Info-mode) (Info-mode))
+      (Info-goto-node node)
+      (when regex
+	(goto-char (if (and count (< count 0))
+		       (point-max)
+		     (point-min)))
+	(re-search-forward regex nil nil count)
+	(recenter 0)))))
 
 ;; simple-call-tree-info: TODO do I still need this?
 (cl-defun syslog-text-notes-from-manpages (manpages &key
