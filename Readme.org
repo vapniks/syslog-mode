@@ -67,6 +67,7 @@ Below are customizable option list:
  - `syslog-views' : A list of views. (default = nil)
  - `syslog-datetime-regexp' A regular expression matching the date-time at the beginning of each line in the log file.
  - `syslog-log-file-directory' : The directory in which log files are stored. (default = "/var/log/")
+ - `syslog-large-file-size' : When `syslog-show-file-note' tries to load a file larger than this it prompts the user.
  - `syslog-hi-face-defaults' : Alist of face sets to use for automatic highlighting.
  - `syslog-notes-files' : An alist used by `syslog-load-notes' for choosing a notes file to load.
 * Creating & viewing notes
