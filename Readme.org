@@ -70,14 +70,15 @@ Below are customizable option list:
  - `syslog-large-file-size' : When `syslog-show-file-note' tries to load a file larger than this it prompts the user.
  - `syslog-hi-face-defaults' : Alist of face sets to use for automatic highlighting.
  - `syslog-notes-files' : An alist used by `syslog-load-notes' for choosing a notes file to load.
+   
 * Creating & viewing notes
 You can create notes files containing info about the words & acronyms found in syslog & trace files.
 These files are just elisp files containing definitions of the buffer-local `syslog-notes' variable,
 and can be associated with log/trace files using the `syslog-notes-files' user option.
-To aid in the creation of these notes files, in cases where the required info is available in manpages,
-you can use the `syslog-text-notes-from-manpages' and `syslog-function-notes-from-manpages' functions.
-See the descriptions of those functions for more info. You will probably need to edit the definitions
-they produce.
+You can use the `syslog-show-note-from-manpages', `syslog-show-info-node-note' & `syslog-show-file-note'
+functions in `syslog-notes' to extract notes from manpages, info nodes or arbitrary files (including
+org-mode files) at runtime.
+See also `syslog-text-notes-from-manpages' if you prefer to use pre-extracted notes.
 * Installation
 
  - This library is available on MELPA: https://melpa.org/#/?q=syslog
