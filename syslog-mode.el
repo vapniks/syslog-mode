@@ -1424,6 +1424,8 @@ where:
         return a string to be displayed, or display the note itself. In the latter 
         case the function should return some non-nil non-string value to prevent
         `syslog-show-notes' from displaying any further notes from other matching items.
+        `syslog-show-note-from-manpages', `syslog-show-file-note' & `syslog-show-info-node-note'
+        can be used here.
  ARGS   are arguments for the NOTES function. Any occurrence of the symbols
         `word' or `line' among ARGS will be replaced by the matches to WORDRX & LINERX 
         respectively. Any function among ARGS whose arglist consists of a single 
