@@ -1571,7 +1571,7 @@ If this is none, then create new notes file, and add it to `syslog-notes-files'.
 	(insert ";; See the `syslog-notes' documentation for info about the correct format\n")
 	(insert ";; After editing save & kill this buffer, and then in the syslog-mode buffer do: M-x syslog-load-notes\n")
 	(insert ";; To always use this file add an entry to the `syslog-notes-files' user option.\n")
-	(insert ";; See also `syslog-text-notes-from-manpages' and `syslog-function-notes-from-manpages'.\n")
+	(insert ";; See also `syslog-show-note-from-manpages' `syslog-show-file-note' & `syslog-show-info-node-note'.\n")
 	(insert "(setq-local\n syslog-notes\n '((\"EXAMPLE\" \"^.*stuff.*\" \"An example note. Delete this entry\")))"))
       (add-to-list 'syslog-notes-files (cons (regexp-opt (list bfn)) file)))))
 
