@@ -161,6 +161,9 @@
 ;;  `syslog-log-file-directory'
 ;;    The directory in which log files are stored.
 ;;    default = "/var/log/"
+;;  `syslog-large-file-size'
+;;    When `syslog-show-file-note' tries to load a file larger than this it prompts the user.
+;;    default = 500000
 ;;  `syslog-hi-face-defaults'
 ;;    Alist of face sets to use for automatic highlighting.
 ;;    default = (quote ((background hi-red hi-blue hi-green hi-yellow ...) (foreground hi-red-b hi-blue-b hi-green-b hi-yellow-b ...)))
