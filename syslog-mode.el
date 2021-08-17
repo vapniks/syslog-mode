@@ -1461,7 +1461,7 @@ If there are no `syslog-notes' entries matching the region/word or line at point
 and `syslog-notes' contains a default item(s) with no region/word or line entries
 then that will be used."
   (interactive)
-  (cl-labels ((strmatch (rx1 str) (and rx1 (string-match rx1 str)))
+  (cl-labels ((strmatch (rx1 str) (and rx1 str (string-match rx1 str)))
 	      (wdmatch (elem) (strmatch (car elem) word))
 	      (lnmatch (elem) (strmatch (cadr elem) line))
 	      (getmatch (regex str)
