@@ -1955,7 +1955,7 @@ which has a syslog-like name (.fasta or .gb) or whose contents
 looks like syslog.  It will also turn enable fontification for `syslog-mode'."
   ;; (add-hook 'find-file-hooks 'syslog-find-file-func)
   (add-to-list 'auto-mode-alist
-	       '("\\(messages\\(\\.[0-9]\\)?\\|SYSLOG\\)\\'" . syslog-mode)))
+	       '("\\(messages\\(\\.[0-9]\\)?\\|SYSLOG\\|\\.s?trace\\)\\'" . syslog-mode)))
 
 ;; Setup hooks on request when this mode is loaded.
 (if syslog-setup-on-load (syslog-add-hooks))
