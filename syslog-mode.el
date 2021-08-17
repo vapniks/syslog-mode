@@ -1747,8 +1747,10 @@ or the COUNT'th last match if COUNT is negative"
 	(goto-char (if (and count (< count 0))
 		       (point-max)
 		     (point-min)))
-	(re-search-forward regex nil nil count)
-	(recenter 0)))))
+	(if (not (re-search-forward regex nil t count))
+	    (delete-window win)
+	  (recenter 0)
+	  'stop)))))
 
 ;; simple-call-tree-info: CHECK
 (cl-defun syslog-text-notes-from-manpages (manpages &key
