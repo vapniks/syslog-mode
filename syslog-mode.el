@@ -1658,7 +1658,7 @@ The description is assumed to end when the indentation level of the text
 returns to INDENT.
 
 If no match can be found at INDENT level and DEFAULT is non-nil, search for the first 
-match to WORD regardless of indentation level or FACE."
+match to WORD in the manpages regardless of indentation level or FACE."
   (let* ((indstr (number-to-string indent))
 	 (pages (if (listp pages) pages (list pages)))
 	 (wordrx (concat "\\<" (regexp-quote word) "\\>"))
