@@ -1706,12 +1706,12 @@ user will be prompted before loading the file (unless it's already loaded)."
 		  (< fsize syslog-large-file-size)
 		  (y-or-n-p (format "%s is a large file (%S bytes), continue? "
 				    (file-name-nondirectory fileorbuf) fsize)))))
-    (let ((buf (if (bufferp fileorbuf)
-		   fileorbuf
-		 (message "Loading %s..." fileorbuf)
-		 (find-file-noselect fileorbuf))))
-      (display-buffer buf)
-      (with-selected-window (get-buffer-window buf)
+    (let ((win (display-buffer
+		(if (bufferp fileorbuf)
+		    fileorbuf
+		  (message "Loading %s..." fileorbuf)
+		  (find-file-noselect fileorbuf)))))
+      (with-selected-window win
 	(widen)
 	(push-mark)
 	(if (not (cond ((integerp line)
@@ -1723,7 +1723,7 @@ user will be prompted before loading the file (unless it's already loaded)."
 				     (point-min)))
 			(re-search-forward line nil t count))
 		       (t (error "Invalid value for line arg: %S" line))))
-	    (delete-window (get-buffer-window buf))
+	    (delete-window win)
 	  (when (derived-mode-p 'org-mode)
 	    (org-show-context 'agenda))
 	  (recenter 0)
