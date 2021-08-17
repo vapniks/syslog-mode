@@ -1696,6 +1696,7 @@ If COUNT is an integer display instead the COUNT'th match at the top,
 or the COUNT'th last match if COUNT is negative.
 If FILEORBUF is an org file or buffer, the buffer will be place in `org-mode',
 and widened around the displayed section.
+If no match for LINE can be found, return nil.
 
 Note: if FILEORBUF is a file larger than `syslog-large-file-size' bytes the
 user will be prompted before loading the file (unless it's already loaded)."
@@ -1734,7 +1735,8 @@ user will be prompted before loading the file (unless it's already loaded)."
   "Display info NODE in another window.
 If REGEX is non-nil recenter the buffer so that the first match is displayed
 at the top. If COUNT is an integer display instead the COUNT'th match at the top, 
-or the COUNT'th last match if COUNT is negative"
+or the COUNT'th last match if COUNT is negative.
+If no match for REGEX can be found, return nil."
   (let ((win (display-buffer
 	      (get-buffer-create
 	       (concat "*info-" (and (string-match "^(\\([^()]+\\))" node)
