@@ -1028,6 +1028,11 @@ buffer respectively."
   (buffer-disable-undo)
   (toggle-read-only 1)
   (syslog-load-notes)
+  (setq-local syslog-token-at-pt-function
+	      (or (let ((bfn (expand-file-name buffer-file-name)))
+		    (cdr (cl-assoc-if (lambda (r) (string-match r bfn))
+				      syslog-token-functions)))
+		  syslog-token-at-pt-function))
   (run-hooks 'syslog-mode-hook))
 
 ;; simple-call-tree-info: DONE
@@ -1454,8 +1459,21 @@ All matches of the highest precedence will be displayed.")
   "Function used to get the token at point for looking up notes.")
 
 ;; simple-call-tree-info: CHECK
+(defcustom syslog-token-functions nil
+  "An alist of (REGEX . FUNC) pairs for choosing `syslog-token-at-pt-function'.
+When `syslog-mode' starts up it will check the REGEX's for matches against the
+buffer file name. If a match is found then `syslog-token-at-pt-function' will
+be set to the associated FUNC value.
+Otherwise the default value of `syslog-token-at-pt-function' will be used."
+  :group 'syslog
+  :type '(alist
+	  :key-type (regexp :help-echo "Regexp for matching file visited by buffer")
+	  :value-type (function :help-echo "Function which returns token at point")))
+
+;; simple-call-tree-info: CHECK
 (defun syslog-get-token-at-point nil
   "Get the token at point treating \"=\" as a word boundary.
+Assumes that there is at most one \"=\" char in the symbol at point.
 This is used by `syslog-show-notes'."
   (let* ((bounds (bounds-of-thing-at-point 'symbol))
 	 (start (car bounds))
