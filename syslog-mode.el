@@ -1698,28 +1698,29 @@ returns to INDENT.
 
 If no match can be found at INDENT level and DEFAULT is non-nil, search for the first 
 match to WORD in the manpages regardless of indentation level or FACE."
-  (let* ((indstr (number-to-string indent))
-	 (pages (if (listp pages) pages (list pages)))
-	 (wordrx (concat "\\<" (regexp-quote word) "\\>"))
-	 (notes (cl-loop for page in pages
-			 for notes = (mapcar 'cdr
-					     (syslog-extract-manpage-regions
-					      page
-					      (concat (concat "^\\s-\\{" indstr "\\}")
-						      wordrx)
-					      (concat "^\\s-\\{," indstr "\\}\\S-")
-					      face))
-			 if notes concat (concat word " in " page " manpage: "
-						 (mapconcat 'identity notes "\n")
-						 "\n"))))
-    (if (> (length notes) 0)
-	(substring notes nil -1)
-      (when default
-	(cl-loop for page in pages
-		 if (syslog-show-note-from-file-or-buffer
-		     (get-buffer (concat "*Man " (Man-translate-references page) "*"))
-		     wordrx)
-		 return 'stop)))))
+  (when word
+    (let* ((indstr (number-to-string indent))
+	   (pages (if (listp pages) pages (list pages)))
+	   (wordrx (concat "\\<" (regexp-quote word) "\\>"))
+	   (notes (cl-loop for page in pages
+			   for notes = (mapcar 'cdr
+					       (syslog-extract-manpage-regions
+						page
+						(concat (concat "^\\s-\\{" indstr "\\}")
+							wordrx)
+						(concat "^\\s-\\{," indstr "\\}\\S-")
+						face))
+			   if notes concat (concat word " in " page " manpage: "
+						   (mapconcat 'identity notes "\n")
+						   "\n"))))
+      (if (> (length notes) 0)
+	  (substring notes nil -1)
+	(when default
+	  (cl-loop for page in pages
+		   if (syslog-show-note-from-file-or-buffer
+		       (get-buffer (concat "*Man " (Man-translate-references page) "*"))
+		       wordrx)
+		   return 'stop))))))
 
 ;; simple-call-tree-info: CHECK
 (defun syslog-extract-matches-from-manpage (page regex &optional face)
