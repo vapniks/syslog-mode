@@ -1449,6 +1449,26 @@ All matches of the highest precedence will be displayed.")
   :group 'syslog
   :type 'float)
 
+;; simple-call-tree-info: CHECK
+(defvar-local syslog-token-at-pt-function 'syslog-get-token-at-point
+  "Function used to get the token at point for looking up notes.")
+
+;; simple-call-tree-info: CHECK
+(defun syslog-get-token-at-point nil
+  "Get the token at point treating \"=\" as a word boundary.
+This is used by `syslog-show-notes'."
+  (let* ((bounds (bounds-of-thing-at-point 'symbol))
+	 (start (car bounds))
+	 (end (cdr bounds)))
+    (when bounds
+      (let* ((str (buffer-substring start end))
+	     (pos (string-match "=" str)))
+	(if pos
+	    (if (> (point) (+ start pos))
+		(substring-no-properties str (1+ pos))
+	      (substring-no-properties str 0 pos))
+	  (substring-no-properties str))))))
+
 ;; simple-call-tree-info: CHECK  
 (defun syslog-show-notes nil
   "In the minibuffer display notes associated with the region or word at point.
@@ -1480,7 +1500,7 @@ then that will be used."
 	       (word (if mark-active
 			 (buffer-substring-no-properties
 			  (region-beginning) (region-end))
-		       (current-word)))
+		       (funcall syslog-token-at-pt-function)))
 	       (haswd (cl-remove-if-not (function wdmatch) syslog-notes))
 	       (nowd (cl-remove-if 'car syslog-notes))
 	       (items (or (cl-remove-if-not (function lnmatch) haswd)
