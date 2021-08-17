@@ -1656,13 +1656,16 @@ returns to INDENT."
   (let* ((indstr (number-to-string indent))
 	 (pages (if (listp pages) pages (list pages)))
 	 (notes (cl-loop for page in pages
-			 for note = (cdar (syslog-extract-manpage-regions
-					   page
-					   (concat (concat "^\\s-\\{" indstr "\\}")
-						   "\\<" (regexp-quote word) "\\>")
-					   (concat "^\\s-\\{," indstr "\\}\\S-")
-					   face))
-			 if note concat (concat word " in " page " manpage: " note "\n"))))
+			 for notes = (mapcar 'cdr
+					     (syslog-extract-manpage-regions
+					      page
+					      (concat (concat "^\\s-\\{" indstr "\\}")
+						      "\\<" (regexp-quote word) "\\>")
+					      (concat "^\\s-\\{," indstr "\\}\\S-")
+					      face))
+			 if notes concat (concat word " in " page " manpage: "
+						 (mapconcat 'identity notes "\n")
+						 "\n"))))
     (when (> (length notes) 0)
       (substring notes nil -1))))
 
