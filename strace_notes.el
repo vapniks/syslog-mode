@@ -15,8 +15,9 @@
 				"ioctl_getfsmap" "ioctl_iflags" "ioctl_list" "ioctl_ns" "ioctl_tty"
 				"ioctl_userfaultfd"))
 		    ;; rt_sigaction uses different indentations for different types of words 
-		    '(nil "^\\S-+ \\(rt_sigaction\\)(" syslog-show-note-from-manpages word line 11)
-		    '("sa_[a-z]+" "^\\S-+ \\(rt_sigaction\\)(" syslog-show-note-from-manpages word line 7 Man-underline)
+		    '(nil "^\\S-+ \\(rt_sigaction\\)(" syslog-show-note-from-manpages word line t 11)
+		    '("sa_[a-z]+" "^\\S-+ \\(rt_sigaction\\)("
+		      syslog-show-note-from-manpages word line t 7 Man-underline)
 		    ;; by default search manpage of function at start of line
 		    '(nil "^\\S-+ \\([^(]+\\)(" syslog-show-note-from-manpages word line)
 		    ))
