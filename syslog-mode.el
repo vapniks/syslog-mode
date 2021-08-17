@@ -1424,11 +1424,12 @@ where:
         the same way as for WORDRX.
  NOTE   is the note to be displayed: either a string, or a function which will
         be called with the remaining ARGS. If it's a function it should either 
-        return a string to be displayed, or display the note itself. In the latter 
-        case the function should return some non-nil non-string value to prevent
-        `syslog-show-notes' from displaying any further notes from other matching items.
-        `syslog-show-note-from-manpages', `syslog-show-note-from-file-or-buffer', and
-        `syslog-show-info-node-note' can be used here.
+        return a string to be displayed, display the note itself and return a 
+        non-nil value, or return nil to indicate that it is unable to find an
+        appropriate note (in which case `syslog-show-notes' may display notes
+        from other matching items).
+        `syslog-show-note-from-manpages', `syslog-show-note-from-file-or-buffer', 
+        and `syslog-show-info-node-note' can be used here.
  ARGS   are arguments for the NOTES function. Any occurrence of the symbols
         `word' or `line' among ARGS will be replaced by the matches to WORDRX & LINERX 
         respectively. Any function among ARGS whose arglist consists of a single 
@@ -1693,10 +1694,10 @@ If LINE is a positive number display that line at the top of the window.
 If LINE is a regexp display the first match at the top of the window.
 If COUNT is an integer display instead the COUNT'th match at the top,
 or the COUNT'th last match if COUNT is negative.
-If FILEORBUF is an org file or buffer, the buffer will be place in `org-mode', 
+If FILEORBUF is an org file or buffer, the buffer will be place in `org-mode',
 and widened around the displayed section.
 
-Note: if FILEORBUF is a file larger than `syslog-large-file-size' bytes the 
+Note: if FILEORBUF is a file larger than `syslog-large-file-size' bytes the
 user will be prompted before loading the file (unless it's already loaded)."
   (when (or (bufferp fileorbuf)
 	    (let ((fsize (file-attribute-size (file-attributes fileorbuf))))
@@ -1713,19 +1714,20 @@ user will be prompted before loading the file (unless it's already loaded)."
       (with-selected-window (get-buffer-window buf)
 	(widen)
 	(push-mark)
-	(cond ((integerp line)
-	       (goto-char (point-min))
-	       (forward-line (1- line)))
-	      ((stringp line)
-	       (goto-char (if (and count (< count 0))
-			      (point-max)
-			    (point-min)))
-	       (re-search-forward line nil nil count))
-	      (t (error "Invalid value for line arg: %S" line)))
-	(when (derived-mode-p 'org-mode)
-	  (org-show-context 'agenda))
-	(recenter 0))))
-  'stop)
+	(if (not (cond ((integerp line)
+			(goto-char (point-min))
+			(= (forward-line (1- line)) 0))
+		       ((stringp line)
+			(goto-char (if (and count (< count 0))
+				       (point-max)
+				     (point-min)))
+			(re-search-forward line nil t count))
+		       (t (error "Invalid value for line arg: %S" line))))
+	    (delete-window (get-buffer-window buf))
+	  (when (derived-mode-p 'org-mode)
+	    (org-show-context 'agenda))
+	  (recenter 0)
+	  'stop)))))
 
 ;; simple-call-tree-info: CHECK
 (defun syslog-show-info-node-note (node &optional regex count)
