@@ -1027,6 +1027,7 @@ buffer respectively."
 	  '(syslog-font-lock-keywords t t nil )))
   (buffer-disable-undo)
   (toggle-read-only 1)
+  (syslog-load-notes)
   (run-hooks 'syslog-mode-hook))
 
 ;; simple-call-tree-info: DONE
