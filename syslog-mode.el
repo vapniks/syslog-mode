@@ -162,7 +162,7 @@
 ;;    The directory in which log files are stored.
 ;;    default = "/var/log/"
 ;;  `syslog-large-file-size'
-;;    When `syslog-show-file-note' tries to load a file larger than this it prompts the user.
+;;    When `syslog-show-note-from-file-or-buffer' tries to load a file larger than this it prompts the user.
 ;;    default = 500000
 ;;  `syslog-hi-face-defaults'
 ;;    Alist of face sets to use for automatic highlighting.
@@ -857,7 +857,7 @@ It should contain one non-shy subexpression matching the datetime string."
   :type 'directory)
 
 (defcustom syslog-large-file-size 500000
-  "When `syslog-show-file-note' tries to load a file larger than this it prompts the user."
+  "When `syslog-show-note-from-file-or-buffer' tries to load a file larger than this it prompts the user."
   :group 'syslog
   :type 'integer)
 
@@ -1427,8 +1427,8 @@ where:
         return a string to be displayed, or display the note itself. In the latter 
         case the function should return some non-nil non-string value to prevent
         `syslog-show-notes' from displaying any further notes from other matching items.
-        `syslog-show-note-from-manpages', `syslog-show-file-note' & `syslog-show-info-node-note'
-        can be used here.
+        `syslog-show-note-from-manpages', `syslog-show-note-from-file-or-buffer', and
+        `syslog-show-info-node-note' can be used here.
  ARGS   are arguments for the NOTES function. Any occurrence of the symbols
         `word' or `line' among ARGS will be replaced by the matches to WORDRX & LINERX 
         respectively. Any function among ARGS whose arglist consists of a single 
@@ -1576,7 +1576,8 @@ If this is none, then create new notes file, and add it to `syslog-notes-files'.
 	(insert ";; See the `syslog-notes' documentation for info about the correct format\n")
 	(insert ";; After editing save & kill this buffer, and then in the syslog-mode buffer do: M-x syslog-load-notes\n")
 	(insert ";; To always use this file add an entry to the `syslog-notes-files' user option.\n")
-	(insert ";; See also `syslog-show-note-from-manpages' `syslog-show-file-note' & `syslog-show-info-node-note'.\n")
+	(insert ";; See also `syslog-show-note-from-manpages' `syslog-show-note-from-file-or-buffer',\n")
+	(insert ";; and `syslog-show-info-node-note'\n")
 	(insert "(setq-local\n syslog-notes\n '((\"EXAMPLE\" \"^.*stuff.*\" \"An example note. Delete this entry\")))"))
       (add-to-list 'syslog-notes-files (cons (regexp-opt (list bfn)) file)))))
 
@@ -1683,25 +1684,28 @@ Searching is done case sensitively."
       matches)))
 
 ;; simple-call-tree-info: CHECK
-(defun syslog-show-file-note (file line &optional count)
-  "Display a section of FILE in another window.
+(defun syslog-show-note-from-file-or-buffer (fileorbuf line &optional count)
+  "Display a section of FILEORBUF in another window.
 If LINE is a positive number display that line at the top of the window.
 If LINE is a regexp display the first match at the top of the window.
 If COUNT is an integer display instead the COUNT'th match at the top,
 or the COUNT'th last match if COUNT is negative.
-If FILE is an org file, the buffer will be place in `org-mode', and widened
-around the displayed section.
+If FILEORBUF is an org file or buffer, the buffer will be place in `org-mode', 
+and widened around the displayed section.
 
-Note: if FILE is larger than `syslog-large-file-size' bytes the user will
-be prompted before loading the file (unless it's already loaded)."
-  (when (let ((fsize (file-attribute-size (file-attributes file))))
-	  (or (member (expand-file-name file)
-		      (mapcar 'buffer-file-name (buffer-list)))
-	      (< fsize syslog-large-file-size)
-	      (y-or-n-p (format "%s is a large file (%S bytes), continue? "
-				(file-name-nondirectory file) fsize))))
-    (message "Loading %s..." file)
-    (let ((buf (find-file-noselect file)))
+Note: if FILEORBUF is a file larger than `syslog-large-file-size' bytes the 
+user will be prompted before loading the file (unless it's already loaded)."
+  (when (or (bufferp fileorbuf)
+	    (let ((fsize (file-attribute-size (file-attributes fileorbuf))))
+	      (or (member (expand-file-name fileorbuf)
+			  (mapcar 'buffer-file-name (buffer-list)))
+		  (< fsize syslog-large-file-size)
+		  (y-or-n-p (format "%s is a large file (%S bytes), continue? "
+				    (file-name-nondirectory fileorbuf) fsize)))))
+    (let ((buf (if (bufferp fileorbuf)
+		   fileorbuf
+		 (message "Loading %s..." fileorbuf)
+		 (find-file-noselect fileorbuf))))
       (display-buffer buf)
       (with-selected-window (get-buffer-window buf)
 	(widen)

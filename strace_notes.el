@@ -2,7 +2,8 @@
 ;; See the `syslog-notes' documentation for info about the correct format
 ;; After editing save & kill this buffer, and then in the syslog-mode buffer do: M-x syslog-load-notes
 ;; To always use this file add an entry to the `syslog-notes-files' user option.
-;; See also `syslog-show-note-from-manpages' `syslog-show-file-note' & `syslog-show-info-node-note'.
+;; See also `syslog-show-note-from-manpages' `syslog-show-note-from-file-or-buffer',
+;; and `syslog-show-info-node-note'.
 
 (setq syslog-notes (list
 		    ;; signal descriptions are found in the signal(7) manpage
