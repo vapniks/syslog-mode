@@ -1429,7 +1429,7 @@ where:
         appropriate note (in which case `syslog-show-notes' may display notes
         from other matching items).
         `syslog-show-note-from-manpages', `syslog-show-note-from-file-or-buffer', 
-        and `syslog-show-info-node-note' can be used here.
+        and `syslog-show-note-from-info-node' can be used here.
  ARGS   are arguments for the NOTES function. Any occurrence of the symbols
         `word' or `line' among ARGS will be replaced by the matches to WORDRX & LINERX 
         respectively. Any function among ARGS whose arglist consists of a single 
@@ -1578,7 +1578,7 @@ If this is none, then create new notes file, and add it to `syslog-notes-files'.
 	(insert ";; After editing save & kill this buffer, and then in the syslog-mode buffer do: M-x syslog-load-notes\n")
 	(insert ";; To always use this file add an entry to the `syslog-notes-files' user option.\n")
 	(insert ";; See also `syslog-show-note-from-manpages' `syslog-show-note-from-file-or-buffer',\n")
-	(insert ";; and `syslog-show-info-node-note'\n")
+	(insert ";; and `syslog-show-note-from-info-node'\n")
 	(insert "(setq-local\n syslog-notes\n '((\"EXAMPLE\" \"^.*stuff.*\" \"An example note. Delete this entry\")))"))
       (add-to-list 'syslog-notes-files (cons (regexp-opt (list bfn)) file)))))
 
@@ -1730,7 +1730,7 @@ user will be prompted before loading the file (unless it's already loaded)."
 	  'stop)))))
 
 ;; simple-call-tree-info: CHECK
-(defun syslog-show-info-node-note (node &optional regex count)
+(defun syslog-show-note-from-info-node (node &optional regex count)
   "Display info NODE in another window.
 If REGEX is non-nil recenter the buffer so that the first match is displayed
 at the top. If COUNT is an integer display instead the COUNT'th match at the top, 
