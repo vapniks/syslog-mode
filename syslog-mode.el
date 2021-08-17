@@ -1565,15 +1565,20 @@ then that will be used."
 ;; simple-call-tree-info: DONE
 (defun syslog-notes-file nil
   "Return the syslog notes file associated with the current buffer, or nil if none exists.
-The file is chosen using `syslog-notes-files'."
+The file is chosen using `syslog-notes-files'.
+If a compiled version of the file exists in the same directory it will be loaded instead."
   (let* ((bfn (expand-file-name buffer-file-name))
 	 (file (cdr (cl-assoc-if (lambda (f) (string-match f bfn))
-				 syslog-notes-files))))
+				 syslog-notes-files)))
+	 (cfile (when file (replace-regexp-in-string "\\.el$" ".elc" file))))
     (when file
       (if (file-name-directory file)
-	  file
-	(concat (file-name-directory (symbol-file 'syslog-mode))
-		file)))))
+	  (if (file-readable-p cfile) cfile file)
+	(let ((dir (file-name-directory
+		    (symbol-file 'syslog-mode)))
+	      (cfile (concat dir cfile))
+	      (file (concat dir file)))
+	  (if (file-readable-p cfile) cfile file))))))
 
 ;; simple-call-tree-info: DONE  
 (defun syslog-load-notes nil
@@ -1582,7 +1587,7 @@ The file is chosen using `syslog-notes-files'.
 Notes files can be created using `syslog-text-notes-from-manpages',
 and `syslog-function-notes-from-manpages'."
   (interactive)
-  (let* ((file (syslog-notes-file)))
+  (let ((file (syslog-notes-file)))
     (if file
 	(if (file-readable-p file)
 	    (load-file file)
