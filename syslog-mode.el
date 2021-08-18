@@ -1455,37 +1455,28 @@ All matches of the highest precedence will be displayed.")
   :type 'float)
 
 ;; simple-call-tree-info: CHECK
-(defvar-local syslog-token-at-pt-function 'syslog-get-token-at-point
-  "Function used to get the token at point for looking up notes.")
+(defvar-local syslog-note-thing 'syslog-token
+  "Symbol indicating the thing used by `syslog-show-notes' for looking up notes.
+This is used as the first arg to `thing-at-point', and must have an associated
+ `forward-OP' function.")
 
 ;; simple-call-tree-info: CHECK
-(defcustom syslog-token-functions nil
-  "An alist of (REGEX . FUNC) pairs for choosing `syslog-token-at-pt-function'.
+(defcustom syslog-note-things nil
+  "An alist of (REGEX . SYMB) pairs for choosing `syslog-note-thing'.
 When `syslog-mode' starts up it will check the REGEX's for matches against the
-buffer file name. If a match is found then `syslog-token-at-pt-function' will
-be set to the associated FUNC value.
-Otherwise the default value of `syslog-token-at-pt-function' will be used."
+buffer file name. If a match is found then `syslog-note-thing' will be set to
+the associated SYMB value. Otherwise the default value of `syslog-token' will be used."
   :group 'syslog
-  :type '(alist
-	  :key-type (regexp :help-echo "Regexp for matching file visited by buffer")
-	  :value-type (function :help-echo "Function which returns token at point")))
+  :type '(alist :key-type (regexp :help-echo "Regexp for matching file visited by buffer")
+		:value-type (symbol :help-echo "Function which returns token at point")))
 
 ;; simple-call-tree-info: CHECK
-(defun syslog-get-token-at-point nil
-  "Get the token at point treating \"=\" as a word boundary.
-Assumes that there is at most one \"=\" char in the symbol at point.
-This is used by `syslog-show-notes'."
-  (let* ((bounds (bounds-of-thing-at-point 'symbol))
-	 (start (car bounds))
-	 (end (cdr bounds)))
-    (when bounds
-      (let* ((str (buffer-substring start end))
-	     (pos (string-match "=" str)))
-	(if pos
-	    (if (> (point) (+ start pos))
-		(substring-no-properties str (1+ pos))
-	      (substring-no-properties str 0 pos))
-	  (substring-no-properties str))))))
+(defun forward-syslog-token (&optional arg)
+  "Move point forward over ARG tokens (backwards if ARG is negative).
+If ARG is omitted or nil, move point forward one token."
+  (interactive "p")
+  (re-search-forward "[][[:space:],\n=|(){}]" nil nil arg)
+  (backward-char (if (and arg (> arg 0)) 1 -1)))
 
 ;; simple-call-tree-info: CHECK  
 (defun syslog-show-notes nil
@@ -1518,7 +1509,8 @@ then that will be used."
 	       (word (if mark-active
 			 (buffer-substring-no-properties
 			  (region-beginning) (region-end))
-		       (funcall syslog-token-at-pt-function)))
+		       (substring-no-properties
+			(thing-at-point syslog-note-thing))))
 	       (haswd (cl-remove-if-not (function wdmatch) syslog-notes))
 	       (nowd (cl-remove-if 'car syslog-notes))
 	       (items (or (cl-remove-if-not (function lnmatch) haswd)
