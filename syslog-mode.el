@@ -135,14 +135,17 @@
 ;;  `syslog-transform-strace'
 ;;    Transform strace output in the current buffer.
 ;;    Keybinding: M-x syslog-transform-strace
+;;  `forward-syslog-token'
+;;    Move point forward over ARG tokens (backwards if ARG is negative).
+;;    Keybinding: M-x forward-syslog-token
 ;;  `syslog-show-notes'
-;;    In the minibuffer display note associated with the word at point.
+;;    In the minibuffer display notes associated with the region or word at point.
 ;;    Keybinding: ?
 ;;  `syslog-load-notes'
 ;;    Load appropriate notes file for the current buffer.
 ;;    Keybinding: M-x syslog-load-notes
 ;;  `syslog-edit-notes'
-;;    Edit syslog notes associated with current buffer.
+;;    Edit syslog notes file associated with current buffer.
 ;;    Keybinding: M-x syslog-edit-notes
 ;;
 ;;; Customizable Options:
@@ -169,7 +172,14 @@
 ;;    default = (quote ((background hi-red hi-blue hi-green hi-yellow ...) (foreground hi-red-b hi-blue-b hi-green-b hi-yellow-b ...)))
 ;;  `syslog-notes-files'
 ;;    An alist used by `syslog-load-notes' for choosing a notes file to load.
+;;    default = (list (cons ".*\\.strace" (concat ... "strace_notes.el")))
+;;  `syslog-manpage-wait'
+;;    Amount of time to wait for manpage to finish rendering, when processing manpages.
+;;    default = 0.2
+;;  `syslog-note-things'
+;;    An alist of (REGEX . SYMB) pairs for choosing `syslog-note-thing'.
 ;;    default = nil
+
 
 ;; All of the above can customized by:
 ;;      M-x customize-group RET syslog-mode RET
