@@ -70,14 +70,18 @@ Below are customizable option list:
  - `syslog-large-file-size' : When `syslog-show-file-note' tries to load a file larger than this it prompts the user.
  - `syslog-hi-face-defaults' : Alist of face sets to use for automatic highlighting.
  - `syslog-notes-files' : An alist used by `syslog-load-notes' for choosing a notes file to load.
+ - `syslog-manpage-wait' : Amount of time to wait for manpage to finish rendering, when processing manpages.
+ - `syslog-note-things' : An alist of (REGEX . SYMB) pairs for choosing `syslog-note-thing'.
    
 * Creating & viewing notes
-You can create notes files containing info about the words & acronyms found in syslog & trace files.
-These files are just elisp files containing definitions of the buffer-local `syslog-notes' variable,
+You can create notes files containing info about things found in syslog & trace files.
+By default the thing to look up is the 'syslog-token extracted by `thing-at-point', but you can
+alter with the `syslog-note-things' option.
+The notes are stored in elisp files containing definitions of the buffer-local `syslog-notes' variable,
 and can be associated with log/trace files using the `syslog-notes-files' user option.
 You can use the `syslog-show-note-from-manpages', `syslog-show-info-node-note' & `syslog-show-note-from-file-or-buffer'
 functions in `syslog-notes' to extract notes from manpages, info nodes or arbitrary files (including
-org-mode files) at runtime.
+org-mode files) at runtime. 
 See also `syslog-text-notes-from-manpages' if you prefer to use pre-extracted notes.
 
 The included strace_notes.el file contains an example of how to set `syslog-notes'. It is used by
