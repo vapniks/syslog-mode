@@ -1,4 +1,4 @@
-;;; syslog-mode.el --- Major-mode for viewing log files
+;;; syslog-mode.el --- Major-mode for viewing log files & strace output
 
 ;; Filename: syslog-mode.el
 ;; Description: Major-mode for viewing log files & strace output
