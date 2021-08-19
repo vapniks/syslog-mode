@@ -1038,11 +1038,11 @@ buffer respectively."
   (buffer-disable-undo)
   (toggle-read-only 1)
   (syslog-load-notes)
-  (setq-local syslog-token-at-pt-function
+  (setq-local syslog-note-thing
 	      (or (let ((bfn (expand-file-name buffer-file-name)))
 		    (cdr (cl-assoc-if (lambda (r) (string-match r bfn))
-				      syslog-token-functions)))
-		  syslog-token-at-pt-function))
+				      syslog-note-things)))
+		  syslog-note-thing))
   (run-hooks 'syslog-mode-hook))
 
 ;; simple-call-tree-info: DONE
