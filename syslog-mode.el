@@ -1039,7 +1039,9 @@ buffer respectively."
   (toggle-read-only 1)
   (syslog-load-notes)
   (setq-local syslog-note-thing
-	      (or (let ((bfn (expand-file-name buffer-file-name)))
+	      (or (let ((bfn (or (and buffer-file-name
+				      (expand-file-name buffer-file-name))
+				 (buffer-name))))
 		    (cdr (cl-assoc-if (lambda (r) (string-match r bfn))
 				      syslog-note-things)))
 		  syslog-note-thing))
@@ -1574,7 +1576,9 @@ then that will be used."
   "Return the syslog notes file associated with the current buffer, or nil if none exists.
 The file is chosen using `syslog-notes-files'.
 If a compiled version of the file exists in the same directory it will be loaded instead."
-  (let* ((bfn (expand-file-name buffer-file-name))
+  (let* ((bfn (or (and buffer-file-name
+		       (expand-file-name buffer-file-name))
+		  (buffer-name)))
 	 (file (cdr (cl-assoc-if (lambda (f) (string-match f bfn))
 				 syslog-notes-files)))
 	 (cfile (when file (replace-regexp-in-string "\\.el$" ".elc" file))))
