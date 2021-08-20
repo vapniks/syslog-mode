@@ -29,4 +29,8 @@
 		    '(nil "^\\S-+ \\([^(]+\\)(" syslog-show-note-from-manpages word line)
 		    ;; it could also be resumed from a previous line
 		    '(nil "^\\S-+ <... \\(\\S-+\\) resumed" syslog-show-note-from-manpages word line)
-		    ))
+		    ;; if point is on the function itself, show the apropos description
+		    '(".*" "^\\S-+ \\([^(]+\\)("
+		      (lambda (word line) (if (string= word line)
+					      (syslog-show-note-from-apropos word 2)))
+		      word line)))
