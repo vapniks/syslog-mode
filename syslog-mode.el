@@ -1814,6 +1814,32 @@ If no match for REGEX can be found, return nil."
 	  'stop)))))
 
 ;; simple-call-tree-info: CHECK
+(defun syslog-show-note-from-apropos (regex &rest sections)
+  "Use apropos to find descriptions of REGEX, and display the results.
+By default all matches in all sections will be displayed.
+Further arguments may be supplied to indicate which manual SECTIONS
+to search. Each such argument may be either a single section number,
+or a list of section numbers, and all results from the first one/list
+which returns a match will be displayed.
+Note: REGEX will be wrapped in \"^\" & \"$\" anchors. To match at any
+position prepend & append REGEX with \".*\"."
+  (cl-flet ((getoutput (page &optional opt)
+		       (let ((output (shell-command-to-string
+				      (concat "apropos " opt " \"^" page "$\""))))
+			 (unless (string-match ": nothing appropriate." output)
+			   (substring output 0 -1)))))
+    (if sections
+	(cl-loop for secs in sections
+		 for opt = (concat
+			    "-s "
+			    (cond ((numberp secs) (number-to-string secs))
+				  ((listp secs) (mapconcat 'number-to-string secs ","))
+				  (t (error "Invalid section arg"))))
+		 for str = (getoutput regex opt)
+		 if (> (length str) 0) return str)
+      (getoutput regex))))
+
+;; simple-call-tree-info: CHECK
 (cl-defun syslog-text-notes-from-manpages (manpages &key
 						    (wordrx "\\(\\<[A-Z_]+\\>\\)")
 						    (linerx nil)
