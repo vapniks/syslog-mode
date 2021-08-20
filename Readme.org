@@ -84,8 +84,7 @@ and `syslog-show-note-from-apropos' functions in `syslog-notes' to extract notes
 info nodes or arbitrary files (including org-mode files) at runtime. 
 See also `syslog-text-notes-from-manpages' if you prefer to use pre-extracted notes.
 
-The included strace_notes.el file contains an example of how to set `syslog-notes'. It is used by
-default for files with names ending in ".strace".
+The included strace_notes.el & syslog_notes.el files contain examples of how to set `syslog-notes'.
 * Installation
 
  - This library is available on MELPA: https://melpa.org/#/?q=syslog
