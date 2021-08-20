@@ -1602,16 +1602,18 @@ and `syslog-function-notes-from-manpages'."
   "Edit syslog notes file associated with current buffer.
 If this is none, then create new notes file, and add it to `syslog-notes-files'."
   (interactive)
-  (let* ((file (syslog-notes-file)))
+  (let* ((file (syslog-notes-file))
+	 (notesdir (file-name-directory (symbol-file 'syslog-mode)))
+	 (bfn (file-name-nondirectory (buffer-file-name)))
+	 (newfile (concat bfn "_notes.el")))
     (if (and file (file-exists-p file))
 	(find-file file)
       (setq file
-	    (read-file-name
-	     "Select/create a notes file to associate with this buffer: "
-	     (file-name-directory (symbol-file 'syslog-mode))
-	     (concat (buffer-file-name) "_notes.el") nil
-	     (file-name-nondirectory (concat (buffer-file-name) "_notes.el"))
-	     (lambda (f) (string-match "\\.el" (file-name-nondirectory f)))))
+	    (concat notesdir
+		    (read-file-name
+		     "Select/create a notes file to associate with this buffer: "
+		     notesdir newfile nil newfile
+		     (lambda (f) (string-match "\\.el" (file-name-nondirectory f))))))
       (find-file file)
       (if (file-exists-p file)
 	  (when (save-excursion
@@ -1626,7 +1628,7 @@ If this is none, then create new notes file, and add it to `syslog-notes-files'.
 	(insert ";; See also `syslog-show-note-from-manpages' `syslog-show-note-from-file-or-buffer',\n")
 	(insert ";; and `syslog-show-note-from-info-node'\n")
 	(insert "(setq-local\n syslog-notes\n '((\"EXAMPLE\" \"^.*stuff.*\" \"An example note. Delete this entry\")))"))
-      (add-to-list 'syslog-notes-files (cons (regexp-opt (list bfn)) file)))))
+      (add-to-list 'syslog-notes-files (cons (regexp-quote bfn) file)))))
 
 ;; simple-call-tree-info: CHECK
 (defmacro syslog-process-manpage (page &rest body)
