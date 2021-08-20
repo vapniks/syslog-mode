@@ -1545,7 +1545,7 @@ the associated SYMB value. Otherwise the default value of `syslog-token' will be
   "Move point forward over ARG tokens (backwards if ARG is negative).
 If ARG is omitted or nil, move point forward one token."
   (interactive "p")
-  (re-search-forward "[][[:space:],\n=|(){}'\"]" nil nil arg)
+  (re-search-forward "[][[:space:]:;,\n=|(){}<>'\"]" nil nil arg)
   (backward-char (if (and arg (> arg 0)) 1 -1)))
 
 ;; simple-call-tree-info: CHECK  
