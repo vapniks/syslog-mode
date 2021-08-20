@@ -1122,13 +1122,15 @@ case will be ignored when searching for matches."
       matches)))
 
 ;; simple-call-tree-info: CHECK  
-(defun syslog-extract-matches (rx &optional sep count outbuf overwrite)
+(defun syslog-extract-matches (rx &optional sep count outbuf overwrite colourise)
   "Extract & concatenate strings matching regexp RX (or its match groups).
 Separate the matches with SEP if non-nil. If COUNT is non-nil then only collect
 the first COUNT matches. When called interactively the extracted strings will be printed
 to the *Syslog extract* buffer, otherwise a buffer or buffer name can be supplied in OUTBUF.
 If OUTBUF is nil then the extract will be returned as a string.
-If OVERWRITE is non-nil then the buffer will be overwritten otherwise it will be appended to."
+If OVERWRITE is non-nil then the buffer will be overwritten otherwise it will be appended to.
+If COLOURISE is non-nil then the same fontification and highlighting as the original buffer
+will be applied."
   (interactive (list (read-regexp "Regexp matching strings to collect: "
 				  '("\"\\([^\"]*\\)\""))
 		     (read-string "Separator: ")
@@ -1138,8 +1140,11 @@ If OVERWRITE is non-nil then the buffer will be overwritten otherwise it will be
 		     (when (with-current-buffer (get-buffer "*Syslog extract*")
 			     (goto-char (point-min))
 			     (re-search-forward "\\S-" nil t))
-		       (y-or-n-p "Overwrite existing text in *Syslog extract* buffer"))))
+		       (y-or-n-p "Overwrite existing text in *Syslog extract* buffer?"))
+		     (y-or-n-p "Copy fontification and highlighting?")))
   (let ((ngrps (regexp-opt-depth rx))
+	(fld font-lock-defaults)
+	(hlip hi-lock-interactive-patterns)
 	str)
     (cl-flet ((addmatch (m) (setq str (concat str sep m))
 			(when count (setq count (1- count)))))
@@ -1160,7 +1165,13 @@ If OVERWRITE is non-nil then the buffer will be overwritten otherwise it will be
 	(when overwrite
 	  (delete-region (point-min) (point-max)))
 	(goto-char (point-max))
-	(insert "\n" str))
+	(insert "\n" str)
+	(when colourise
+	  (setq font-lock-defaults fld)
+	  (font-lock-ensure)
+	  (dolist (pat hlip)
+	    (highlight-regexp (car pat)
+			      (eval (second (cadr pat)))))))
       (when (called-interactively-p 'any)
 	(display-buffer outbuf)))))
 
