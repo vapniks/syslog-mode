@@ -1557,7 +1557,7 @@ then that will be used."
 			      else if value return nil)))
 	  (when note
 	    (message (if (> (length note) 0)
-			 note
+			 (replace-regexp-in-string "\n$" "" note)
 		       (concat "No notes found for " word
 			       " (to create one: M-x syslog-edit-notes)")))))
       (when (and (y-or-n-p "No notes loaded, load now? ")
