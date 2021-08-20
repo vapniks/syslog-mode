@@ -32,5 +32,5 @@
 		    ;; if point is on the function itself, show the apropos description
 		    '(".*" "^\\S-+ \\([^(]+\\)("
 		      (lambda (word line) (if (string= word line)
-					      (syslog-show-note-from-apropos word 2)))
+					      (syslog-show-note-from-apropos word nil 2)))
 		      word line)))
