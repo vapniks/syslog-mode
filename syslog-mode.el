@@ -1032,7 +1032,7 @@ buffer respectively."
   ;; font locking
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults
-	(if (string-match "\\..?trace$" buffer-file-name)
+	(if (string-match "\\..?trace$" (or buffer-file-name (buffer-name)))
 	    '((syslog-strace-font-lock-keywords))
 	  '(syslog-font-lock-keywords t t nil )))
   (buffer-disable-undo)
