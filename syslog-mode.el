@@ -888,11 +888,53 @@ It should contain one non-shy subexpression matching the datetime string."
     (t (:weight bold :foreground "pink")))
   "Face for hi-lock mode."
   :group 'hi-lock-faces)
+(defface hi-magenta
+  '((((min-colors 88)) (:background "magenta" :foreground "black"))
+    (t (:background "magenta")))
+  "Face for hi-lock mode."
+  :group 'hi-lock-faces)
+(defface hi-magenta-b
+  '((((min-colors 88)) (:weight bold :foreground "magenta"))
+    (t (:weight bold :foreground "magenta")))
+  "Face for hi-lock mode."
+  :group 'hi-lock-faces)
+(defface hi-purple
+  '((((min-colors 88)) (:background "purple" :foreground "black"))
+    (t (:background "purple")))
+  "Face for hi-lock mode."
+  :group 'hi-lock-faces)
+(defface hi-purple-b
+  '((((min-colors 88)) (:weight bold :foreground "purple"))
+    (t (:weight bold :foreground "purple")))
+  "Face for hi-lock mode."
+  :group 'hi-lock-faces)
+(defface hi-orange
+  '((((min-colors 88)) (:background "orange" :foreground "black"))
+    (t (:background "orange")))
+  "Face for hi-lock mode."
+  :group 'hi-lock-faces)
+(defface hi-orange-b
+  '((((min-colors 88)) (:weight bold :foreground "orange"))
+    (t (:weight bold :foreground "orange")))
+  "Face for hi-lock mode."
+  :group 'hi-lock-faces)
+(defface hi-gray
+  '((((min-colors 88)) (:background "gray" :foreground "black"))
+    (t (:background "gray")))
+  "Face for hi-lock mode."
+  :group 'hi-lock-faces)
+(defface hi-dim-gray
+  '((((min-colors 88)) (:background "dim gray" :foreground "black"))
+    (t (:background "dim gray")))
+  "Face for hi-lock mode."
+  :group 'hi-lock-faces)
 
 ;; simple-call-tree-info: CHECK
-(defcustom syslog-hi-face-defaults '((background hi-red hi-blue hi-green hi-yellow hi-pink)
-				     (foreground hi-red-b hi-blue-b hi-green-b hi-yellow-b
-						 hi-pink-b hi-black-b hi-black-hb))
+(defcustom syslog-hi-face-defaults '((background hi-red hi-blue hi-green hi-yellow hi-pink hi-magenta
+						 hi-purple hi-orange hi-gray hi-dim-gray)
+				     (foreground hi-red-b hi-blue-b hi-green-b hi-yellow-b hi-pink-b
+						 hi-black-b hi-black-hb hi-magenta-b hi-purple-b
+						 hi-orange-b))
   "Alist of face sets to use for automatic highlighting.
 The car of each set is a symbol naming the set, and the cdr is a list of faces (as symbols)."
   :group 'syslog
