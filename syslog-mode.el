@@ -1445,7 +1445,8 @@ where:
         appropriate note (in which case `syslog-show-notes' may display notes
         from other matching items).
         `syslog-show-note-from-manpages', `syslog-show-note-from-file-or-buffer', 
-        and `syslog-show-note-from-info-node' can be used here.
+        `syslog-show-note-from-info-node' and `syslog-show-note-from-apropos' can 
+        be used here.
  ARGS   are arguments for the NOTES function. Any occurrence of the symbols
         `word' or `line' among ARGS will be replaced by the matches to WORDRX & LINERX 
         respectively. Any function among ARGS whose arglist consists of a single 
@@ -1626,7 +1627,7 @@ If this is none, then create new notes file, and add it to `syslog-notes-files'.
 	(insert ";; After editing save & kill this buffer, and then in the syslog-mode buffer do: M-x syslog-load-notes\n")
 	(insert ";; To always use this file add an entry to the `syslog-notes-files' user option.\n")
 	(insert ";; See also `syslog-show-note-from-manpages' `syslog-show-note-from-file-or-buffer',\n")
-	(insert ";; and `syslog-show-note-from-info-node'\n")
+	(insert ";; `syslog-show-note-from-info-node' and `syslog-show-note-from-apropos'\n")
 	(insert "(setq-local\n syslog-notes\n '((\"EXAMPLE\" \"^.*stuff.*\" \"An example note. Delete this entry\")))"))
       (add-to-list 'syslog-notes-files (cons (regexp-quote bfn) file)))))
 
