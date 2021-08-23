@@ -1160,7 +1160,7 @@ case will be ignored when searching for matches."
 	    (addmatch (match-string-no-properties 0))))))
     (setq matches (sort matches (lambda (a b) (> (cdr a) (cdr b)))))
     (if display
-	(cl-format t "~:{~a:~s ~}" matches)
+	(cl-format t "~s unique values\n~:{~a:~s ~}" (length matches) matches)
       matches)))
 
 ;; simple-call-tree-info: CHECK  
