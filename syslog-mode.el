@@ -1269,7 +1269,7 @@ FLAGS is a list of flags for lsof, and is set to \"-n -P -L -E\" by default."
     output))
 
 ;; simple-call-tree-info: CHECK
-(defun syslog-lsof-get-pipes (lsof)
+(defun syslog-lsof-get-pipes (lsof &optional checkhdr)
   "Return info about unix pipes from LSOF output.
 Pipe info will be extracted from the buffer, file or lines supplied the LSOF arg.
 The return value is a list of lists, each containing info about a particular pipe.
@@ -1290,9 +1290,10 @@ See the lsof manpage for more info."
 				"\n" t)))
 			(ln1 (split-string (car lns) " " t)))
 		   ;; check that lsof output has required columns
-		   (unless (and (string= (nth 7 ln1) "NODE")
-				(string= (nth 8 ln1) "NAME"))
-		     (error "Invalid format for lsof output"))
+		   (when checkhdr
+		     (unless (and (string= (nth 7 ln1) "NODE")
+				  (string= (nth 8 ln1) "NAME"))
+		       (error "Invalid format for lsof output")))
 		   lns)))
 	 (pipes (mapcar (lambda (l)
 			  (let ((parts (split-string l "\s+")))
@@ -1456,8 +1457,7 @@ The FACES arg is the same as for `highlight-regexp-unique' (which see)."
   (let ((lsof (or lsof
 		  (syslog-lsof (mapconcat 'car
 					  (syslog-unique-matches "^[0-9]+")
-					  ",")
-			       "grep ' FIFO '")
+					  ","))
 		  (error "No output from lsof command"))))
     (syslog-replace-pipes "pipe:\\[\\([0-9]+\\)\\]" lsof)
     (highlight-regexp-unique
