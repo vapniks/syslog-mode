@@ -732,13 +732,20 @@ that will be used for doing the highlighting."
 	 (unused-faces (set-difference faces 
 				       (mapcar (lambda (p) (eval (cadadr p)))
 					       hi-lock-interactive-patterns)))
-	 (matchrx "[^(]*\\\\(\\(.*?\\)\\\\)"))
+	 (matchrx "[^(]*\\\\(\\(.*?\\)\\\\)")
+	 (matches (syslog-unique-matches regexp))
+	 (nfaces (length unused-faces))
+	 (nmatches (length matches)))
+    (when (< nfaces nmatches)
+      (warn "Not enough unused faces (%s) to cover all matches (%s). 
+ %s matches will not be coloured."
+	    nfaces nmatches (- nmatches nfaces)))
     (cl-flet ((repmatch (i) (let (ss)
 			      (while (> i 0)
 				(setq ss (cons matchrx ss))
 				(setq i (1- i)))
 			      (apply 'concat ss))))
-      (cl-loop for pair in (syslog-unique-matches regexp)
+      (cl-loop for pair in matches
 	       for face in unused-faces
 	       do (let* ((match (car pair))
 			 (i (cadr pair)))
