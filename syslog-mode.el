@@ -1162,7 +1162,7 @@ If COLOURISE is non-nil then the same fontification and highlighting as the orig
 will be applied."
   (interactive (list (read-regexp "Regexp matching strings to collect: "
 				  '("\"\\([^\"]*\\)\""))
-		     (read-string "Separator: ")
+		     (read-string "Separator (for newline enter C-q C-j): ")
 		     (when current-prefix-arg
 		       (prefix-numeric-value current-prefix-arg))
 		     (get-buffer-create "*Syslog extract*")
