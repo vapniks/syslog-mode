@@ -696,13 +696,9 @@ With prefix ARG: remove matching blocks."
 (defun highlight-regexp-unique (regexp &optional faces)
   "Highlight each unique string matched by REGEXP with a different face.
 Interactively, prompt for REGEXP using `read-regexp', and prompt for a
-set of FACES to use for highlighting. The face sets offered are the named 
-sets in `syslog-hi-face-defaults', or \"choose\" in which case a further
-regexp will be prompted for and used to select from all defined faces.
-
+set of FACES to use for highlighting (see `syslog-hi-face-defaults').
 When called non-interactively, FACES can be either a symbol (the car of one of the 
-face sets defined in `syslog-hi-face-defaults'), a list of faces, a regexp for 
-filtering all defined faces, or nil to use all faces in `syslog-hi-face-defaults'.
+face sets defined in `syslog-hi-face-defaults'), or a list of faces.
 
 If REGEXP contains non-shy match groups, then only those parts of the match will 
 be treated as unique strings & highlighted (rather than the whole regexp).
@@ -711,25 +707,14 @@ If there are no non-shy match groups, and variable `font-lock-mode' is enabled t
 that will be used for doing the highlighting."
   (interactive
    (list (read-regexp "Regexp to highlight" 'regexp-history-last)
-	 (let ((choice (completing-read
-			"Highlight type: "
-			(nconc (mapcar 'car syslog-hi-face-defaults)
-			       '("choose")))))
-	   (if (equal choice "choose")
-	       (read-regexp "Regexp matching face names to use (default \"hi-.*\"): "
-			    "hi-.*"
-			    'syslog-face-regexp-history)
-	     (intern-soft choice)))))
+	 (intern-soft (completing-read "Highlight type: "
+				       (mapcar 'car syslog-hi-face-defaults)))))
   (hi-lock-regexp-okay regexp)
   (when (stringp faces) (hi-lock-regexp-okay faces))
   (unless hi-lock-mode (hi-lock-mode 1))
-  (let* ((faces (cond ((null faces) (mapcan 'cdr syslog-hi-face-defaults))
-		      ((symbolp faces) (cdr (assoc faces syslog-hi-face-defaults)))
-		      ((listp faces) faces)
-		      ((stringp faces)
-		       (cl-remove-if-not
-			(lambda (f) (string-match faces (symbol-name f)))
-			(face-list)))))
+  (let* ((faces (if (symbolp faces)
+		    (cdr (assoc faces syslog-hi-face-defaults))
+		  faces))
 	 (unused-faces (set-difference faces 
 				       (mapcar (lambda (p) (eval (cadadr p)))
 					       hi-lock-interactive-patterns)))
@@ -1455,14 +1440,9 @@ The FACES arg is the same as for `highlight-regexp-unique' (which see)."
 					  nil t)))
 			   (current-prefix-arg nil)
 			   (t (read-file-name "File containing lsof output: ")))
-		     (let ((choice (completing-read
-				    "Highlight type: "
-				    (nconc (mapcar 'car syslog-hi-face-defaults)
-					   '("choose")))))
-		       (if (equal choice "choose")
-			   (read-regexp "Regexp matching face names to use (default \"hi-.*\"): "
-					"hi-.*")
-			 (intern-soft choice)))))
+		     (intern-soft
+		      (completing-read "Highlight type: "
+				       (mapcar 'car syslog-hi-face-defaults)))))
   (let ((lsof (or lsof
 		  (syslog-lsof (mapconcat 'car
 					  (syslog-unique-matches "^[0-9]+")
