@@ -712,9 +712,12 @@ that will be used for doing the highlighting."
   (hi-lock-regexp-okay regexp)
   (when (stringp faces) (hi-lock-regexp-okay faces))
   (unless hi-lock-mode (hi-lock-mode 1))
-  (let* ((faces (if (symbolp faces)
-		    (cdr (assoc faces syslog-hi-face-defaults))
-		  faces))
+  (let* ((faces (cond ((functionp faces) (funcall faces))
+		      ((symbolp faces)
+		       (let ((f (cdr (assoc faces syslog-hi-face-defaults))))
+			 (if (functionp f) (funcall f) f)))
+		      ((listp faces) faces)
+		      (t (error "Invalid FACES arg: %S" faces))))
 	 (unused-faces (set-difference faces 
 				       (mapcar (lambda (p) (eval (cadadr p)))
 					       hi-lock-interactive-patterns)))
@@ -886,51 +889,64 @@ of them is a range, then the values will be selected in parallel."
   (cl-flet ((getlst (v) (cond ((integerp v) `(make-list ,n ,v))
 			      ((and (consp v) (integerp (car v)) (integerp (cadr v)))
 			       `(syslog-spaced-floats ,n ,(car v) ,(cadr v)))
-			      (t (error "Invalid arg: %s" v)))))
+			      (t (error "Invalid arg: %S" v)))))
     `(cl-mapcar (lambda (h s l) (hsluv-hsluv-to-hex (list h s l)))
 		,(getlst h) ,(getlst s) ,(getlst l))))
 
-;; simple-call-tree-info: TODO allow functions aswell as lists of colours to save space
+;; simple-call-tree-info: CHECK
 (defcustom syslog-hi-face-defaults (list
 				    (cons 'background_hues
-					  (mapcar (lambda (h) (list :background h))
-						  (syslog-spaced-colours 64 :h (0 360))))
+					  (lambda nil
+					    (mapcar (lambda (h) (list :background h))
+						    (syslog-spaced-colours 64 :h (0 360)))))
 				    (cons 'foreground_hues
-					  (mapcar (lambda (h) (list :foreground h))
-						  (syslog-spaced-colours 64 :h (0 360))))
+					  (lambda nil
+					    (mapcar (lambda (h) (list :foreground h))
+						    (syslog-spaced-colours 64 :h (0 360)))))
 				    (cons 'light_background_hues
-					  (mapcar (lambda (h) (list :background h :foreground "black"))
-						  (syslog-spaced-colours 64 :h (0 360) :l 85)))
+					  (lambda nil
+					    (mapcar (lambda (h) (list :background h :foreground "black"))
+						    (syslog-spaced-colours 64 :h (0 360) :l 85))))
 				    (cons 'dark_background_hues
-					  (mapcar (lambda (h) (list :background h :foreground "white"))
-						  (syslog-spaced-colours 64 :h (0 360) :l 15)))
+					  (lambda nil
+					    (mapcar (lambda (h) (list :background h :foreground "white"))
+						    (syslog-spaced-colours 64 :h (0 360) :l 15))))
 				    (cons 'light_foreground_hues
-					  (mapcar (lambda (h) (list :foreground h))
-						  (syslog-spaced-colours 64 :h (0 360) :l 85)))
+					  (lambda nil
+					    (mapcar (lambda (h) (list :foreground h))
+						    (syslog-spaced-colours 64 :h (0 360) :l 85))))
 				    (cons 'dark_foreground_hues
-					  (mapcar (lambda (h) (list :foreground h))
-						  (syslog-spaced-colours 64 :h (0 360) :l 15)))
+					  (lambda nil
+					    (mapcar (lambda (h) (list :foreground h))
+						    (syslog-spaced-colours 64 :h (0 360) :l 15))))
 				    (cons 'background_blues
-					  (mapcar (lambda (h) (list :background h))
-						  (syslog-spaced-colours 64 :h (200 275) :l (70 5))))
+					  (lambda nil
+					    (mapcar (lambda (h) (list :background h))
+						    (syslog-spaced-colours 64 :h (200 275) :l (70 5)))))
 				    (cons 'foreground_blues
-					  (mapcar (lambda (h) (list :foreground h))
-						  (syslog-spaced-colours 64 :h (200 275) :l (70 5))))
+					  (lambda nil
+					    (mapcar (lambda (h) (list :foreground h))
+						    (syslog-spaced-colours 64 :h (200 275) :l (70 5)))))
 				    (cons 'background_reds
-					  (mapcar (lambda (h) (list :background h))
-						  (syslog-spaced-colours 64 :h (-15 15) :l (10 60))))
+					  (lambda nil
+					    (mapcar (lambda (h) (list :background h))
+						    (syslog-spaced-colours 64 :h (-15 15) :l (10 60)))))
 				    (cons 'foreground_reds
-					  (mapcar (lambda (h) (list :foreground h))
-						  (syslog-spaced-colours 64 :h (-15 15) :l (10 60))))
+					  (lambda nil
+					    (mapcar (lambda (h) (list :foreground h))
+						    (syslog-spaced-colours 64 :h (-15 15) :l (10 60)))))
 				    (cons 'background_greens
-					  (mapcar (lambda (h) (list :background h))
-						  (syslog-spaced-colours 64 :h (90 165) :l (70 10))))
+					  (lambda nil
+					    (mapcar (lambda (h) (list :background h))
+						    (syslog-spaced-colours 64 :h (90 165) :l (70 10)))))
 				    (cons 'foreground_greens
-					  (mapcar (lambda (h) (list :foreground h))
-						  (syslog-spaced-colours 64 :h (90 165) :l (70 10)))))
+					  (lambda nil
+					    (mapcar (lambda (h) (list :foreground h))
+						    (syslog-spaced-colours 64 :h (90 165) :l (70 10))))))
   
   "Alist of face sets to use for automatic highlighting.
-The car of each set is a symbol naming the set, and the cdr is a list of faces (as symbols)."
+The car of each set is a symbol naming the set, and the cdr is either a list of faces,
+or a function which returns such a list."
   :group 'syslog
   :type '(repeat (string :tag "Face")))
 
