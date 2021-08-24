@@ -8,11 +8,11 @@
 ;; URL: https://github.com/vapniks/syslog-mode
 ;; Keywords: unix
 ;; Compatibility: GNU Emacs 24.3.1
-;; Package-Requires:  ((hide-lines "20130623") (ov "20150311"))
+;; Package-Requires:  ((hide-lines "20130623") (ov "20150311") (hsluv "20181127"))
 ;;
 ;; Features that might be required by this library:
 ;;
-;; hide-lines cl ido dired+ ov thingatpt hi-lock net-utils
+;; hide-lines cl ido dired+ ov thingatpt hi-lock net-utils hsluv
 ;;
 
 ;;; This file is NOT part of GNU Emacs
@@ -239,6 +239,7 @@
 (require 'ov)
 (require 'thingatpt)
 (require 'man nil t)
+(require 'hsluv)
 
 ;;; Code:
 
@@ -878,70 +879,71 @@ It should contain one non-shy subexpression matching the datetime string."
   :group 'syslog
   :type 'integer)
 
-;; Add some extra faces for highlighting
-;; simple-call-tree-info: DONE  
-(defface hi-red
-  '((((background dark)) (:background "red" :foreground "black"))
-    (t (:background "red")))
-  "Face for hi-lock mode."
-  :group 'hi-lock-faces)
-(defface hi-yellow-b
-  '((((min-colors 88)) (:weight bold :foreground "yellow"))
-    (t (:weight bold :foreground "yellow")))
-  "Face for hi-lock mode."
-  :group 'hi-lock-faces)
-(defface hi-pink-b
-  '((((min-colors 88)) (:weight bold :foreground "pink"))
-    (t (:weight bold :foreground "pink")))
-  "Face for hi-lock mode."
-  :group 'hi-lock-faces)
-(defface hi-magenta
-  '((((min-colors 88)) (:background "magenta" :foreground "black"))
-    (t (:background "magenta")))
-  "Face for hi-lock mode."
-  :group 'hi-lock-faces)
-(defface hi-magenta-b
-  '((((min-colors 88)) (:weight bold :foreground "magenta"))
-    (t (:weight bold :foreground "magenta")))
-  "Face for hi-lock mode."
-  :group 'hi-lock-faces)
-(defface hi-purple
-  '((((min-colors 88)) (:background "purple" :foreground "black"))
-    (t (:background "purple")))
-  "Face for hi-lock mode."
-  :group 'hi-lock-faces)
-(defface hi-purple-b
-  '((((min-colors 88)) (:weight bold :foreground "purple"))
-    (t (:weight bold :foreground "purple")))
-  "Face for hi-lock mode."
-  :group 'hi-lock-faces)
-(defface hi-orange
-  '((((min-colors 88)) (:background "orange" :foreground "black"))
-    (t (:background "orange")))
-  "Face for hi-lock mode."
-  :group 'hi-lock-faces)
-(defface hi-orange-b
-  '((((min-colors 88)) (:weight bold :foreground "orange"))
-    (t (:weight bold :foreground "orange")))
-  "Face for hi-lock mode."
-  :group 'hi-lock-faces)
-(defface hi-gray
-  '((((min-colors 88)) (:background "gray" :foreground "black"))
-    (t (:background "gray")))
-  "Face for hi-lock mode."
-  :group 'hi-lock-faces)
-(defface hi-dim-gray
-  '((((min-colors 88)) (:background "dim gray" :foreground "black"))
-    (t (:background "dim gray")))
-  "Face for hi-lock mode."
-  :group 'hi-lock-faces)
+;; simple-call-tree-info: CHECK
+(cl-defun syslog-spaced-floats (n &optional (min 0.0) (max 1.0))
+  "Return list of floats optimally circularly spaced between MIN and MAX.
+The results are equivalent to sequentially placing points on a circle using
+the golden section (which gives an optimal spacing according Tony van Ravenstein), 
+and then projecting them onto the range [MIN MAX)."
+  (cl-loop with range = (- max min)
+	   for i from 0 to (1- n)
+	   collect (+ min (mod (* i 0.61803398875 range)
+			       range))))
 
 ;; simple-call-tree-info: CHECK
-(defcustom syslog-hi-face-defaults '((background hi-red hi-blue hi-green hi-yellow hi-pink hi-magenta
-						 hi-purple hi-orange hi-gray hi-dim-gray)
-				     (foreground hi-red-b hi-blue-b hi-green-b hi-yellow-b hi-pink-b
-						 hi-black-b hi-black-hb hi-magenta-b hi-purple-b
-						 hi-orange-b))
+(cl-defmacro syslog-spaced-colours (n &key (h 180) (s 100) (l 50))
+  "Return list of N optimally spaced hex colour strings.
+Keyword args :H, :S & :L indicate the required hue, saturation & lightness 
+values respectively (see https://www.hsluv.org). Each can be either a single 
+positive number, or an unquoted list of two numbers indicating a range from 
+which to select the N values (using `syslog-spaced-floats'). If more than one 
+of them is a range, then the values will be selected in parallel."
+  (cl-flet ((getlst (v) (cond ((integerp v) `(make-list ,n ,v))
+			      ((and (consp v) (integerp (car v)) (integerp (cadr v)))
+			       `(syslog-spaced-floats ,n ,(car v) ,(cadr v)))
+			      (t (error "Invalid arg: %s" v)))))
+    `(cl-mapcar (lambda (h s l) (hsluv-hsluv-to-hex (list h s l)))
+		,(getlst h) ,(getlst s) ,(getlst l))))
+
+;; simple-call-tree-info: TODO allow functions aswell as lists of colours to save space
+(defcustom syslog-hi-face-defaults (list
+				    (cons 'background_hues
+					  (mapcar (lambda (h) (list :background h))
+						  (syslog-spaced-colours 64 :h (0 360))))
+				    (cons 'foreground_hues
+					  (mapcar (lambda (h) (list :foreground h))
+						  (syslog-spaced-colours 64 :h (0 360))))
+				    (cons 'light_background_hues
+					  (mapcar (lambda (h) (list :background h :foreground "black"))
+						  (syslog-spaced-colours 64 :h (0 360) :l 85)))
+				    (cons 'dark_background_hues
+					  (mapcar (lambda (h) (list :background h :foreground "white"))
+						  (syslog-spaced-colours 64 :h (0 360) :l 15)))
+				    (cons 'light_foreground_hues
+					  (mapcar (lambda (h) (list :foreground h))
+						  (syslog-spaced-colours 64 :h (0 360) :l 85)))
+				    (cons 'dark_foreground_hues
+					  (mapcar (lambda (h) (list :foreground h))
+						  (syslog-spaced-colours 64 :h (0 360) :l 15)))
+				    (cons 'background_blues
+					  (mapcar (lambda (h) (list :background h))
+						  (syslog-spaced-colours 64 :h (200 275) :l (70 5))))
+				    (cons 'foreground_blues
+					  (mapcar (lambda (h) (list :foreground h))
+						  (syslog-spaced-colours 64 :h (200 275) :l (70 5))))
+				    (cons 'background_reds
+					  (mapcar (lambda (h) (list :background h))
+						  (syslog-spaced-colours 64 :h (-15 15) :l (10 60))))
+				    (cons 'foreground_reds
+					  (mapcar (lambda (h) (list :foreground h))
+						  (syslog-spaced-colours 64 :h (-15 15) :l (10 60))))
+				    (cons 'background_greens
+					  (mapcar (lambda (h) (list :background h))
+						  (syslog-spaced-colours 64 :h (90 165) :l (70 10))))
+				    (cons 'foreground_greens
+					  (mapcar (lambda (h) (list :foreground h))
+						  (syslog-spaced-colours 64 :h (90 165) :l (70 10)))))
+  
   "Alist of face sets to use for automatic highlighting.
 The car of each set is a symbol naming the set, and the cdr is a list of faces (as symbols)."
   :group 'syslog
