@@ -927,9 +927,6 @@ or a function which returns such a list."
   :group 'syslog
   :type '(repeat (string :tag "Face")))
 
-(defvar syslog-face-regexp-history nil
-  "History list for commands that read regexps for matching faces.")
-
 ;;;###autoload
 ;; simple-call-tree-info: DONE
 (cl-defun syslog-date-to-time (date &optional safe)
