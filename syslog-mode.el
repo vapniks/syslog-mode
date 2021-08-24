@@ -1198,9 +1198,10 @@ will be applied."
 	(when colourise
 	  (setq font-lock-defaults fld)
 	  (font-lock-ensure)
+	  (hi-lock-mode 1)
 	  (dolist (pat hlip)
-	    (highlight-regexp (car pat)
-			      (eval (second (cadr pat)))))))
+	    (hi-lock-set-pattern (car pat)
+				 (eval (second (cadr pat)))))))
       (when (called-interactively-p 'any)
 	(display-buffer outbuf)))))
 
