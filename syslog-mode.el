@@ -1148,7 +1148,7 @@ case will be ignored when searching for matches."
       matches)))
 
 ;; simple-call-tree-info: CHECK  
-(defun syslog-extract-matches (rx &optional sep count outbuf overwrite colourise)
+(defun syslog-extract-matches (rx &optional sep count outbuf overwrite colourise display)
   "Extract & concatenate strings matching regexp RX (or its match groups).
 Separate the matches with SEP if non-nil. If COUNT is non-nil then only collect
 the first COUNT matches. When called interactively the extracted strings will be printed
@@ -1167,7 +1167,8 @@ will be applied."
 			     (goto-char (point-min))
 			     (re-search-forward "\\S-" nil t))
 		       (y-or-n-p "Overwrite existing text in *Syslog extract* buffer?"))
-		     (y-or-n-p "Copy fontification and highlighting?")))
+		     (y-or-n-p "Copy fontification and highlighting?")
+		     t))
   (let ((ngrps (regexp-opt-depth rx))
 	(fld font-lock-defaults)
 	(hlip hi-lock-interactive-patterns)
@@ -1199,8 +1200,7 @@ will be applied."
 	  (dolist (pat hlip)
 	    (hi-lock-set-pattern (car pat)
 				 (eval (second (cadr pat)))))))
-      (when (called-interactively-p 'any)
-	(display-buffer outbuf)))))
+      (when display (display-buffer outbuf)))))
 
 ;; simple-call-tree-info: DONE
 (defun syslog-boot-start ()
