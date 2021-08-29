@@ -1494,7 +1494,11 @@ where:
 
 WORDRX or LINERX may be nil, in which case only the non-nil regexp will be used
 for matching. WORDRX only matches have higher precedence than LINERX only matches, 
-but lower precedence than combined WORDRX & LINERX matches. 
+but lower precedence than combined WORDRX & LINERX matches. To increase the
+priority of an item change WORDRX/LINERX from nil to \".*\". To do a negative match
+on WORD use the following trick \"WORD\\\\|\\\\(.*\\\\)\". This will return a
+match if the parenthesised match group matches, but not if WORD matches.
+
 An entry with nil values for both WORDRX & LINERX may be used as the default.
 All matches of the highest precedence will be displayed.")
 
