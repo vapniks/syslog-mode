@@ -11,10 +11,10 @@
 		      "\\<rt_sigprocmask\\((\\| resumed\\)" syslog-show-note-from-manpages
 		      (lambda (word) (concat "SIG" word)) "signal(7)")
 		    ;; ioctl has several different manpages
-		    '(nil "\\<ioctl\\((\\| resumed\\)" syslog-show-note-from-manpages
-			  word ("ioctl_console" "ioctl_fat" "ioctl_ficlonerange" "ioctl_fideduperange"
-				"ioctl_getfsmap" "ioctl_iflags" "ioctl_list" "ioctl_ns" "ioctl_tty"
-				"ioctl_userfaultfd"))
+		    '("ioctl\\|\\(.*\\)" "\\<ioctl\\((\\| resumed\\)" syslog-show-note-from-manpages
+		       word ("ioctl_console" "ioctl_fat" "ioctl_ficlonerange" "ioctl_fideduperange"
+			     "ioctl_getfsmap" "ioctl_iflags" "ioctl_list" "ioctl_ns" "ioctl_tty"
+			     "ioctl_userfaultfd"))
 		    ;; termios struct flags are found in the termios(3) manpage
 		    '("-?\\(ignbrk\\|brkint\\|ignpar\\|parmrk\\|inpck\\|istrip\\|inlcr\\|igncr\\|icrnl\\|iuclc\\|ixon\\|ixany\\|ixoff\\|imaxbel\\|iutf8\\|opost\\|olcuc\\|onlcr\\|ocrnl\\|onocr\\|onlret\\|ofill\\|ofdel\\|nldly\\|crdly\\|tabdly\\|bsdly\\|vtdly\\|ffdly\\|cbaud\\|cbaudex\\|csize\\|cstopb\\|cread\\|parenb\\|parodd\\|hupcl\\|clocal\\|loblk\\|cibaud\\|cmspar\\|crtscts\\|isig\\|icanon\\|xcase\\|echo\\|echoe\\|echok\\|echonl\\|echoctl\\|echoprt\\|echoke\\|defecho\\|flusho\\|noflsh\\|tostop\\|pendin\\|iexten\\|vdiscard\\|vdsusp\\|veof\\|veol\\|veol2\\|verase\\|vintr\\|vkill\\|vlnext\\|vmin\\|vquit\\|vreprint\\|vstart\\|vstatus\\|vstop\\|vsusp\\|vswtch\\|vtime\\|vwerase\\)"
 		      "\\<ioctl\\((\\| resumed\\)" syslog-show-note-from-manpages
