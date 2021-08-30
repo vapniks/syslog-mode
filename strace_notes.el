@@ -10,7 +10,7 @@
 		    '("ABRT\\|ALRM\\|BUS\\|CHLD\\|CLD\\|CONT\\|EMT\\|FPE\\|HUP\\|ILL\\|INFO\\|INT\\|IO\\|IOT\\|KILL\\|LOST\\|PIPE\\|POLL\\|PROF\\|PWR\\|QUIT\\|SEGV\\|STKFLT\\|STOP\\|SYS\\|TERM\\|TRAP\\|TSTP\\|TTIN\\|TTOU\\|UNUSED\\|URG\\|USR1\\|USR2\\|VTALRM\\|WINCH\\|XCPU\\|XFSZ"
 		      "\\<rt_sigprocmask\\((\\| resumed\\)" syslog-show-note-from-manpages
 		      (lambda (word) (concat "SIG" word)) "signal(7)")
-		    ;; ioctl has several different manpages
+		    ;; ioctl has several different manpages (don't match "ioctl" itself, that's matched by another entry)
 		    '("ioctl\\|\\(.*\\)" "\\<ioctl\\((\\| resumed\\)" syslog-show-note-from-manpages
 		      word ("ioctl_console" "ioctl_fat" "ioctl_ficlonerange" "ioctl_fideduperange"
 			    "ioctl_getfsmap" "ioctl_iflags" "ioctl_list" "ioctl_ns" "ioctl_tty"
@@ -26,9 +26,11 @@
 		    '("sa_[a-z]+" "\\<rt_sigaction\\((\\| resumed\\)"
 		      syslog-show-note-from-manpages word "rt_sigaction" t 7 Man-underline)
 		    ;; by default search manpage of function at start of line
-		    '(".*" "^\\S-+ \\([^(]+\\)(" syslog-show-note-from-manpages word line)
+		    '(".*" "^\\S-+ \\([^(]+\\)(" syslog-show-note-from-manpages
+		      word (lambda (line) (concat line "(2)")))
 		    ;; it could also be resumed from a previous line
-		    '(".*" "^\\S-+ <... \\(\\S-+\\) resumed" syslog-show-note-from-manpages word line)
+		    '(".*" "^\\S-+ <... \\(\\S-+\\) resumed" syslog-show-note-from-manpages
+		      word (lambda (line) (concat line "(2)")))
 		    ;; if point is on the function itself, show the apropos description
 		    '(".*" "^\\S-+ \\([^(]+\\)("
 		      (lambda (word line) (if (string= word line)
