@@ -1794,12 +1794,16 @@ Searching is done case sensitively."
       matches)))
 
 ;; simple-call-tree-info: CHECK
-(defun syslog-show-note-from-file-or-buffer (fileorbuf line &optional count)
+(defun syslog-show-note-from-file-or-buffer (fileorbuf line &optional count start end)
   "Display a section of FILEORBUF in another window.
 If LINE is a positive number display that line at the top of the window.
 If LINE is a regexp display the first match at the top of the window.
 If COUNT is an integer display instead the COUNT'th match at the top,
 or the COUNT'th last match if COUNT is negative.
+Optional args START & END can be used to delimit the search area when LINE is
+a regexp. They can be either integers indicating buffer positions, or regexps
+indicating positions to search for.
+
 If FILEORBUF is an org file or buffer, the buffer will be place in `org-mode',
 and widened around the displayed section.
 If no match for LINE can be found, return nil.
@@ -1825,10 +1829,32 @@ user will be prompted before loading the file (unless it's already loaded)."
 			(goto-char (point-min))
 			(= (forward-line (1- line)) 0))
 		       ((stringp line)
-			(goto-char (if (and count (< count 0))
-				       (point-max)
-				     (point-min)))
-			(re-search-forward line nil t count))
+			(if (and count (< count 0))
+			    (cond ((numberp end) (goto-char end))
+				  ((stringp end)
+				   (goto-char (point-max))
+				   (unless (re-search-backward end nil t)
+				     (goto-char (point-max))))
+				  (t (point-max)))
+			  (cond ((numberp start) (goto-char start))
+				((stringp start)
+				 (goto-char (point-min))
+				 (unless (re-search-forward start nil t)
+				   (goto-char (point-max))))
+				(t (point-min))))
+			(re-search-forward line
+					   (if (and count (< count 0))
+					       (cond ((numberp start) start)
+						     ((stringp start)
+						      (save-excursion
+							(re-search-backward start nil t)
+							(point))))
+					     (cond ((numberp end) end)
+						   ((stringp end)
+						    (save-excursion
+						      (re-search-forward end nil t)
+						      (point)))))
+					   t count))
 		       (t (error "Invalid value for line arg: %S" line))))
 	    (delete-window win)
 	  (when (derived-mode-p 'org-mode)
