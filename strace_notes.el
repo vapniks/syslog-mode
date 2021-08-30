@@ -13,9 +13,9 @@
 		    ;; other signals
 		    '("SIG_0" "kill(.*SIG_0)"
 		      "SIG_0 does nothing, but can be used in kill calls to test if a process ID is valid")
-		    '("RTMIN" "\\<rt_sigprocmask\\((\\| resumed\\)" "First real-time signal for user-defined purposes")
-		    '("RTMAX" "\\<rt_sigprocmask\\((\\| resumed\\)" "Last real-time signal for user-defined purposes")
-		    '("RT_1" "\\<rt_sigprocmask\\((\\| resumed\\)" "Real-time signal used internally by pthread library")
+		    '("RTMIN" "\\<rt_sigprocmask\\((\\| resumed\\)" "RTMIN is the first real-time signal for user-defined purposes")
+		    '("RTMAX" "\\<rt_sigprocmask\\((\\| resumed\\)" "RTMAX is the last real-time signal for user-defined purposes")
+		    '("RT_1" "\\<rt_sigprocmask\\((\\| resumed\\)" "RT_1 is a real-time signal used internally by pthread library")
 		    ;; ioctl has several different manpages (don't match "ioctl" itself, that's matched by another entry)
 		    '("ioctl\\|\\(.*\\)" "\\<ioctl\\((\\| resumed\\)" syslog-show-note-from-manpages
 		      word ("ioctl_console" "ioctl_fat" "ioctl_ficlonerange" "ioctl_fideduperange"
