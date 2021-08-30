@@ -1650,16 +1650,15 @@ If this is none, then create new notes file, and add it to `syslog-notes-files'.
   (interactive)
   (let* ((file (syslog-notes-file))
 	 (notesdir (file-name-directory (symbol-file 'syslog-mode)))
-	 (bfn (file-name-nondirectory (buffer-file-name)))
+	 (bfn (or (and buffer-file-name
+		       (file-name-nondirectory buffer-file-name))
+		  (buffer-name)))
 	 (newfile (concat bfn "_notes.el")))
     (if (and file (file-exists-p file))
 	(find-file file)
-      (setq file
-	    (concat notesdir
-		    (read-file-name
-		     "Select/create a notes file to associate with this buffer: "
-		     notesdir newfile nil newfile
-		     (lambda (f) (string-match "\\.el" (file-name-nondirectory f))))))
+      (setq file (read-file-name "Select/create a notes file to associate with this buffer: "
+				 notesdir newfile nil newfile
+				 (lambda (f) (string-match "\\.el" (file-name-nondirectory f)))))
       (find-file file)
       (if (file-exists-p file)
 	  (when (save-excursion
