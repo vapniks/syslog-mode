@@ -37,14 +37,14 @@
 		      syslog-show-note-from-manpages word "rt_sigaction" t 11)
 		    '("sa_[a-z]+" "\\<rt_sigaction\\((\\| resumed\\)"
 		      syslog-show-note-from-manpages word "rt_sigaction" t 7 Man-underline)
+		    ;; if point is on the function itself, show the apropos description
+		    '(".*" "^\\S-+ \\([^(]+\\)("
+		      (lambda (word line) (if (string= word line)
+					      (syslog-show-note-from-apropos word nil 2)))
+		      word line)
 		    ;; by default search manpage of function at start of line
 		    '(".*" "^\\S-+ \\([^(]+\\)(" syslog-show-note-from-manpages
 		      word (lambda (line) (concat line "(2)")))
 		    ;; it could also be resumed from a previous line
 		    '(".*" "^\\S-+ <... \\(\\S-+\\) resumed" syslog-show-note-from-manpages
-		      word (lambda (line) (concat line "(2)")))
-		    ;; if point is on the function itself, show the apropos description
-		    '(".*" "^\\S-+ \\([^(]+\\)("
-		      (lambda (word line) (if (string= word line)
-					      (syslog-show-note-from-apropos word nil 2)))
-		      word line)))
+		      word (lambda (line) (concat line "(2)")))))
