@@ -10,6 +10,10 @@
 		    '("ABRT\\|ALRM\\|BUS\\|CHLD\\|CLD\\|CONT\\|EMT\\|FPE\\|HUP\\|ILL\\|INFO\\|INT\\|IO\\|IOT\\|KILL\\|LOST\\|PIPE\\|POLL\\|PROF\\|PWR\\|QUIT\\|SEGV\\|STKFLT\\|STOP\\|SYS\\|TERM\\|TRAP\\|TSTP\\|TTIN\\|TTOU\\|UNUSED\\|URG\\|USR1\\|USR2\\|VTALRM\\|WINCH\\|XCPU\\|XFSZ"
 		      "\\<rt_sigprocmask\\((\\| resumed\\)" syslog-show-note-from-manpages
 		      (lambda (word) (concat "SIG" word)) "signal(7)")
+		    '("ABRT\\|ALRM\\|BUS\\|CHLD\\|CLD\\|CONT\\|EMT\\|FPE\\|HUP\\|ILL\\|INFO\\|INT\\|IO\\|IOT\\|KILL\\|LOST\\|PIPE\\|POLL\\|PROF\\|PWR\\|QUIT\\|SEGV\\|STKFLT\\|STOP\\|SYS\\|TERM\\|TRAP\\|TSTP\\|TTIN\\|TTOU\\|UNUSED\\|URG\\|USR1\\|USR2\\|VTALRM\\|WINCH\\|XCPU\\|XFSZ"
+		      "\\<rt_sigprocmask\\((\\| resumed\\).*~\\["
+		      " ~[...] represents the complement of the signals used in the mask"
+		      )
 		    ;; other signals
 		    '("SIG_0" "kill(.*SIG_0)"
 		      "SIG_0 does nothing, but can be used in kill calls to test if a process ID is valid")
