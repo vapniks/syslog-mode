@@ -1564,7 +1564,8 @@ then that will be used."
 			 (buffer-substring-no-properties
 			  (region-beginning) (region-end))
 		       (substring-no-properties
-			(thing-at-point syslog-note-thing))))
+			(or (thing-at-point syslog-note-thing)
+			    (error "Thing at point is not a valid item for notes")))))
 	       (haswd (cl-remove-if-not (function wdmatch) syslog-notes))
 	       (nowd (cl-remove-if 'car syslog-notes))
 	       (items (or (cl-remove-if-not (function lnmatch) haswd)
