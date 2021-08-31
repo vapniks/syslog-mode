@@ -1734,7 +1734,8 @@ match will be returned in the car."
 		       (cons word
 			     (replace-regexp-in-string
 			      "\\`\\s-+\\|\\s-+\\'" ""
-			      (buffer-substring-no-properties start end))))
+			      (buffer-substring-no-properties start end)))
+		       t)
 	  (forward-line 0)))
       regions)))
 
