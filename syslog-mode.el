@@ -1447,6 +1447,67 @@ The FACES arg is the same as for `highlight-regexp-unique' (which see)."
 	 (error "No pids found in buffer")))
      faces)))
 
+;; simple-call-tree-info: CHECK
+(defun syslog-extract-pipe-from-strace (pipe &optional copyhl display)
+  "Extract strace output lines involving a particular PIPE.
+PIPE should be a string containing the pipe name, e.g \"[123456]\",
+or if the strace buffer had been processed by `syslog-replace-pipes'
+it could be something like \"[proc1,3r:proc3,4w]\".
+The lines will be copied to a new buffer named after the PIPE,
+and if COPYHL is non-nil then any highlighting added by the user
+in the current buffer will be copied over (font-locking will always
+be applied).
+When called interactively, or if DISPLAY is non-nil the resulting
+buffer will be displayed."
+  (interactive (list (ido-completing-read
+		      "Select pipe: "
+		      (or (syslog-unique-matches
+			   "\\[\\(?:[0-9]\\{3,\\}\\|\\(?::?[^][,]+,[0-9]+[rw]\\)+\\)\\]")
+			  (error "No pipe references found in current buffer")))
+		     (y-or-n-p "Copy highlighting? ")
+		     t))
+  (when (or (string-match "\\.s?trace$" (or buffer-file-name
+					    (buffer-name)))
+	    (y-or-n-p "This does not appear to be an strace buffer. Continue? "))
+    (let* ((fld font-lock-defaults)
+	   (hlip hi-lock-interactive-patterns)
+	   (piperx (regexp-quote (concat "<pipe:" pipe ">")))
+	   (fullrx (concat "^\\(?1:\\S-+\\) \\(?:\\(?2:[^([:space:]\n]+\\)(.*\\|<\\.\\.\\. pipe resumed>.*\\)"
+			   piperx ".*?\\(?:<\\(?3:unfinished\\) \\.\\.\\.>\\)?$"))
+	   (outbuf (get-buffer-create (concat "pipe:" pipe)))
+	   output unfinished)
+      (save-excursion
+	(goto-char (point-min))
+	(while (re-search-forward fullrx nil t)
+	  (let ((cont (match-string 3)))
+	    (when cont
+	      (let ((resume (concat "\\(?1:" (regexp-quote (match-string 1))
+				    "\\) <\\.\\.\\. \\(?2:" (regexp-quote (match-string 2))
+				    "\\) \\(?3:resumed\\)>.*")))
+		(if (string= cont "unfinished")
+		    (add-to-list 'unfinished resume)
+		  (cl-remove-if (lambda (str) (string= str resume)) unfinished)))))
+	  (setq fullrx (concat "^\\(?:"
+			       "\\(?1:\\S-+\\) \\(?2:[^([:space:]\n]+\\)(.*"
+			       piperx ".*?\\(?:<\\(?3:unfinished\\) \\.\\.\\.>\\)?"
+			       (when (> (length unfinished) 0)
+				 (concat "\\|" (mapconcat 'identity unfinished "\\|")))
+			       "\\)$")
+		output (concat output (substring-no-properties (match-string 0)) "\n"))))
+      (with-current-buffer outbuf
+	(delete-region (point-min) (point-max))
+	(goto-char (point-min))
+	(insert output)
+	(setq font-lock-defaults fld)
+	(font-lock-ensure)
+	(when copyhl
+	  (hi-lock-mode 1)
+	  (dolist (pat hlip)
+	    (hi-lock-set-pattern (car pat)
+				 (eval (second (cadr pat))))))
+	(goto-char (point-min)))
+      (when display (display-buffer outbuf)))))
+
 ;; simple-call-tree-info: DONE  
 (defcustom syslog-notes-files (list (cons
 				     ".*\\.strace"
