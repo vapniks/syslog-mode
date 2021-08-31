@@ -25,6 +25,7 @@ view notes associated with files, extract text, count matches, etc.
 - "v"      : syslog-view
 - "c"      : syslog-count-matches
 - "x"      : syslog-extract-matches
+- "X"      : syslog-extract-pipe-from-strace
 - "k"      : hide-lines-kill-hidden
 - "W"      : syslog-whois-reverse-lookup
 - "m"      : manual-entry
@@ -59,6 +60,7 @@ Below are complete command list:
  - `syslog-boot-start' : Jump forward in the log to when the system booted. (Keybinding: <C-down>)
  - `syslog-whois-reverse-lookup' : This is a wrapper around the `whois' command using symbol at point as default search string. (Keybinding: W)
  - `syslog-transform-strace' : Transform strace output in the current buffer. (Keybinding: M-x syslog-transform-strace)
+ - `syslog-extract-pipe-from-strace' : Extract strace output lines involving a particular PIPE. (Keybinding: X)
    
 * Customizable Options:
 Below are customizable option list:
