@@ -1807,6 +1807,7 @@ If this is none, then create new notes file, and add it to `syslog-notes-files'.
 	(insert ";; To always use this file add an entry to the `syslog-notes-files' user option.\n")
 	(insert ";; See also `syslog-show-note-from-manpages' `syslog-show-note-from-file-or-buffer',\n")
 	(insert ";; `syslog-show-note-from-info-node' and `syslog-show-note-from-apropos'\n")
+	(insert ";; It is recommended to compile this file for faster loading.\n")
 	(insert "(setq-local\n syslog-notes\n '((\"EXAMPLE\" \"^.*stuff.*\" \"An example note. Delete this entry\")))"))
       (add-to-list 'syslog-notes-files (cons (regexp-quote bfn) file)))))
 
