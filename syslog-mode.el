@@ -1475,7 +1475,7 @@ buffer will be displayed."
   (interactive (list (ido-completing-read
 		      "Select pipe: "
 		      (or (syslog-unique-matches
-			   "\\[\\(?:[0-9]\\{3,\\}\\|\\(?::?[^][,]+,[0-9]+[rw]\\)+\\)\\]")
+			   "pipe:\\(\\[\\(?:[0-9]\\{3,\\}\\|\\(?::?[^][,]+,[0-9]+[rw]\\)+\\)\\]\\)")
 			  (error "No pipe references found in current buffer")))
 		     (y-or-n-p "Copy highlighting? ")
 		     t))
@@ -1485,8 +1485,8 @@ buffer will be displayed."
     (let* ((fld font-lock-defaults)
 	   (hlip hi-lock-interactive-patterns)
 	   (piperx (regexp-quote (concat "<pipe:" pipe ">")))
-	   (fullrx (concat "^\\(?1:\\S-+\\) \\(?:\\(?2:[^([:space:]\n]+\\)(.*\\|<\\.\\.\\. pipe resumed>.*\\)"
-			   piperx ".*?\\(?:<\\(?3:unfinished\\) \\.\\.\\.>\\)?$"))
+	   (fullrx (concat "^\\(?1:\\S-+\\) +\\(?:\\(?2:[^([:space:]\n]+\\)(.*\\|<\\.\\.\\. pipe resumed>.*\\)"
+			   piperx ".*?\\(?:<\\(?3:unfinished\\) \\.\\.\\.>$\\)?$"))
 	   (outbuf (get-buffer-create (concat "pipe:" pipe)))
 	   output unfinished)
       (save-excursion
@@ -1501,7 +1501,7 @@ buffer will be displayed."
 		    (add-to-list 'unfinished resume)
 		  (cl-remove-if (lambda (str) (string= str resume)) unfinished)))))
 	  (setq fullrx (concat "^\\(?:"
-			       "\\(?1:\\S-+\\) \\(?2:[^([:space:]\n]+\\)(.*"
+			       "\\(?1:\\S-+\\) +\\(?2:[^([:space:]\n]+\\)(.*"
 			       piperx ".*?\\(?:<\\(?3:unfinished\\) \\.\\.\\.>\\)?"
 			       (when (> (length unfinished) 0)
 				 (concat "\\|" (mapconcat 'identity unfinished "\\|")))
