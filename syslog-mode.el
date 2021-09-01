@@ -1472,7 +1472,7 @@ to select multiple file descriptors.
 Note: if the strace buffer had been processed by `syslog-replace-pipes'
 a file descriptor string could be like \"<pipe:[proc1,3r:proc3,4w]>\").
 
-The lines will be copied to a new buffer named like \"syslog:NAME\",
+The lines will be copied to a new buffer named like \"strace:NAME\",
 where NAME is the name of the last element of FDS when it is a list.
 If COPYHL is non-nil then any highlighting added by the user in the
 current buffer will be copied over (font-locking is always applied).
@@ -1498,7 +1498,7 @@ will be displayed."
 	   (fullrx (concat "^\\(?1:\\S-+\\) +\\(?:\\(?2:[^([:space:]\n]+\\)(.*\\|<\\.\\.\\. pipe resumed>.*\\)"
 			   fdsrx ".*?\\(?:<\\(?3:unfinished\\) \\.\\.\\.>$\\)?$"))
 	   (outbuf (get-buffer-create
-		    (concat "syslog:"
+		    (concat "strace:"
 			    (if (listp fds)
 				(concat (car fds) "(+"
 					(number-to-string (1- (length fds)))
@@ -1583,7 +1583,7 @@ ALIGNSTRINGS      - align the first strings of each line
 (defcustom syslog-notes-files (list (cons ".*\\.strace"
 					  (concat (file-name-directory load-file-name)
 						  "strace_notes.el"))
-				    (cons "^pipe:"
+				    (cons "^strace:"
 					  (concat (file-name-directory load-file-name)
 						  "strace_notes.el"))
 				    (cons "syslog.*"
