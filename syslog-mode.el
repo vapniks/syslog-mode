@@ -1465,13 +1465,18 @@ The FACES arg is the same as for `highlight-regexp-unique' (which see)."
   "Extract strace output lines involving a particular file descriptor(s).
 FDS can be a string containing the name of the file descriptor enclosed in
 angle brackets as it appears in strace output, e.g \"<pipe:[123456]>\",
-\"</dev/pts/5>\", or a list of such strings.
+\"</dev/pts/5>\", or a list of such strings. When called interactively
+a single file descriptor will be prompted for using `ido-completing-read'.
+If a prefix arg is used then `ido-completing-read-multiple' will be used
+to select multiple file descriptors.
 Note: if the strace buffer had been processed by `syslog-replace-pipes'
 a file descriptor string could be like \"<pipe:[proc1,3r:proc3,4w]>\").
+
 The lines will be copied to a new buffer named like \"syslog:NAME\",
 where NAME is the name of the last element of FDS when it is a list.
 If COPYHL is non-nil then any highlighting added by the user in the
 current buffer will be copied over (font-locking is always applied).
+
 When called interactively, or if DISPLAY is non-nil the resulting buffer
 will be displayed."
   (interactive (list
@@ -1532,10 +1537,10 @@ will be displayed."
       (when display (display-buffer outbuf)))))
 
 ;; simple-call-tree-info: CHECK
-(cl-defun syslog-strace-pipe-treatment (&optional (shortenpipes t)
-						  (shortenwspace t)
-						  (alignstrings t))
-  "Apply some replacements & alignment to improve readability of strace pipe extraction.
+(cl-defun syslog-strace-fds-treatment (&optional (shortenpipes t)
+						 (shortenwspace t)
+						 (alignstrings t))
+  "Apply some replacements & alignment to improve readability of `syslog-extract-fds-from-strace' output.
 This can be used as a treatment function in `syslog-views'.
 To turn off a particular treatment set the corresponding arg to nil:
 
