@@ -1495,7 +1495,7 @@ buffer will be displayed."
 	  (let ((cont (match-string 3)))
 	    (when cont
 	      (let ((resume (concat "\\(?1:" (regexp-quote (match-string 1))
-				    "\\) <\\.\\.\\. \\(?2:" (regexp-quote (match-string 2))
+				    "\\) +<\\.\\.\\. \\(?2:" (regexp-quote (match-string 2))
 				    "\\) \\(?3:resumed\\)>.*")))
 		(if (string= cont "unfinished")
 		    (add-to-list 'unfinished resume)
@@ -1511,8 +1511,7 @@ buffer will be displayed."
 	(delete-region (point-min) (point-max))
 	(goto-char (point-min))
 	(insert output)
-	(setq font-lock-defaults fld)
-	(font-lock-ensure)
+	(syslog-mode)
 	(when copyhl
 	  (hi-lock-mode 1)
 	  (dolist (pat hlip)
