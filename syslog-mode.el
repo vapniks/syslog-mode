@@ -1460,7 +1460,7 @@ The FACES arg is the same as for `highlight-regexp-unique' (which see)."
 	 (error "No pids found in buffer")))
      faces)))
 
-;; simple-call-tree-info: TODO also use this for extracting lines related to /dev/pts/[0-9]
+;; simple-call-tree-info: CHECK
 (defun syslog-extract-fds-from-strace (fds &optional copyhl display)
   "Extract strace output lines involving a particular file descriptor(s).
 FDS can be a string containing the name of the file descriptor enclosed in
@@ -1553,12 +1553,15 @@ ALIGNSTRINGS      - align the first strings of each line
 		     (y-or-n-p "Align strings? ")))
   (let ((inhibit-read-only t))
     (goto-char (point-min))
-    (while (re-search-forward "<pipe:\\[[^][]+\\]>" nil t)
-      (replace-match "<pipe>"))
+    (when shortenpipes
+      (while (re-search-forward "<pipe:\\[[^][]+\\]>" nil t)
+	(replace-match "<pipe>")))
     (goto-char (point-min))
-    (while (re-search-forward "\\s-+\\(= [0-9]+\\)" nil t)
-      (replace-match " \\1"))
-    (align-regexp (point-min) (point-max) "\\(\\s-*\\)\""))
+    (when shortenwspace
+      (while (re-search-forward "\\s-+\\(= [0-9]+\\)" nil t)
+	(replace-match " \\1")))
+    (when alignstrings
+      (align-regexp (point-min) (point-max) "\\(\\s-*\\)\"")))
   (goto-char (point-min)))
 
 ;; simple-call-tree-info: DONE  
