@@ -42,13 +42,13 @@
 		    '("\\\\33\\[[0-9?]*\\([A-Za-z@`]\\)" "\\(read\\|write\\).*\".*\""
 		      syslog-show-note-from-manpages word "console_codes" nil 7 nil 6854 9360)
 		    ;; if point is on the function itself, show the apropos description
-		    '(".*" "^\\S-+ \\([^(]+\\)("
+		    '(".*" "^\\S-+\\s-+\\([^(]+\\)("
 		      (lambda (word line) (if (string= word line)
 					      (syslog-show-note-from-apropos word nil 2)))
 		      word line)
 		    ;; by default search manpage of function at start of line
-		    '(".*" "^\\S-+ \\([^(]+\\)(" syslog-show-note-from-manpages
+		    '(".*" "^\\S-+\\s-+\\([^(]+\\)(" syslog-show-note-from-manpages
 		      word (lambda (line) (concat line "(2)")))
 		    ;; it could also be resumed from a previous line
-		    '(".*" "^\\S-+ <... \\(\\S-+\\) resumed" syslog-show-note-from-manpages
+		    '(".*" "^\\S-+\\s-+<... \\(\\S-+\\) resumed" syslog-show-note-from-manpages
 		      word (lambda (line) (concat line "(2)")))))
