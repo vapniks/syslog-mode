@@ -39,10 +39,8 @@
 		      syslog-show-note-from-manpages word "rt_sigaction" t 7 Man-underline)
 		    ;; CSI sequences can be found in the console_codes manpage
 		    ;; (you may need to adjust the start & end positions)
-		    '("\\\\33\\[[0-9A-Za-z@`?]+" "\\(read\\|write\\).*\".*\""
-		      syslog-show-note-from-manpages
-		      (lambda (word) (substring-no-properties word -1))
-		      "console_codes" nil 7 nil 6854 9360)
+		    '("\\\\33\\[[0-9?]*\\([A-Za-z@`]\\)" "\\(read\\|write\\).*\".*\""
+		      syslog-show-note-from-manpages word "console_codes" nil 7 nil 6854 9360)
 		    ;; if point is on the function itself, show the apropos description
 		    '(".*" "^\\S-+ \\([^(]+\\)("
 		      (lambda (word line) (if (string= word line)
