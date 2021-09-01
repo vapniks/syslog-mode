@@ -175,7 +175,7 @@
 ;;    default = (list (quote (bg lambda nil ...)) (quote (fg lambda nil ...)) (quote (light_bg lambda nil ...)) (quote (dark_bg lambda nil ...)) ...)
 ;;  `syslog-notes-files'
 ;;    An alist used by `syslog-load-notes' for choosing a notes file to load.
-;;    default = (list (cons ".*\\.strace" (concat ... "strace_notes.el")) (cons "syslog.*" (concat ... "syslog_notes.el")))
+;;    default = (list (cons ".*\\.strace" (concat ... "strace_notes.el")) (cons "^pipe:" (concat ... "strace_notes.el")) (cons "syslog.*" (concat ... "syslog_notes.el")))
 ;;  `syslog-manpage-wait'
 ;;    Amount of time to wait for manpage to finish rendering, when processing manpages.
 ;;    default = 0.2
