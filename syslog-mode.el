@@ -1901,10 +1901,10 @@ match to WORD in the manpages regardless of indentation level or FACE."
   (when word
     (let* ((indstr (number-to-string indent))
 	   (pages (if (listp pages) pages (list pages)))
-	   (starts (if (listp start)
+	   (starts (if (and start (listp start))
 		       start
 		     (make-list (length pages) start)))
-	   (ends (if (listp end)
+	   (ends (if (and end (listp end))
 		     end
 		   (make-list (length pages) end)))
 	   (wordrx (concat "\\<" (regexp-quote word) "\\>"))
