@@ -1830,16 +1830,17 @@ Do not display the manpage."
 	   ,@body)))))
 
 ;; simple-call-tree-info: CHECK
-(defun syslog-search-regexp-and-face (regex &optional matchface noerr)
+(defun syslog-search-regexp-and-face (regex &optional matchface noerr bound)
   "Search forward for REGEX, and optionally check that it has face MATCHFACE.
 If no match is found an error will be thrown unless NOERR is non-nil in which
-case nil will be returned (t is returned if a match is found)."
+case nil will be returned (t is returned if a match is found).
+The optional BOUND arg can be used to bound the search."
   (let ((found t))
-    (if (re-search-forward regex nil t)
+    (if (re-search-forward regex bound t)
 	(while (and matchface
 		    (not (eq (get-text-property (1- (point)) 'face)
 			     matchface)))
-	  (unless (re-search-forward regex nil t)
+	  (unless (re-search-forward regex bound t)
 	    (if noerr ;;set mathface to nil to break out of loop
 		(setq found nil matchface nil)
 	      (error "Cannot find match for %s with face %s" regex matchface))))
@@ -1849,27 +1850,31 @@ case nil will be returned (t is returned if a match is found)."
     found))
 
 ;; simple-call-tree-info: CHECK
-(defun syslog-extract-manpage-regions (page regex1 regex2 &optional face1 face2)
+(defun syslog-extract-manpage-regions (page regex1 regex2
+					    &optional face1 face2 start end)
   "Return list of regions of manpage PAGE delimited by regexps REGEX1 & REGEX2.
 Optional args FACE1 & FACE2 specify faces for the last char of the matches
 to REGEX1 & REGEX2. REGEX1 may contain a single non-shy match group whose
 matching content will be returned in a cons cell (the car) with the matched
 region (the cdr), otherwise if there is no non-shy match group, the whole
-match will be returned in the car."
+match will be returned in the car.
+You can restrict the search region by supplying buffer positions in the
+optional START and END args."
   (syslog-process-manpage
       page
     (let ((n (regexp-opt-depth regex1))
-	  start end regions word)
-      (while (syslog-search-regexp-and-face regex1 face1 t)
-	(setq start (match-end 0)
+	  startpos endpos regions word)
+      (when start (goto-char start))
+      (while (syslog-search-regexp-and-face regex1 face1 t end)
+	(setq startpos (match-end 0)
 	      word (match-string-no-properties (if (> n 0) 1 0)))
-	(when (syslog-search-regexp-and-face regex2 face2 t)
-	  (setq end (match-beginning 0))
+	(when (syslog-search-regexp-and-face regex2 face2 t end)
+	  (setq endpos (match-beginning 0))
 	  (add-to-list 'regions
 		       (cons word
 			     (replace-regexp-in-string
 			      "\\`\\s-+\\|\\s-+\\'" ""
-			      (buffer-substring-no-properties start end)))
+			      (buffer-substring-no-properties startpos endpos)))
 		       t)
 	  (forward-line 0)))
       regions)))
@@ -1877,29 +1882,42 @@ match will be returned in the car."
 ;; simple-call-tree-info: CHECK  
 (cl-defun syslog-show-note-from-manpages (word pages &optional
 					       (default t)
-					       (indent 7) (face 'Man-overstrike))
+					       (indent 7)
+					       (face 'Man-overstrike)
+					       start end)
   "Show the description of WORD extracted from manpage(s) PAGES.
 PAGES can be either the name of a single manpage, or a list of manpage names.
 The manpage names may include section numbers, e.g. \"signal(7)\" or \"7 signal\".
 The description is taken by searching for indented text following the first appearance
 of WORD at indentation level INDENT and face FACE in the manpage.
 The description is assumed to end when the indentation level of the text
-returns to INDENT.
+returns to INDENT. To bound the regions searched within each manpage you can supply
+START & END args which should be either single buffer positions if PAGES is the
+name of a single manpage, or lists of buffer positions corresponding to each manpage
+otherwise.
 
 If no match can be found at INDENT level and DEFAULT is non-nil, search for the first 
 match to WORD in the manpages regardless of indentation level or FACE."
   (when word
     (let* ((indstr (number-to-string indent))
 	   (pages (if (listp pages) pages (list pages)))
+	   (starts (if (listp start)
+		       start
+		     (make-list (length pages) start)))
+	   (ends (if (listp end)
+		     end
+		   (make-list (length pages) end)))
 	   (wordrx (concat "\\<" (regexp-quote word) "\\>"))
 	   (notes (cl-loop for page in pages
+			   for s in starts
+			   for e in ends
 			   for notes = (mapcar 'cdr
 					       (syslog-extract-manpage-regions
 						page
 						(concat (concat "^\\s-\\{" indstr "\\}")
 							wordrx)
 						(concat "^\\s-\\{," indstr "\\}\\S-")
-						face))
+						face nil s e))
 			   if notes concat (concat word " in " page " manpage: "
 						   (mapconcat 'identity notes "\n")
 						   "\n"))))
