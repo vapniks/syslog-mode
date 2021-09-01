@@ -135,8 +135,8 @@
 ;;  `syslog-transform-strace'
 ;;    Transform strace output in the current buffer.
 ;;    Keybinding: M-x syslog-transform-strace
-;;  `syslog-extract-pipe-from-strace'
-;;    Extract strace output lines involving a particular PIPE.
+;;  `syslog-extract-fds-from-strace'
+;;    Extract strace output lines involving a particular file descriptor(s).
 ;;    Keybinding: X
 ;;  `forward-syslog-token'
 ;;    Move point forward over ARG tokens (backwards if ARG is negative).
@@ -297,7 +297,7 @@
     (define-key map "v" 'syslog-view)
     (define-key map "c" 'syslog-count-matches)
     (define-key map "x" 'syslog-extract-matches)
-    (define-key map "X" 'syslog-extract-pipe-from-strace)
+    (define-key map "X" 'syslog-extract-fds-from-strace)
     (define-key map "k" 'hide-lines-kill-hidden)
     (define-key map "W" 'syslog-whois-reverse-lookup)
     (define-key map "m" 'manual-entry)
@@ -1033,8 +1033,8 @@ buffer respectively."
 	       (extract-matches menu-item "Extract matches" syslog-extract-matches
 				:help "Extract & concatenate strings which match the given pattern"
 				:key "x")
-	       (extract-pipe menu-item "Extract pipe" syslog-extract-pipe-from-strace
-			     :help "Extract all lines related to a given pipe in an strace buffer"
+	       (extract-pipe menu-item "Extract file descriptor" syslog-extract-fds-from-strace
+			     :help "Extract all lines related to a given file descriptor(s) in an strace buffer"
 			     :key "X"))]
       ["Notes..." (keymap "Notes"
 			  (show-note menu-item "Show note" syslog-show-notes
@@ -1460,34 +1460,45 @@ The FACES arg is the same as for `highlight-regexp-unique' (which see)."
 	 (error "No pids found in buffer")))
      faces)))
 
-;; simple-call-tree-info: CHECK
-(defun syslog-extract-pipe-from-strace (pipe &optional copyhl display)
-  "Extract strace output lines involving a particular PIPE.
-PIPE should be a string containing the pipe name, e.g \"[123456]\",
-or if the strace buffer had been processed by `syslog-replace-pipes'
-it could be something like \"[proc1,3r:proc3,4w]\".
-The lines will be copied to a new buffer named after the PIPE,
-and if COPYHL is non-nil then any highlighting added by the user
-in the current buffer will be copied over (font-locking will always
-be applied).
-When called interactively, or if DISPLAY is non-nil the resulting
-buffer will be displayed."
-  (interactive (list (ido-completing-read
-		      "Select pipe: "
-		      (or (syslog-unique-matches
-			   "pipe:\\(\\[\\(?:[0-9]\\{3,\\}\\|\\(?::?[^][,]+,[0-9]+[rw]\\)+\\)\\]\\)")
-			  (error "No pipe references found in current buffer")))
-		     (y-or-n-p "Copy highlighting? ")
-		     t))
-  (when (or (string-match "\\.s?trace$" (or buffer-file-name
-					    (buffer-name)))
+;; simple-call-tree-info: TODO also use this for extracting lines related to /dev/pts/[0-9]
+(defun syslog-extract-fds-from-strace (fds &optional copyhl display)
+  "Extract strace output lines involving a particular file descriptor(s).
+FDS can be a string containing the name of the file descriptor enclosed in
+angle brackets as it appears in strace output, e.g \"<pipe:[123456]>\",
+\"</dev/pts/5>\", or a list of such strings.
+Note: if the strace buffer had been processed by `syslog-replace-pipes'
+a file descriptor string could be like \"<pipe:[proc1,3r:proc3,4w]>\").
+The lines will be copied to a new buffer named like \"syslog:NAME\",
+where NAME is the name of the last element of FDS when it is a list.
+If COPYHL is non-nil then any highlighting added by the user in the
+current buffer will be copied over (font-locking is always applied).
+When called interactively, or if DISPLAY is non-nil the resulting buffer
+will be displayed."
+  (interactive (list
+		(funcall
+		 (if current-prefix-arg
+		     'ido-completing-read-multiple
+		   'ido-completing-read)
+		 "Select pipe: "
+		 (or (syslog-unique-matches
+		      "<\\(?:pipe:\\[\\(?:[0-9]\\{3,\\}\\|\\(?::?[^][,]+,[0-9]+[rw]\\)+\\)\\]\\|[a-z0-9/]+\\)>")
+		     (error "No pipe references found in current buffer")))
+		(y-or-n-p "Copy highlighting? ")
+		t))
+  (when (or (string-match "\\.s?trace$" (or buffer-file-name (buffer-name)))
 	    (y-or-n-p "This does not appear to be an strace buffer. Continue? "))
     (let* ((fld font-lock-defaults)
 	   (hlip hi-lock-interactive-patterns)
-	   (piperx (regexp-quote (concat "<pipe:" pipe ">")))
+	   (fdsrx (funcall (if (listp fds) 'regexp-opt 'regexp-quote) fds))
 	   (fullrx (concat "^\\(?1:\\S-+\\) +\\(?:\\(?2:[^([:space:]\n]+\\)(.*\\|<\\.\\.\\. pipe resumed>.*\\)"
-			   piperx ".*?\\(?:<\\(?3:unfinished\\) \\.\\.\\.>$\\)?$"))
-	   (outbuf (get-buffer-create (concat "pipe:" pipe)))
+			   fdsrx ".*?\\(?:<\\(?3:unfinished\\) \\.\\.\\.>$\\)?$"))
+	   (outbuf (get-buffer-create
+		    (concat "syslog:"
+			    (if (listp fds)
+				(concat (car fds) "(+"
+					(number-to-string (1- (length fds)))
+					")")
+			      fds))))
 	   output unfinished)
       (save-excursion
 	(goto-char (point-min))
@@ -1502,7 +1513,7 @@ buffer will be displayed."
 		  (cl-remove-if (lambda (str) (string= str resume)) unfinished)))))
 	  (setq fullrx (concat "^\\(?:"
 			       "\\(?1:\\S-+\\) +\\(?2:[^([:space:]\n]+\\)(.*"
-			       piperx ".*?\\(?:<\\(?3:unfinished\\) \\.\\.\\.>\\)?"
+			       fdsrx ".*?\\(?:<\\(?3:unfinished\\) \\.\\.\\.>\\)?"
 			       (when (> (length unfinished) 0)
 				 (concat "\\|" (mapconcat 'identity unfinished "\\|")))
 			       "\\)$")
