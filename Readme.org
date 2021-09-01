@@ -61,6 +61,7 @@ Below are complete command list:
  - `syslog-whois-reverse-lookup' : This is a wrapper around the `whois' command using symbol at point as default search string. (Keybinding: W)
  - `syslog-transform-strace' : Transform strace output in the current buffer. (Keybinding: M-x syslog-transform-strace)
  - `syslog-extract-pipe-from-strace' : Extract strace output lines involving a particular PIPE. (Keybinding: X)
+ - `syslog-strace-pipe-treatment' : Apply some replacements & alignment to improve readability of strace pipe extraction.
    
 * Customizable Options:
 Below are customizable option list:
@@ -87,6 +88,20 @@ info nodes or arbitrary files (including org-mode files) at runtime.
 See also `syslog-text-notes-from-manpages' if you prefer to use pre-extracted notes.
 
 The included strace_notes.el & syslog_notes.el files contain examples of how to set `syslog-notes'.
+* strace output
+The included strace_notes.el file will be loaded automatically for files with names
+ending in ".strace". It contains declarations used by syslog-show-notes for extracting
+notes from manpages.
+There are also several functions & commands for dealing especially with strace output.
+To improve the readability of strace output you can use `syslog-transform-strace', but
+you will also need output from the lsof command. This is used by `syslog-transform-strace'
+to associated names to pids & pipes. The lsof output can either be obtained from previously
+saved output (using "lsof -n -P -L -E -pPID1,PID2,... > FILE"), or generated on the fly by
+`syslog-transform-strace' if the traced commands are still running.
+
+To extract lines from the strace buffer related to a particular pipe use `syslog-extract-pipe-from-strace'.
+The resulting buffer will also be in `syslog-mode', and you can format the output to make it more readable
+with `syslog-strace-pipe-treatment' which can be used in a `syslog-views' entry.
 * Installation
 
  - This library is available on MELPA: https://melpa.org/#/?q=syslog
