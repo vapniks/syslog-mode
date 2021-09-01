@@ -1520,6 +1520,31 @@ buffer will be displayed."
 	(goto-char (point-min)))
       (when display (display-buffer outbuf)))))
 
+;; simple-call-tree-info: CHECK
+(cl-defun syslog-strace-pipe-treatment (&optional (shortenpipes t)
+						  (shortenwspace t)
+						  (alignstrings t))
+  "Apply some replacements & alignment to improve readability of strace pipe extraction.
+This can be used as a treatment function in `syslog-views'.
+To turn off a particular treatment set the corresponding arg to nil:
+
+SHORTENPIPES      - replace \"<pipe:...>\" with \"<pipe>\"
+SHORTENWSPACE     - truncate whitespace that appears before the return values at the end of each line
+ALIGNSTRINGS      - align the first strings of each line 
+"
+  (interactive (list (y-or-n-p "Shorten pipe descriptions? ")
+		     (y-or-n-p "Truncate whitespace at the end of lines? ")
+		     (y-or-n-p "Align strings? ")))
+  (let ((inhibit-read-only t))
+    (goto-char (point-min))
+    (while (re-search-forward "<pipe:\\[[^][]+\\]>" nil t)
+      (replace-match "<pipe>"))
+    (goto-char (point-min))
+    (while (re-search-forward "\\s-+\\(= [0-9]+\\)" nil t)
+      (replace-match " \\1"))
+    (align-regexp (point-min) (point-max) "\\(\\s-*\\)\""))
+  (goto-char (point-min)))
+
 ;; simple-call-tree-info: DONE  
 (defcustom syslog-notes-files (list (cons
 				     ".*\\.strace"
