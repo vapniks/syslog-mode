@@ -1666,19 +1666,28 @@ If ARG is omitted or nil, move point forward one token."
   (re-search-forward "[][[:space:]:;,\n=|(){}<>'\"]" nil nil arg)
   (backward-char (if (and arg (> arg 0)) 1 -1)))
 
-;; simple-call-tree-info: CHECK  
-(defun syslog-show-notes nil
-  "In the minibuffer display notes associated with the region or word at point.
+;; simple-call-tree-info: TODO allow user to enter word manually if prefix arg is used,
+;; with current line used for line. If double prefix arg is used then prompt for both word and line
+(defun syslog-show-notes (word line)
+  "In the minibuffer display notes associated with the region or WORD at point.
 The notes are chosen from the current value of `syslog-notes'.
-If there are notes which match the current region/word & line, then all those
+If there are notes which match the current region/word & LINE, then all those
 notes will be displayed, otherwise all notes matching the current region/word
  (but with no line regexp) will be displayed, or if there are none of
 those then all notes matching the current line (but with no region/word regexp)
 will be displayed.
 If there are no `syslog-notes' entries matching the region/word or line at point,
 and `syslog-notes' contains a default item(s) with no region/word or line entries
-then that will be used."
-  (interactive)
+then that will be used.
+When called interactively with a prefix arg a WORD will be prompted for, and when
+called with a double prefix a context LINE will also be prompted for. 
+You can add special items to `syslog-notes' for use only with a double prefix arg
+by using specific LINERX entries that wouldn't normally match."
+  (interactive (list (when current-prefix-arg
+		       (read-string "Find notes for word: "))
+		     (when (and current-prefix-arg
+				(equal current-prefix-arg '(16)))
+		       (read-string "Context line: "))))
   (cl-labels ((strmatch (rx1 str) (and rx1 str (string-match rx1 str)))
 	      (wdmatch (elem) (strmatch (car elem) word))
 	      (lnmatch (elem) (strmatch (cadr elem) line))
@@ -1692,14 +1701,16 @@ then that will be used."
 			  str)))
     (if syslog-notes
 	(let* ((case-fold-search nil)
-	       (line (buffer-substring-no-properties (line-beginning-position)
-						     (line-end-position)))
-	       (word (if mark-active
-			 (buffer-substring-no-properties
-			  (region-beginning) (region-end))
-		       (substring-no-properties
-			(or (thing-at-point syslog-note-thing)
-			    (error "Thing at point is not a valid item for notes")))))
+	       (line (or line
+			 (buffer-substring-no-properties (line-beginning-position)
+							 (line-end-position))))
+	       (word (or word
+			 (if mark-active
+			     (buffer-substring-no-properties
+			      (region-beginning) (region-end))
+			   (substring-no-properties
+			    (or (thing-at-point syslog-note-thing)
+				(error "Thing at point is not a valid item for notes"))))))
 	       (haswd (cl-remove-if-not (function wdmatch) syslog-notes))
 	       (nowd (cl-remove-if 'car syslog-notes))
 	       (items (or (cl-remove-if-not (function lnmatch) haswd)
