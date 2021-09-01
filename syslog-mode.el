@@ -1538,6 +1538,7 @@ will be displayed."
 
 ;; simple-call-tree-info: CHECK
 (cl-defun syslog-strace-fds-treatment (&optional (shortenpipes t)
+						 (shortenptys t)
 						 (shortenwspace t)
 						 (alignstrings t))
   "Apply some replacements & alignment to improve readability of `syslog-extract-fds-from-strace' output.
@@ -1545,17 +1546,31 @@ This can be used as a treatment function in `syslog-views'.
 To turn off a particular treatment set the corresponding arg to nil:
 
 SHORTENPIPES      - replace \"<pipe:...>\" with \"<pipe>\"
+SHORTENPTYS       - replace \"</dev/pts/N>\" with \"<ptyN>\", and \"</dev/ptmx>\" with \"<ptmx>\"
 SHORTENWSPACE     - truncate whitespace that appears before the return values at the end of each line
 ALIGNSTRINGS      - align the first strings of each line 
 "
   (interactive (list (y-or-n-p "Shorten pipe descriptions? ")
+		     (y-or-n-p "Shorten pty descriptions? ")
 		     (y-or-n-p "Truncate whitespace at the end of lines? ")
 		     (y-or-n-p "Align strings? ")))
   (let ((inhibit-read-only t))
     (goto-char (point-min))
     (when shortenpipes
-      (while (re-search-forward "<pipe:\\[[^][]+\\]>" nil t)
-	(replace-match "<pipe>")))
+      (let ((pipes (mapcar 'car (syslog-unique-matches "<pipe:\\[[^][]+\\]>"))))
+	(cl-loop for i from 0 to (1- (length pipes))
+		 for str = (nth i pipes)
+		 do (goto-char (point-min))
+		 (while (search-forward str nil t)
+		   (replace-match
+		    (concat "<pipe" (number-to-string i) ">"))))))
+    (when shortenptys
+      (goto-char (point-min))
+      (while (search-forward-regexp "</dev/pts/\\([^>]+\\)>" nil t)
+	(replace-match (concat "<pty\\1>")))
+      (goto-char (point-min))
+      (while (search-forward "</dev/ptmx>" nil t)
+	(replace-match "<ptmx>")))
     (goto-char (point-min))
     (when shortenwspace
       (while (re-search-forward "\\s-+\\(= [0-9]+\\)" nil t)
