@@ -1601,7 +1601,7 @@ The notes file should contain an s-expression setting the local value of `syslog
   :type '(alist :key-type (regexp :help-echo "Regexp for matching file visited by buffer")
 		:value-type (file :help-echo "Syslog notes file")))
 
-;; simple-call-tree-info: CHECK  
+;; simple-call-tree-info: DONE
 (defvar-local syslog-notes nil
   "List of syslog notes for current buffer.
 Each item is a list of the form (WORDRX LINERX NOTE . ARGS)
@@ -1610,7 +1610,11 @@ where:
         contains a non-shy match group the match to the first such group will 
         be used instead of the entire match.
  LINERX is a regexp to match the current line. Non-shy match groups are treated 
-        the same way as for WORDRX.
+        the same way as for WORDRX. It can also be a symbol, in which case it
+        will be offered as a candidate when `syslog-show-notes' is called with
+        a prefix arg. This allows you to create special notes items that are
+        only used when a prefix arg is used. You should make sure the symbol 
+        is a word which is unlikely to match any text in the syslog buffer.
  NOTE   is the note to be displayed: either a string, or a function which will
         be called with the remaining ARGS. If it's a function it should either 
         return a string to be displayed, display the note itself and return a 
@@ -1666,29 +1670,40 @@ If ARG is omitted or nil, move point forward one token."
   (re-search-forward "[][[:space:]:;,\n=|(){}<>'\"]" nil nil arg)
   (backward-char (if (and arg (> arg 0)) 1 -1)))
 
-;; simple-call-tree-info: TODO allow user to enter word manually if prefix arg is used,
-;; with current line used for line. If double prefix arg is used then prompt for both word and line
+;; simple-call-tree-info: CHECK
 (defun syslog-show-notes (word line)
   "In the minibuffer display notes associated with the region or WORD at point.
 The notes are chosen from the current value of `syslog-notes'.
 If there are notes which match the current region/word & LINE, then all those
 notes will be displayed, otherwise all notes matching the current region/word
- (but with no line regexp) will be displayed, or if there are none of
-those then all notes matching the current line (but with no region/word regexp)
+ (but with no line regexp) will be displayed, or if there are none of those
+then all notes matching the current line (but with no region/word regexp)
 will be displayed.
 If there are no `syslog-notes' entries matching the region/word or line at point,
 and `syslog-notes' contains a default item(s) with no region/word or line entries
 then that will be used.
-When called interactively with a prefix arg a WORD will be prompted for, and when
-called with a double prefix a context LINE will also be prompted for. 
-You can add special items to `syslog-notes' for use only with a double prefix arg
-by using specific LINERX entries that wouldn't normally match."
+When called interactively with a prefix arg a WORD will be prompted for, and
+items in `syslog-notes' which have a symbol for the LINERX entry will be offered
+as selection candidates for LINE. You may also choose \"current line\" or
+\"enter line\" at this point."
   (interactive (list (when current-prefix-arg
 		       (read-string "Find notes for word: "))
-		     (when (and current-prefix-arg
-				(equal current-prefix-arg '(16)))
-		       (read-string "Context line: "))))
-  (cl-labels ((strmatch (rx1 str) (and rx1 str (string-match rx1 str)))
+		     (when current-prefix-arg
+		       (let ((selection
+			      (ido-completing-read
+			       "Note type: "
+			       (append	;don't use nconc here
+				(mapcar (lambda (y) (symbol-name (cadr y)))
+					(cl-remove-if-not
+					 (lambda (x)
+					   (and (cadr x) (symbolp (cadr x))))
+					 syslog-notes))
+				'("current line" "enter line")))))
+			 (cond ((equal selection "current line") nil)
+			       ((equal selection "enter line") (read-string "Enter line: "))
+			       (t selection))))))
+  (cl-labels ((getstr (s) (if (symbolp s) (symbol-name s) s))
+	      (strmatch (rx1 str) (and rx1 str (string-match (getstr rx1) str)))
 	      (wdmatch (elem) (strmatch (car elem) word))
 	      (lnmatch (elem) (strmatch (cadr elem) line))
 	      (getmatch (regex str)
@@ -1719,7 +1734,7 @@ by using specific LINERX entries that wouldn't normally match."
 			  (cl-remove-if 'cadr nowd)))
 	       (note (cl-loop for item in items
 			      for value = (let* ((wd (getmatch (car item) word))
-						 (ln (getmatch (cadr item) line))
+						 (ln (getmatch (getstr (cadr item)) line))
 						 (nt (third item))
 						 (args (mapcar
 							(lambda (arg)
