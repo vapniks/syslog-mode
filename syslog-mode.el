@@ -1781,11 +1781,10 @@ The file is chosen using `syslog-notes-files'.
 Notes files can be created using `syslog-text-notes-from-manpages',
 and `syslog-function-notes-from-manpages'."
   (interactive)
-  (let ((file (syslog-notes-file)))
+  (let ((file (syslog-notes-file))
+	(load-prefer-newer t))
     (if file
-	(if (file-readable-p file)
-	    (load-file file)
-	  (error "Unable to load %s" file))
+	(load (replace-regexp-in-string "\\.elc?$" "" file))
       (message "No notes file associated with this buffer (create one with: M-x syslog-edit-notes)")
       nil)))
 
