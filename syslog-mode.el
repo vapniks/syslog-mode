@@ -142,8 +142,14 @@
 ;;    Move point forward over ARG tokens (backwards if ARG is negative).
 ;;    Keybinding: M-x forward-syslog-token
 ;;  `syslog-show-notes'
-;;    In the minibuffer display notes associated with the region or word at point.
+;;    In the minibuffer display notes associated with the region or WORD at point.
 ;;    Keybinding: ?
+;;  `syslog-notes-next-match'
+;;    Search other window for the next match to the word used by the last call to `syslog-show-notes'.
+;;    Keybinding: M-n
+;;  `syslog-notes-prev-match'
+;;    Search other window for the previous match to the word used by the last call to `syslog-show-notes'.
+;;    Keybinding: M-p
 ;;  `syslog-load-notes'
 ;;    Load appropriate notes file for the current buffer.
 ;;    Keybinding: M-x syslog-load-notes
@@ -175,7 +181,7 @@
 ;;    default = (list (quote (bg lambda nil ...)) (quote (fg lambda nil ...)) (quote (light_bg lambda nil ...)) (quote (dark_bg lambda nil ...)) ...)
 ;;  `syslog-notes-files'
 ;;    An alist used by `syslog-load-notes' for choosing a notes file to load.
-;;    default = (list (cons ".*\\.strace" (concat ... "strace_notes.el")) (cons "^pipe:" (concat ... "strace_notes.el")) (cons "syslog.*" (concat ... "syslog_notes.el")))
+;;    default = (let ((dir ...)) (list (cons ".*\\.strace" ...) (cons "^strace:" ...) (cons "syslog.*" ...)))
 ;;  `syslog-manpage-wait'
 ;;    Amount of time to wait for manpage to finish rendering, when processing manpages.
 ;;    default = 0.2

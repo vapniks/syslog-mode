@@ -31,6 +31,8 @@ view notes associated with files, extract text, count matches, etc.
 - "m"      : manual-entry
 - "!"      : syslog-shell-command
 - "?"      : syslog-show-notes
+- "M-n"    : syslog-notes-next-match
+- "M-p"    : syslog-notes-prev-match
 - "M-down" : syslog-move-next-file
 - "M-up"   : syslog-move-previous-file
 - "t"      : syslog-toggle-filenames
@@ -40,6 +42,8 @@ Below are complete command list:
 
  - `syslog-shell-command' : Execute a shell COMMAND synchronously, with prefix arg (SUDOP) run under sudo. (Keybinding: !)
  - `syslog-show-notes' : In the minibuffer display note associated with the word at point.
+ - `syslog-notes-next-match' : Search other window for the next match to the word used by the last call to `syslog-show-notes'.
+ - `syslog-notes-prev-match' : Search other window for the previous match to the word used by the last call to `syslog-show-notes'.
  - `syslog-load-notes' : Load appropriate notes file for the current buffer.
  - `syslog-edit-notes' : Edit syslog notes associated with current buffer.
  - `syslog-append-files' : Append FILES into buffer BUF. (Keybinding: a)
