@@ -1777,9 +1777,7 @@ If a compiled version of the file exists in the same directory it will be loaded
 ;; simple-call-tree-info: DONE  
 (defun syslog-load-notes nil
   "Load appropriate notes file for the current buffer.
-The file is chosen using `syslog-notes-files'.
-Notes files can be created using `syslog-text-notes-from-manpages',
-and `syslog-function-notes-from-manpages'."
+The file is chosen using `syslog-notes-files'"
   (interactive)
   (let ((file (syslog-notes-file))
 	(load-prefer-newer t))
