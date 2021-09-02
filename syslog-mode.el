@@ -304,6 +304,8 @@
     (define-key map "q" 'quit-window)
     (define-key map "!" 'syslog-shell-command)
     (define-key map "?" 'syslog-show-notes)
+    (define-key map (kbd "M-n") 'syslog-notes-next-match)
+    (define-key map (kbd "M-p") 'syslog-notes-prev-match)
     (define-key map (kbd "<M-down>") 'syslog-move-next-file)
     (define-key map (kbd "<M-up>") 'syslog-move-previous-file)
     (define-key map "t" 'syslog-toggle-filenames)
@@ -1783,6 +1785,13 @@ If a prefix ARG is used, prompt for the ARGth next match."
 			(prefix-numeric-value arg))
 	(recenter 0))
     (message "No notes buffer visible")))
+
+;; simple-call-tree-info: CHECK
+(defun syslog-notes-prev-match (arg)
+  "Search other window for the previous match to the word used by the last call to `syslog-show-notes'.
+If a prefix ARG is used, prompt for the ARGth previous match."
+  (interactive "P")
+  (syslog-notes-next-match (* -1 (prefix-numeric-value arg))))
 
 ;; simple-call-tree-info: DONE
 (defun syslog-notes-file nil
