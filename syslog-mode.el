@@ -1762,7 +1762,9 @@ as selection candidates for LINE. You may also choose \"current line\" or
 						  ((functionp nt)
 						   (let ((rval (apply nt args)))
 						     (if (windowp rval)
-							 (setq syslog-notes-last-window rval)
+							 (setq syslog-notes-last-window rval
+							       syslog-notes-last-buffer
+							       (window-buffer rval))
 						       rval)))
 						  ((stringp nt) nt)
 						  (t (error "Invalid note entry in %s"
@@ -1775,7 +1777,8 @@ as selection candidates for LINE. You may also choose \"current line\" or
 			 (replace-regexp-in-string "\n$" "" note)
 		       (concat "No notes found for " word
 			       " (to create one: M-x syslog-edit-notes)")))
-	    (setq syslog-notes-last-window nil)))
+	    (setq syslog-notes-last-window nil
+		  syslog-notes-last-buffer nil)))
       (when (and (y-or-n-p "No notes loaded, load now? ")
 		 (syslog-load-notes))
 	(syslog-show-notes)))))
@@ -1790,7 +1793,12 @@ If a prefix ARG is used, prompt for the ARGth next match."
 	(search-forward syslog-notes-last-word nil t
 			(prefix-numeric-value arg))
 	(recenter 0))
-    (message "No notes buffer visible")))
+    (if (buffer-live-p syslog-notes-last-buffer)
+	(with-selected-window (display-buffer syslog-notes-last-buffer)
+	  (search-forward syslog-notes-last-word nil t
+			  (prefix-numeric-value arg))
+	  (recenter 0))
+      (message "No notes buffer visible"))))
 
 ;; simple-call-tree-info: CHECK
 (defun syslog-notes-prev-match (arg)
@@ -2002,6 +2010,10 @@ Searching is done case sensitively."
 ;; simple-call-tree-info: CHECK
 (defvar syslog-notes-last-window nil
   "Window last used for displaying a note with `syslog-show-notes', if any.")
+
+;; simple-call-tree-info: CHECK
+(defvar syslog-notes-last-buffer nil
+  "Buffer last used for displaying a note with `syslog-show-notes', if any.")
 
 ;; simple-call-tree-info: CHECK
 (defvar syslog-notes-last-word nil
