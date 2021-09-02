@@ -1775,11 +1775,12 @@ as selection candidates for LINE. You may also choose \"current line\" or
 ;; simple-call-tree-info: CHECK
 (defun syslog-notes-next-match (arg)
   "Search other window for the next match to the word used by the last call to `syslog-show-notes'.
-If a prefix ARG is used, prompt for a different word to search for."
+If a prefix ARG is used, prompt for the ARGth next match."
   (interactive "P")
-  (if (windowp syslog-last-note-window)
+  (if (window-valid-p syslog-last-note-window)
       (with-selected-window syslog-last-note-window
-	(search-forward syslog-last-note-word)
+	(search-forward syslog-last-note-word nil t
+			(prefix-numeric-value arg))
 	(recenter 0))
     (message "No notes buffer visible")))
 
