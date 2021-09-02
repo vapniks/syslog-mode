@@ -1757,22 +1757,17 @@ by using specific LINERX entries that wouldn't normally match."
 ;; simple-call-tree-info: DONE
 (defun syslog-notes-file nil
   "Return the syslog notes file associated with the current buffer, or nil if none exists.
-The file is chosen using `syslog-notes-files'.
-If a compiled version of the file exists in the same directory it will be loaded instead."
+The file is chosen using `syslog-notes-files'."
   (let* ((bfn (or (and buffer-file-name
 		       (expand-file-name buffer-file-name))
 		  (buffer-name)))
 	 (file (cdr (cl-assoc-if (lambda (f) (string-match f bfn))
-				 syslog-notes-files)))
-	 (cfile (when file (replace-regexp-in-string "\\.el$" ".elc" file))))
+				 syslog-notes-files))))
     (when file
       (if (file-name-directory file)
-	  (if (file-readable-p cfile) cfile file)
-	(let ((dir (file-name-directory
-		    (symbol-file 'syslog-mode)))
-	      (cfile (concat dir cfile))
-	      (file (concat dir file)))
-	  (if (file-readable-p cfile) cfile file))))))
+	  file
+	(concat (file-name-directory (symbol-file 'syslog-mode))
+		file)))))
 
 ;; simple-call-tree-info: DONE  
 (defun syslog-load-notes nil
