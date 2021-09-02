@@ -1762,20 +1762,20 @@ as selection candidates for LINE. You may also choose \"current line\" or
 						  ((functionp nt)
 						   (let ((rval (apply nt args)))
 						     (if (windowp rval)
-							 (setq syslog-last-note-window rval)
+							 (setq syslog-notes-last-window rval)
 						       rval)))
 						  ((stringp nt) nt)
 						  (t (error "Invalid note entry in %s"
 							    (syslog-notes-file)))))
 			      if (stringp value) concat (concat value "\n")
 			      else if value return nil)))
-	  (setq syslog-last-note-word word)
+	  (setq syslog-notes-last-word word)
 	  (when note
 	    (message (if (> (length note) 0)
 			 (replace-regexp-in-string "\n$" "" note)
 		       (concat "No notes found for " word
 			       " (to create one: M-x syslog-edit-notes)")))
-	    (setq syslog-last-note-window nil)))
+	    (setq syslog-notes-last-window nil)))
       (when (and (y-or-n-p "No notes loaded, load now? ")
 		 (syslog-load-notes))
 	(syslog-show-notes)))))
@@ -1785,9 +1785,9 @@ as selection candidates for LINE. You may also choose \"current line\" or
   "Search other window for the next match to the word used by the last call to `syslog-show-notes'.
 If a prefix ARG is used, prompt for the ARGth next match."
   (interactive "P")
-  (if (window-valid-p syslog-last-note-window)
-      (with-selected-window syslog-last-note-window
-	(search-forward syslog-last-note-word nil t
+  (if (window-valid-p syslog-notes-last-window)
+      (with-selected-window syslog-notes-last-window
+	(search-forward syslog-notes-last-word nil t
 			(prefix-numeric-value arg))
 	(recenter 0))
     (message "No notes buffer visible")))
@@ -2000,11 +2000,11 @@ Searching is done case sensitively."
       matches)))
 
 ;; simple-call-tree-info: CHECK
-(defvar syslog-last-note-window nil
+(defvar syslog-notes-last-window nil
   "Window last used for displaying a note with `syslog-show-notes', if any.")
 
 ;; simple-call-tree-info: CHECK
-(defvar syslog-last-note-word nil
+(defvar syslog-notes-last-word nil
   "Last word used for finding a note with `syslog-show-notes'.")
 
 ;; simple-call-tree-info: CHECK
