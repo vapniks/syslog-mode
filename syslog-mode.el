@@ -1751,20 +1751,37 @@ as selection candidates for LINE. You may also choose \"current line\" or
 							   (t arg)))
 							(cdddr item))))
 					    (cond ((null nt) "")
-						  ((functionp nt) (apply nt args))
+						  ((functionp nt)
+						   (let ((rval (apply nt args)))
+						     (if (windowp rval)
+							 (setq syslog-last-note-window rval)
+						       rval)))
 						  ((stringp nt) nt)
 						  (t (error "Invalid note entry in %s"
 							    (syslog-notes-file)))))
 			      if (stringp value) concat (concat value "\n")
 			      else if value return nil)))
+	  (setq syslog-last-note-word word)
 	  (when note
 	    (message (if (> (length note) 0)
 			 (replace-regexp-in-string "\n$" "" note)
 		       (concat "No notes found for " word
-			       " (to create one: M-x syslog-edit-notes)")))))
+			       " (to create one: M-x syslog-edit-notes)")))
+	    (setq syslog-last-note-window nil)))
       (when (and (y-or-n-p "No notes loaded, load now? ")
 		 (syslog-load-notes))
 	(syslog-show-notes)))))
+
+;; simple-call-tree-info: CHECK
+(defun syslog-notes-next-match (arg)
+  "Search other window for the next match to the word used by the last call to `syslog-show-notes'.
+If a prefix ARG is used, prompt for a different word to search for."
+  (interactive "P")
+  (if (windowp syslog-last-note-window)
+      (with-selected-window syslog-last-note-window
+	(search-forward syslog-last-note-word)
+	(recenter 0))
+    (message "No notes buffer visible")))
 
 ;; simple-call-tree-info: DONE
 (defun syslog-notes-file nil
@@ -1913,7 +1930,8 @@ name of a single manpage, or lists of buffer positions corresponding to each man
 otherwise.
 
 If no match can be found at INDENT level and DEFAULT is non-nil, search for the first 
-match to WORD in the manpages regardless of indentation level or FACE."
+match to WORD in the manpages regardless of indentation level or FACE, and display
+it in another window which is returned by the function."
   (when word
     (let* ((indstr (number-to-string indent))
 	   (pages (if (listp pages) pages (list pages)))
@@ -1940,11 +1958,13 @@ match to WORD in the manpages regardless of indentation level or FACE."
       (if (> (length notes) 0)
 	  (substring notes nil -1)
 	(when default
-	  (cl-loop for page in pages
-		   if (syslog-show-note-from-file-or-buffer
-		       (get-buffer (concat "*Man " (Man-translate-references page) "*"))
-		       wordrx)
-		   return 'stop))))))
+	  (let (win)
+	    (cl-loop for page in pages
+		     if (setq win
+			      (syslog-show-note-from-file-or-buffer
+			       (get-buffer (concat "*Man " (Man-translate-references page) "*"))
+			       wordrx))
+		     return win)))))))
 
 ;; simple-call-tree-info: CHECK
 (defun syslog-extract-matches-from-manpage (page regex &optional face)
@@ -1964,8 +1984,16 @@ Searching is done case sensitively."
       matches)))
 
 ;; simple-call-tree-info: CHECK
+(defvar syslog-last-note-window nil
+  "Window last used for displaying a note with `syslog-show-notes', if any.")
+
+;; simple-call-tree-info: CHECK
+(defvar syslog-last-note-word nil
+  "Last word used for finding a note with `syslog-show-notes'.")
+
+;; simple-call-tree-info: CHECK
 (defun syslog-show-note-from-file-or-buffer (fileorbuf line &optional count start end)
-  "Display a section of FILEORBUF in another window.
+  "Display a section of FILEORBUF in another window, and return that window.
 If LINE is a positive number display that line at the top of the window.
 If LINE is a regexp display the first match at the top of the window.
 If COUNT is an integer display instead the COUNT'th match at the top,
@@ -2029,12 +2057,12 @@ user will be prompted before loading the file (unless it's already loaded)."
 	    (delete-window win)
 	  (when (derived-mode-p 'org-mode)
 	    (org-show-context 'agenda))
-	  (recenter 0)
-	  'stop)))))
+	  (recenter 0)))
+      win)))
 
 ;; simple-call-tree-info: CHECK
 (defun syslog-show-note-from-info-node (node &optional regex count)
-  "Display info NODE in another window.
+  "Display info NODE in another window, and return that window.
 If REGEX is non-nil recenter the buffer so that the first match is displayed
 at the top. If COUNT is an integer display instead the COUNT'th match at the top, 
 or the COUNT'th last match if COUNT is negative.
@@ -2053,8 +2081,8 @@ If no match for REGEX can be found, return nil."
 		     (point-min)))
 	(if (not (re-search-forward regex nil t count))
 	    (delete-window win)
-	  (recenter 0)
-	  'stop)))))
+	  (recenter 0))))
+    win))
 
 ;; simple-call-tree-info: CHECK
 (defun syslog-show-note-from-apropos (regex &optional retry &rest sections)
