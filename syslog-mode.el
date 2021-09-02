@@ -1580,15 +1580,12 @@ ALIGNSTRINGS      - align the first strings of each line
   (goto-char (point-min)))
 
 ;; simple-call-tree-info: DONE  
-(defcustom syslog-notes-files (list (cons ".*\\.strace"
-					  (concat (file-name-directory load-file-name)
-						  "strace_notes.el"))
-				    (cons "^strace:"
-					  (concat (file-name-directory load-file-name)
-						  "strace_notes.el"))
-				    (cons "syslog.*"
-					  (concat (file-name-directory load-file-name)
-						  "syslog_notes.el")))
+(defcustom syslog-notes-files (let ((dir (file-name-directory
+					  (or load-file-name
+					      (symbol-file 'syslog-mode)))))
+				(list (cons ".*\\.strace" (concat dir "strace_notes.el"))
+				      (cons "^strace:" (concat dir "strace_notes.el"))
+				      (cons "syslog.*" (concat dir "syslog_notes.el"))))
   "An alist used by `syslog-load-notes' for choosing a notes file to load.
 The car of each element in the list is a regexp used for matching against
 the file visited in the current buffer or just the buffer name if there is 
