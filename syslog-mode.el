@@ -1668,7 +1668,7 @@ If ARG is omitted or nil, move point forward one token."
   (backward-char (if (and arg (> arg 0)) 1 -1)))
 
 ;; simple-call-tree-info: CHECK
-(defun syslog-show-notes (word line)
+(defun syslog-show-notes (&optional word line)
   "In the minibuffer display notes associated with the region or WORD at point.
 The notes are chosen from the current value of `syslog-notes'.
 If there are notes which match the current region/word & LINE, then all those
