@@ -1944,7 +1944,7 @@ optional START and END args."
       regions)))
 
 ;; simple-call-tree-info: CHECK  
-(cl-defun syslog-show-note-from-manpages (word pages &optional default
+(cl-defun syslog-show-note-from-manpages (word pages &optional nodefault
 					       (indent 7)
 					       (face 'Man-overstrike)
 					       start end)
@@ -1959,7 +1959,7 @@ START & END args which should be either single buffer positions if PAGES is the
 name of a single manpage, or lists of buffer positions corresponding to each manpage
 otherwise.
 
-If no match can be found at INDENT level and DEFAULT is non-nil, search for the first 
+If no match can be found at INDENT level and NODEFAULT is nil, search for the first 
 match to WORD in the manpages regardless of indentation level or FACE, and display
 it in another window which is returned by the function."
   (when word
@@ -1987,7 +1987,7 @@ it in another window which is returned by the function."
 						   "\n"))))
       (if (> (length notes) 0)
 	  (substring notes nil -1)
-	(when default
+	(when (not nodefault)
 	  (let (win)
 	    (cl-loop for page in pages
 		     if (setq win
