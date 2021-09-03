@@ -1633,10 +1633,12 @@ where:
         `syslog-show-note-from-info-node' and `syslog-show-note-from-apropos' can 
         be used here.
  ARGS   are arguments for the NOTES function. Any occurrence of the symbols
-        `word' or `line' among ARGS will be replaced by the matches to WORDRX & LINERX 
-        respectively. Any function among ARGS whose arglist consists of a single 
-        symbol 'word or 'line will be replaced by the results of calling that function 
-        with the match to WORDRX or LINERX respectively.
+        `word', `line' or `accum' among ARGS will be replaced by the matches to 
+        WORDRX & LINERX, or the accumulated note string collected so far from 
+        previous items.
+        Any function among ARGS whose arglist consists of a single symbol 'word,
+        'line or 'accum will be replaced by the results of calling that function
+        with the match to WORDRX or LINERX, or the accumulated note string.
 
 WORDRX or LINERX may be nil, in which case only the non-nil regexp will be used
 for matching. WORDRX only matches have higher precedence than LINERX only matches, 
@@ -1740,6 +1742,7 @@ as selection candidates for LINE. You may also choose \"current line\" or
 			  (cl-remove-if 'cadr haswd)
 			  (cl-remove-if-not (function lnmatch) nowd)
 			  (cl-remove-if 'cadr nowd)))
+	       (msgstr nil)
 	       (note (cl-loop for item in items
 			      for value = (let* ((wd (getmatch (car item) word))
 						 (ln (getmatch (getstr (cadr item)) line))
@@ -1749,6 +1752,7 @@ as selection candidates for LINE. You may also choose \"current line\" or
 							  (cond
 							   ((eq arg 'word) wd)
 							   ((eq arg 'line) ln)
+							   ((eq arg 'accum) msgstr)
 							   ((and (functionp arg)
 								 (equal
 								  (help-function-arglist arg)
@@ -1758,6 +1762,11 @@ as selection candidates for LINE. You may also choose \"current line\" or
 								 (equal
 								  (help-function-arglist arg)
 								  '(line)))
+							    (funcall arg ln))
+							   ((and (functionp arg)
+								 (equal
+								  (help-function-arglist arg)
+								  '(accum)))
 							    (funcall arg ln))
 							   (t arg)))
 							(cdddr item))))
@@ -1771,8 +1780,9 @@ as selection candidates for LINE. You may also choose \"current line\" or
 						  ((stringp nt) nt)
 						  (t (error "Invalid note entry in %s"
 							    (syslog-notes-file)))))
-			      if (stringp value) concat (concat value "\n")
-			      else if value return nil)))
+			      if (stringp value) do (setq msgstr (concat msgstr value "\n"))
+			      else if value return nil
+			      finally return msgstr)))
 	  (setq-local syslog-notes-last-word word)
 	  (when note
 	    (message (if (> (length note) 0)
