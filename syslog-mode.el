@@ -1505,44 +1505,46 @@ will be displayed."
 	   (fdsrx (funcall (if (listp fds) 'regexp-opt 'regexp-quote) fds))
 	   (fullrx (concat "^\\(?1:\\S-+\\) +\\(?:\\(?2:[^([:space:]\n]+\\)(.*\\|<\\.\\.\\. pipe resumed>.*\\)"
 			   fdsrx ".*?\\(?:<\\(?3:unfinished\\) \\.\\.\\.>$\\)?$"))
-	   (outbuf (get-buffer-create
-		    (concat "strace:"
-			    (if (listp fds)
-				(concat (car fds) "(+"
-					(number-to-string (1- (length fds)))
-					")")
-			      fds))))
+	   (bufname (concat "strace:" (if (listp fds)
+					  (concat (car fds) "(+"
+						  (number-to-string (1- (length fds)))
+						  ")")
+					fds)))
 	   output unfinished)
-      (save-excursion
-	(goto-char (point-min))
-	(while (re-search-forward fullrx nil t)
-	  (let ((cont (match-string 3)))
-	    (when cont
-	      (let ((resume (concat "\\(?1:" (regexp-quote (match-string 1))
-				    "\\) +<\\.\\.\\. \\(?2:" (regexp-quote (match-string 2))
-				    "\\) \\(?3:resumed\\)>.*")))
-		(if (string= cont "unfinished")
-		    (add-to-list 'unfinished resume)
-		  (cl-remove-if (lambda (str) (string= str resume)) unfinished)))))
-	  (setq fullrx (concat "^\\(?:"
-			       "\\(?1:\\S-+\\) +\\(?2:[^([:space:]\n]+\\)(.*"
-			       fdsrx ".*?\\(?:<\\(?3:unfinished\\) \\.\\.\\.>\\)?"
-			       (when (> (length unfinished) 0)
-				 (concat "\\|" (mapconcat 'identity unfinished "\\|")))
-			       "\\)$")
-		output (concat output (substring-no-properties (match-string 0)) "\n"))))
-      (with-current-buffer outbuf
-	(delete-region (point-min) (point-max))
-	(goto-char (point-min))
-	(insert output)
-	(syslog-mode)
-	(when copyhl
-	  (hi-lock-mode 1)
-	  (dolist (pat hlip)
-	    (hi-lock-set-pattern (car pat)
-				 (eval (second (cadr pat))))))
-	(goto-char (point-min)))
-      (when display (display-buffer outbuf)))))
+      (unless (and (get-buffer bufname)
+		   (not (y-or-n-p
+			 (format "Buffer %S already exists!\nOverwrite? " bufname))))
+	(save-excursion
+	  (goto-char (point-min))
+	  (while (re-search-forward fullrx nil t)
+	    (let ((cont (match-string 3)))
+	      (when cont
+		(let ((resume (concat "\\(?1:" (regexp-quote (match-string 1))
+				      "\\) +<\\.\\.\\. \\(?2:" (regexp-quote (match-string 2))
+				      "\\) \\(?3:resumed\\)>.*")))
+		  (if (string= cont "unfinished")
+		      (add-to-list 'unfinished resume)
+		    (cl-remove-if (lambda (str) (string= str resume)) unfinished)))))
+	    (setq fullrx (concat "^\\(?:"
+				 "\\(?1:\\S-+\\) +\\(?2:[^([:space:]\n]+\\)(.*"
+				 fdsrx ".*?\\(?:<\\(?3:unfinished\\) \\.\\.\\.>\\)?"
+				 (when (> (length unfinished) 0)
+				   (concat "\\|" (mapconcat 'identity unfinished "\\|")))
+				 "\\)$")
+		  output (concat output (substring-no-properties (match-string 0)) "\n"))))
+	(with-current-buffer (get-buffer-create bufname)
+	  (read-only-mode -1)
+	  (delete-region (point-min) (point-max))
+	  (goto-char (point-min))
+	  (insert output)
+	  (syslog-mode)
+	  (when copyhl
+	    (hi-lock-mode 1)
+	    (dolist (pat hlip)
+	      (hi-lock-set-pattern (car pat)
+				   (eval (second (cadr pat))))))
+	  (goto-char (point-min))))
+      (when display (display-buffer (get-buffer bufname))))))
 
 ;; simple-call-tree-info: CHECK
 (cl-defun syslog-strace-fds-treatment (&optional (shortenpipes t)
