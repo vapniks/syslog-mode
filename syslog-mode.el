@@ -1944,8 +1944,7 @@ optional START and END args."
       regions)))
 
 ;; simple-call-tree-info: CHECK  
-(cl-defun syslog-show-note-from-manpages (word pages &optional
-					       (default t)
+(cl-defun syslog-show-note-from-manpages (word pages &optional default
 					       (indent 7)
 					       (face 'Man-overstrike)
 					       start end)
