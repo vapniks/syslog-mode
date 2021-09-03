@@ -1625,10 +1625,10 @@ where:
         is a word which is unlikely to match any text in the syslog buffer.
  NOTE   is the note to be displayed: either a string, or a function which will
         be called with the remaining ARGS. If it's a function it should either 
-        return a string to be displayed, display the note itself and return a 
-        non-nil value, or return nil to indicate that it is unable to find an
-        appropriate note (in which case `syslog-show-notes' may display notes
-        from other matching items).
+        return a string to be displayed, display the note itself and return the
+        window used to display it, or return nil to indicate that it is unable 
+        to find an appropriate note (in which case `syslog-show-notes' may display 
+        notes from other matching items).
         `syslog-show-note-from-manpages', `syslog-show-note-from-file-or-buffer', 
         `syslog-show-note-from-info-node' and `syslog-show-note-from-apropos' can 
         be used here.
