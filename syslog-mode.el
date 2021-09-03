@@ -2078,7 +2078,7 @@ user will be prompted before loading the file (unless it's already loaded)."
 	  (when (derived-mode-p 'org-mode)
 	    (org-show-context 'agenda))
 	  (recenter 0)))
-      win)))
+      (and (window-valid-p win) win))))
 
 ;; simple-call-tree-info: CHECK
 (defun syslog-show-note-from-info-node (node &optional regex count)
@@ -2102,7 +2102,7 @@ If no match for REGEX can be found, return nil."
 	(if (not (re-search-forward regex nil t count))
 	    (delete-window win)
 	  (recenter 0))))
-    win))
+    (and (window-valid-p win) win)))
 
 ;; simple-call-tree-info: CHECK
 (defun syslog-show-note-from-apropos (regex &optional retry &rest sections)
