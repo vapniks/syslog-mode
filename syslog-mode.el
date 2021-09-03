@@ -1761,24 +1761,24 @@ as selection candidates for LINE. You may also choose \"current line\" or
 					    (cond ((null nt) "")
 						  ((functionp nt)
 						   (let ((rval (apply nt args)))
-						     (if (windowp rval)
-							 (setq syslog-notes-last-window rval
-							       syslog-notes-last-buffer
-							       (window-buffer rval))
-						       rval)))
+						     (when (windowp rval)
+						       (setq-local syslog-notes-last-window rval)
+						       (setq-local syslog-notes-last-buffer
+								   (window-buffer rval)))
+						     rval))
 						  ((stringp nt) nt)
 						  (t (error "Invalid note entry in %s"
 							    (syslog-notes-file)))))
 			      if (stringp value) concat (concat value "\n")
 			      else if value return nil)))
-	  (setq syslog-notes-last-word word)
+	  (setq-local syslog-notes-last-word word)
 	  (when note
 	    (message (if (> (length note) 0)
 			 (replace-regexp-in-string "\n$" "" note)
 		       (concat "No notes found for " word
 			       " (to create one: M-x syslog-edit-notes)")))
-	    (setq syslog-notes-last-window nil
-		  syslog-notes-last-buffer nil)))
+	    (setq-local syslog-notes-last-window nil)
+	    (setq-local syslog-notes-last-buffer nil)))
       (when (and (y-or-n-p "No notes loaded, load now? ")
 		 (syslog-load-notes))
 	(syslog-show-notes)))))
@@ -1788,17 +1788,16 @@ as selection candidates for LINE. You may also choose \"current line\" or
   "Search other window for the next match to the word used by the last call to `syslog-show-notes'.
 If a prefix ARG is used, prompt for the ARGth next match."
   (interactive "P")
-  (if (window-valid-p syslog-notes-last-window)
-      (with-selected-window syslog-notes-last-window
-	(search-forward syslog-notes-last-word nil t
-			(prefix-numeric-value arg))
-	(recenter 0))
-    (if (buffer-live-p syslog-notes-last-buffer)
-	(with-selected-window (display-buffer syslog-notes-last-buffer)
-	  (search-forward syslog-notes-last-word nil t
-			  (prefix-numeric-value arg))
+  (let ((word syslog-notes-last-word))
+    (if (window-valid-p syslog-notes-last-window)
+	(with-selected-window syslog-notes-last-window
+	  (search-forward word nil t (prefix-numeric-value arg))
 	  (recenter 0))
-      (message "No notes buffer visible"))))
+      (if (buffer-live-p syslog-notes-last-buffer)
+	  (with-selected-window (display-buffer syslog-notes-last-buffer)
+	    (search-forward word nil t (prefix-numeric-value arg))
+	    (recenter 0))
+	(message "No notes buffer visible")))))
 
 ;; simple-call-tree-info: CHECK
 (defun syslog-notes-prev-match (arg)
@@ -2008,15 +2007,15 @@ Searching is done case sensitively."
       matches)))
 
 ;; simple-call-tree-info: CHECK
-(defvar syslog-notes-last-window nil
+(defvar-local syslog-notes-last-window nil
   "Window last used for displaying a note with `syslog-show-notes', if any.")
 
 ;; simple-call-tree-info: CHECK
-(defvar syslog-notes-last-buffer nil
+(defvar-local syslog-notes-last-buffer nil
   "Buffer last used for displaying a note with `syslog-show-notes', if any.")
 
 ;; simple-call-tree-info: CHECK
-(defvar syslog-notes-last-word nil
+(defvar-local syslog-notes-last-word nil
   "Last word used for finding a note with `syslog-show-notes'.")
 
 ;; simple-call-tree-info: CHECK
