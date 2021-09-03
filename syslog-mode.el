@@ -1495,7 +1495,8 @@ will be displayed."
 		 "Select pipe: "
 		 (or (syslog-unique-matches
 		      "<\\(?:pipe:\\[\\(?:[0-9]\\{3,\\}\\|\\(?::?[^][,]+,[0-9]+[rw]\\)+\\)\\]\\|[a-z0-9/]+\\)>")
-		     (error "No pipe references found in current buffer")))
+		     (error "No pipe references found in current buffer"))
+		 nil t)
 		(y-or-n-p "Copy highlighting? ")
 		t))
   (when (or (string-match "\\.s?trace$" (or buffer-file-name (buffer-name)))
