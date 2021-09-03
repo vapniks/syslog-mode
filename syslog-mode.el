@@ -1635,7 +1635,8 @@ where:
  ARGS   are arguments for the NOTES function. Any occurrence of the symbols
         `word', `line' or `accum' among ARGS will be replaced by the matches to 
         WORDRX & LINERX, or the accumulated note string collected so far from 
-        previous items.
+        previous items (so the function can decide whether it needs to display
+        a note or not).
         Any function among ARGS whose arglist consists of a single symbol 'word,
         'line or 'accum will be replaced by the results of calling that function
         with the match to WORDRX or LINERX, or the accumulated note string.
