@@ -1696,8 +1696,8 @@ then that will be used.
 When called interactively with a prefix arg a WORD will be prompted for, and
 items in `syslog-notes' which have a symbol for the LINERX entry will be offered
 as selection candidates for LINE. You may also choose \"current line\" or
-\"enter line\" at this point. Note that for some show-notes functions WORD is
-treated as a regexp."
+\"enter line\" at this point. Note that for some show-note functions WORD is
+treated as a regexp (e.g. `syslog-show-note-from-file-or-buffer')."
   (interactive (list (when current-prefix-arg
 		       (read-string "Find notes for word: "))
 		     (when current-prefix-arg
