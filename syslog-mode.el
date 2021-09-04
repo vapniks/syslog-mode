@@ -1948,26 +1948,29 @@ optional START and END args."
       regions)))
 
 ;; simple-call-tree-info: CHECK  
-(cl-defun syslog-show-note-from-manpages (word pages &optional nodefault
-					       (indent 7)
-					       (face 'Man-overstrike)
-					       start end)
-  "Show the description of WORD extracted from manpage(s) PAGES.
+(cl-defun syslog-show-note-from-manpages (regex pages &optional nodefault
+						(indent 7)
+						(face 'Man-overstrike)
+						start end)
+  "Show a description extracted from manpage(s) PAGES, or display part of a manpage.
+REGEX should be a regular expression matching a word whose description is to be extracted,
+or if INDENT is nil, the top of the part of the manpage to be displayed.
 PAGES can be either the name of a single manpage, or a list of manpage names.
 The manpage names may include section numbers, e.g. \"signal(7)\" or \"7 signal\".
-The description is taken by searching for indented text following the first appearance
-of WORD at indentation level INDENT and face FACE in the manpage.
+
+The description is found by searching for indented text following the first appearance
+of REGEX at indentation level INDENT and face FACE in the manpage.
 The description is assumed to end when the indentation level of the text
 returns to INDENT. To bound the regions searched within each manpage you can supply
 START & END args which should be either single buffer positions if PAGES is the
 name of a single manpage, or lists of buffer positions corresponding to each manpage
 otherwise.
 
-If no match can be found at INDENT level and NODEFAULT is nil, search for the first 
-match to WORD in the manpages regardless of indentation level or FACE, and display
-it in another window which is returned by the function."
-  (when word
-    (let* ((indstr (number-to-string indent))
+If no match can be found at INDENT level or INDENT is nil, and if NODEFAULT is also nil 
+then search for the first match to REGEX in the manpages regardless of indentation level 
+or FACE, and display it in another window which is returned by the function."
+  (when regex
+    (let* ((indstr (and indent (number-to-string indent)))
 	   (pages (if (listp pages) pages (list pages)))
 	   (starts (if (and start (listp start))
 		       start
@@ -1975,29 +1978,29 @@ it in another window which is returned by the function."
 	   (ends (if (and end (listp end))
 		     end
 		   (make-list (length pages) end)))
-	   (wordrx (concat "\\<" (regexp-quote word) "\\>"))
-	   (notes (cl-loop for page in pages
-			   for s in starts
-			   for e in ends
-			   for notes = (mapcar 'cdr
-					       (syslog-extract-manpage-regions
-						page
-						(concat (concat "^\\s-\\{" indstr "\\}")
-							wordrx)
-						(concat "^\\s-\\{," indstr "\\}\\S-")
-						face nil s e))
-			   if notes concat (concat word " in " page " manpage: "
-						   (mapconcat 'identity notes "\n")
-						   "\n"))))
+	   (notes (when indstr
+		    (cl-loop for page in pages
+			     for s in starts
+			     for e in ends
+			     for notes = (mapcar 'cdr
+						 (syslog-extract-manpage-regions
+						  page
+						  (concat (concat "^\\s-\\{" indstr "\\}")
+							  regex)
+						  (concat "^\\s-\\{," indstr "\\}\\S-")
+						  face nil s e))
+			     if notes concat (concat regex " in " page " manpage: "
+						     (mapconcat 'identity notes "\n")
+						     "\n")))))
       (if (> (length notes) 0)
 	  (substring notes nil -1)
-	(unless nodefault
+	(when (not (and nodefault indent))
 	  (let (win)
 	    (cl-loop for page in pages
 		     if (setq win
 			      (syslog-show-note-from-file-or-buffer
 			       (get-buffer (concat "*Man " (Man-translate-references page) "*"))
-			       wordrx))
+			       regex))
 		     return win)))))))
 
 ;; simple-call-tree-info: CHECK
