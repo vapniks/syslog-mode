@@ -54,4 +54,8 @@
 			    word (lambda (line) (concat line "(2)")) accum)
 			  ;; it could also be resumed from a previous line
 			  '(".*" "^\\S-+\\s-+<... \\(\\S-+\\) resumed" syslog-show-note-from-manpages
-			    word (lambda (line) (concat line "(2)")) accum)))
+			    word (lambda (line) (concat line "(2)")) accum)
+			  ;; search console_codes manpage (available when prefix arg is used)
+			  '(nil consolecodes syslog-show-note-from-manpages
+				word "console_codes" nil nil)
+			  ))
