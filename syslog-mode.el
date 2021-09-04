@@ -1987,7 +1987,7 @@ it in another window which is returned by the function."
 						   "\n"))))
       (if (> (length notes) 0)
 	  (substring notes nil -1)
-	(when (not nodefault)
+	(unless nodefault
 	  (let (win)
 	    (cl-loop for page in pages
 		     if (setq win
