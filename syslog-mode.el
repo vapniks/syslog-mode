@@ -1696,8 +1696,7 @@ then that will be used.
 When called interactively with a prefix arg a WORD will be prompted for, and
 items in `syslog-notes' which have a symbol for the LINERX entry will be offered
 as selection candidates for LINE. You may also choose \"current line\" or
-\"enter line\" at this point. Note that for some show-note functions WORD is
-treated as a regexp (e.g. `syslog-show-note-from-file-or-buffer')."
+\"enter line\" at this point. Note that in this case WORD is treated as a regexp."
   (interactive (list (when current-prefix-arg
 		       (read-string "Find notes for word: "))
 		     (when current-prefix-arg
@@ -1785,10 +1784,9 @@ treated as a regexp (e.g. `syslog-show-note-from-file-or-buffer')."
 			      if (stringp value) do (setq msgstr (concat msgstr value "\n"))
 			      else if value return nil
 			      finally return msgstr)))
-	  (setq-local syslog-notes-last-word
-		      (if current-prefix-arg
-			  word
-			(regexp-quote word)))
+	  (setq-local syslog-notes-last-word (if current-prefix-arg
+						 word
+					       (regexp-quote word)))
 	  (when note
 	    (message (if (> (length note) 0)
 			 (replace-regexp-in-string "\n$" "" note)
