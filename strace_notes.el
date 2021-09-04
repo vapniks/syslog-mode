@@ -26,7 +26,8 @@
 			  '("ioctl\\|\\(.*\\)" "\\<ioctl" syslog-show-note-from-manpages
 			    word ("ioctl_console" "ioctl_fat" "ioctl_ficlonerange" "ioctl_fideduperange"
 				  "ioctl_getfsmap" "ioctl_iflags" "ioctl_list" "ioctl_ns" "ioctl_tty"
-				  "ioctl_userfaultfd"))
+				  "ioctl_userfaultfd")
+			    t)
 			  ;; termios struct flags are found in the termios(3) manpage
 			  '("-?\\(ignbrk\\|brkint\\|ignpar\\|parmrk\\|inpck\\|istrip\\|inlcr\\|igncr\\|icrnl\\|iuclc\\|ixon\\|ixany\\|ixoff\\|imaxbel\\|iutf8\\|opost\\|olcuc\\|onlcr\\|ocrnl\\|onocr\\|onlret\\|ofill\\|ofdel\\|nldly\\|crdly\\|tabdly\\|bsdly\\|vtdly\\|ffdly\\|cbaud\\|cbaudex\\|csize\\|cstopb\\|cread\\|parenb\\|parodd\\|hupcl\\|clocal\\|loblk\\|cibaud\\|cmspar\\|crtscts\\|isig\\|icanon\\|xcase\\|echo\\|echoe\\|echok\\|echonl\\|echoctl\\|echoprt\\|echoke\\|defecho\\|flusho\\|noflsh\\|tostop\\|pendin\\|iexten\\|vdiscard\\|vdsusp\\|veof\\|veol\\|veol2\\|verase\\|vintr\\|vkill\\|vlnext\\|vmin\\|vquit\\|vreprint\\|vstart\\|vstatus\\|vstop\\|vsusp\\|vswtch\\|vtime\\|vwerase\\)"
 			    "\\<ioctl" syslog-show-note-from-manpages
@@ -35,10 +36,10 @@
 			  '("-\\(ignbrk\\|brkint\\|ignpar\\|parmrk\\|inpck\\|istrip\\|inlcr\\|igncr\\|icrnl\\|iuclc\\|ixon\\|ixany\\|ixoff\\|imaxbel\\|iutf8\\|opost\\|olcuc\\|onlcr\\|ocrnl\\|onocr\\|onlret\\|ofill\\|ofdel\\|nldly\\|crdly\\|tabdly\\|bsdly\\|vtdly\\|ffdly\\|cbaud\\|cbaudex\\|csize\\|cstopb\\|cread\\|parenb\\|parodd\\|hupcl\\|clocal\\|loblk\\|cibaud\\|cmspar\\|crtscts\\|isig\\|icanon\\|xcase\\|echo\\|echoe\\|echok\\|echonl\\|echoctl\\|echoprt\\|echoke\\|defecho\\|flusho\\|noflsh\\|tostop\\|pendin\\|iexten\\|vdiscard\\|vdsusp\\|veof\\|veol\\|veol2\\|verase\\|vintr\\|vkill\\|vlnext\\|vmin\\|vquit\\|vreprint\\|vstart\\|vstatus\\|vstop\\|vsusp\\|vswtch\\|vtime\\|vwerase\\)"
 			    "\\<ioctl" "This setting is negated")
 			  ;; rt_sigaction uses different indentations for different types of words 
-			  '(".*" "\\<rt_sigaction"
-			    syslog-show-note-from-manpages word "rt_sigaction" t 11)
 			  '("sa_[a-z]+" "\\<rt_sigaction"
 			    syslog-show-note-from-manpages word "rt_sigaction" t 7 Man-underline)
+			  '(".*" "\\<rt_sigaction"
+			    syslog-show-note-from-manpages word "rt_sigaction" t 11)
 			  ;; CSI sequences can be found in the console_codes manpage
 			  ;; (you may need to adjust the start & end positions)
 			  '("\\\\33\\[[0-9?]*\\([A-Za-z@`]\\)" "\\(read\\|write\\).*\".*\""
@@ -48,9 +49,9 @@
 			    (lambda (word line) (if (string= word line)
 						    (syslog-show-note-from-apropos word nil 2)))
 			    word line)
-			  ;; by default search manpage of function at start of line
+			  ;; search manpage of function at start of line if nothing else was found
 			  '(".*" "^\\S-+\\s-+\\([^(]+\\)(" syslog-show-note-from-manpages
-			    word (lambda (line) (concat line "(2)")))
+			    word (lambda (line) (concat line "(2)")) accum)
 			  ;; it could also be resumed from a previous line
 			  '(".*" "^\\S-+\\s-+<... \\(\\S-+\\) resumed" syslog-show-note-from-manpages
-			    word (lambda (line) (concat line "(2)")))))
+			    word (lambda (line) (concat line "(2)")) accum)))
