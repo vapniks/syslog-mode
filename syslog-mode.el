@@ -1784,7 +1784,10 @@ as selection candidates for LINE. You may also choose \"current line\" or
 			      if (stringp value) do (setq msgstr (concat msgstr value "\n"))
 			      else if value return nil
 			      finally return msgstr)))
-	  (setq-local syslog-notes-last-word word)
+	  (setq-local syslog-notes-last-word
+		      (if current-prefix-arg
+			  word
+			(regexp-quote word)))
 	  (when note
 	    (message (if (> (length note) 0)
 			 (replace-regexp-in-string "\n$" "" note)
@@ -1797,19 +1800,19 @@ as selection candidates for LINE. You may also choose \"current line\" or
 
 ;; simple-call-tree-info: CHECK
 (defun syslog-notes-next-match (arg)
-  "Search other window for the next match to the word used by the last call to `syslog-show-notes'.
+  "Search other window for the next match to the word/regexp used by the last call to `syslog-show-notes'.
 If a prefix ARG is used, prompt for the ARGth next match."
   (interactive "P")
   (let ((word syslog-notes-last-word))
     (if (buffer-live-p syslog-notes-last-buffer)
 	(with-selected-window (display-buffer syslog-notes-last-buffer)
-	  (search-forward word nil t (prefix-numeric-value arg))
+	  (re-search-forward word nil t (prefix-numeric-value arg))
 	  (recenter 0))
       (message "No notes buffer visible"))))
 
 ;; simple-call-tree-info: CHECK
 (defun syslog-notes-prev-match (arg)
-  "Search other window for the previous match to the word used by the last call to `syslog-show-notes'.
+  "Search other window for the previous match to the word/regexp used by the last call to `syslog-show-notes'.
 If a prefix ARG is used, prompt for the ARGth previous match."
   (interactive "P")
   (syslog-notes-next-match (* -1 (prefix-numeric-value arg))))
@@ -2019,7 +2022,7 @@ Searching is done case sensitively."
 
 ;; simple-call-tree-info: CHECK
 (defvar-local syslog-notes-last-word nil
-  "Last word used for finding a note with `syslog-show-notes'.")
+  "Regexp last used for finding a note with `syslog-show-notes'.")
 
 ;; simple-call-tree-info: CHECK
 (defun syslog-show-note-from-file-or-buffer (fileorbuf line &optional count start end)
