@@ -1742,16 +1742,16 @@ as selection candidates for LINE. You may also choose \"current line\" or
   (interactive (list (when current-prefix-arg
 		       (read-string "Find notes for word: "))
 		     (when current-prefix-arg
-		       (let ((selection
-			      (ido-completing-read
-			       "Note type: "
-			       (append	;don't use nconc here
-				(mapcar (lambda (y) (symbol-name (cadr y)))
-					(cl-remove-if-not
-					 (lambda (x)
-					   (and (cadr x) (symbolp (cadr x))))
-					 (append syslog-notes syslog-notes-default)))
-				'("current line" "enter line")))))
+		       (let* ((allnotes (append syslog-notes syslog-notes-default))
+			      (selection
+			       (ido-completing-read
+				"Note type: "
+				(append	;don't use nconc here
+				 (mapcar (lambda (y) (symbol-name (cadr y)))
+					 (cl-remove-if-not
+					  (lambda (x) (and (cadr x) (symbolp (cadr x))))
+					  allnotes))
+				 '("current line" "enter line")))))
 			 (cond ((equal selection "current line") nil)
 			       ((equal selection "enter line") (read-string "Enter line: "))
 			       (t selection))))))
