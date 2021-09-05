@@ -1609,6 +1609,43 @@ The notes file should contain an s-expression setting the local value of `syslog
   :type '(alist :key-type (regexp :help-echo "Regexp for matching file visited by buffer")
 		:value-type (file :help-echo "Syslog notes file")))
 
+;; simple-call-tree-info: TODO
+(defcustom syslog-notes-default nil
+  "List of `syslog-notes' items that are always available.
+These items will always be available when `syslog-show-notes' is called,
+no matter what buffer is current. Generally these should be items with
+symbols for their LINERX entry so that they are only offered when
+ `syslog-show-notes' is called with a prefix arg."
+  :group 'syslog
+  :type '(repeat (list (choice :tag "Word"
+			       (const :tag "Ignore word at point" nil)
+			       (regexp :tag "Word regexp"
+				       :help-echo "Regexp to match word at point"))
+		       (choice :tag "Line"
+			       (symbol :tag "Identifier symbol"
+				       :help-echo "Symbol identifying the note")
+			       (regexp :tag "Line regexp"
+				       :help-echo "Regexp to match line at point"))
+		       (choice :tag "Note"
+			       (function-item syslog-show-note-from-file-or-buffer)
+			       (function-item syslog-show-note-from-manpages)
+			       (function-item syslog-show-note-from-info-node)
+			       (function-item syslog-show-note-from-apropos)
+			       (function :tag "Other function"
+					 :help-echo "Function which returns or displays a note")
+			       (string :tag "String" :help-echo "Contents of note"))
+		       (repeat :inline t :tag "Args for note function"
+			       (choice (const :tag "word" word)
+				       (const :tag "line" line)
+				       (const :tag "accum" accum)
+				       (function :tag "word transformer"
+						 :value (lambda (word)))
+				       (function :tag "line transformer"
+						 :value (lambda (line)))
+				       (function :tag "accum transformer"
+						 :value (lambda (accum) (not accum)))
+				       (sexp :tag "General argument"))))))
+
 ;; simple-call-tree-info: DONE
 (defvar-local syslog-notes nil
   "List of syslog notes for current buffer.
@@ -1649,7 +1686,9 @@ on WORD use the following trick \"WORD\\\\|\\\\(.*\\\\)\". This will return a
 match if the parenthesised match group matches, but not if WORD matches.
 
 An entry with nil values for both WORDRX & LINERX may be used as the default.
-All matches of the highest precedence will be displayed.")
+All matches of the highest precedence will be displayed.
+
+See also `syslog-notes-default'.")
 
 ;; simple-call-tree-info: DONE
 (defcustom syslog-manpage-wait 0.2
@@ -1708,7 +1747,7 @@ as selection candidates for LINE. You may also choose \"current line\" or
 					(cl-remove-if-not
 					 (lambda (x)
 					   (and (cadr x) (symbolp (cadr x))))
-					 syslog-notes))
+					 (append syslog-notes syslog-notes-default)))
 				'("current line" "enter line")))))
 			 (cond ((equal selection "current line") nil)
 			       ((equal selection "enter line") (read-string "Enter line: "))
@@ -1725,8 +1764,9 @@ as selection candidates for LINE. You may also choose \"current line\" or
 						 0)
 					       str))
 			  str)))
-    (if syslog-notes
-	(let* ((case-fold-search nil)
+    (if (or syslog-notes syslog-notes-default)
+	(let* ((allnotes (append syslog-notes syslog-notes-default))
+	       (case-fold-search nil)
 	       (line (or line
 			 (buffer-substring-no-properties (line-beginning-position)
 							 (line-end-position))))
@@ -1737,8 +1777,8 @@ as selection candidates for LINE. You may also choose \"current line\" or
 			   (substring-no-properties
 			    (or (thing-at-point syslog-note-thing)
 				(error "Thing at point is not a valid item for notes"))))))
-	       (haswd (cl-remove-if-not (function wdmatch) syslog-notes))
-	       (nowd (cl-remove-if 'car syslog-notes))
+	       (haswd (cl-remove-if-not (function wdmatch) allnotes))
+	       (nowd (cl-remove-if 'car allnotes))
 	       (items (or (cl-remove-if-not (function lnmatch) haswd)
 			  (cl-remove-if 'cadr haswd)
 			  (cl-remove-if-not (function lnmatch) nowd)
