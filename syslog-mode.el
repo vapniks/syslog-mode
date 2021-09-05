@@ -145,10 +145,10 @@
 ;;    In the minibuffer display notes associated with the region or WORD at point.
 ;;    Keybinding: ?
 ;;  `syslog-notes-next-match'
-;;    Search other window for the next match to the word used by the last call to `syslog-show-notes'.
+;;    Search other window for the next match to the word/regexp used by the last call to `syslog-show-notes'.
 ;;    Keybinding: M-n
 ;;  `syslog-notes-prev-match'
-;;    Search other window for the previous match to the word used by the last call to `syslog-show-notes'.
+;;    Search other window for the previous match to the word/regexp used by the last call to `syslog-show-notes'.
 ;;    Keybinding: M-p
 ;;  `syslog-load-notes'
 ;;    Load appropriate notes file for the current buffer.
@@ -182,6 +182,9 @@
 ;;  `syslog-notes-files'
 ;;    An alist used by `syslog-load-notes' for choosing a notes file to load.
 ;;    default = (let ((dir ...)) (list (cons ".*\\.strace" ...) (cons "^strace:" ...) (cons "syslog.*" ...)))
+;;  `syslog-notes-default'
+;;    List of `syslog-notes' items that are always available.
+;;    default = nil
 ;;  `syslog-manpage-wait'
 ;;    Amount of time to wait for manpage to finish rendering, when processing manpages.
 ;;    default = 0.2

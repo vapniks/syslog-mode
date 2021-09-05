@@ -79,13 +79,17 @@ Below are customizable option list:
  - `syslog-notes-files' : An alist used by `syslog-load-notes' for choosing a notes file to load.
  - `syslog-manpage-wait' : Amount of time to wait for manpage to finish rendering, when processing manpages.
  - `syslog-note-things' : An alist of (REGEX . SYMB) pairs for choosing `syslog-note-thing'.
+ - `syslog-notes-default' : List of `syslog-notes' items that are always available.
    
 * Creating & viewing notes
-You can create notes files containing info about things found in syslog & trace files.
+You can create notes files containing info about things found in syslog & trace files using the
+`syslog-show-notes' command which is bound to the ? key.
 By default the thing to look up is the 'syslog-token extracted by `thing-at-point', but you can
-alter with the `syslog-note-things' option.
+alter this with the `syslog-note-things' option. If you call `syslog-show-notes' with a prefix arg
+then you will be prompted for a regexp and note type.
 The notes are stored in elisp files containing definitions of the buffer-local `syslog-notes' variable,
 and can be associated with log/trace files using the `syslog-notes-files' user option.
+You can also use `syslog-notes-default' to define notes that are available in all buffers.
 You can use the `syslog-show-note-from-manpages', `syslog-show-info-node-note', `syslog-show-note-from-file-or-buffer'
 and `syslog-show-note-from-apropos' functions in `syslog-notes' to extract notes from manpages,
 info nodes or arbitrary files (including org-mode files) at runtime. 
