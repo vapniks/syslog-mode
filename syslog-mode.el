@@ -2087,7 +2087,8 @@ If no match for LINE can be found, return nil.
 Note: if FILEORBUF is a file larger than `syslog-large-file-size' bytes the
 user will be prompted before loading the file (unless it's already loaded)."
   (when (or (bufferp fileorbuf)
-	    (let ((fsize (file-attribute-size (file-attributes fileorbuf))))
+	    (let ((fsize (file-attribute-size (or (file-attributes fileorbuf)
+						  (error "Cannot find file: %S" fileorbuf)))))
 	      (or (member (expand-file-name fileorbuf)
 			  (mapcar 'buffer-file-name (buffer-list)))
 		  (< fsize syslog-large-file-size)
