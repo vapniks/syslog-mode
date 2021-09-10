@@ -2139,28 +2139,34 @@ user will be prompted before loading the file (unless it's already loaded)."
 	  (recenter 0)))
       (and (window-valid-p win) win))))
 
-;; simple-call-tree-info: CHECK
-(defun syslog-show-note-from-info-node (node &optional regex count)
+;; simple-call-tree-info: TODO use Info-search to search all files related to node
+(defun syslog-show-note-from-info-node (node &optional regex count all)
   "Display info NODE in another window, and return that window.
 If REGEX is non-nil recenter the buffer so that the first match is displayed
 at the top. If COUNT is an integer display instead the COUNT'th match at the top, 
 or the COUNT'th last match if COUNT is negative.
-If no match for REGEX can be found, return nil."
-  (let ((win (display-buffer
+If no match for REGEX can be found, return nil.
+If ALL is non-nil, the search may go beyond the end of the current node & file 
+if necessary until a match is found. In this case ALL must be a positive integer
+to search forwards, or a negative integer to search backwards."
+  (let ((wconfig (current-window-configuration))
+	(win (display-buffer
 	      (get-buffer-create
 	       (concat "*info-" (and (string-match "^(\\([^()]+\\))" node)
 				     (match-string 1 node))
 		       "*")))))
     (with-selected-window win
       (unless (eq major-mode 'Info-mode) (Info-mode))
-      (Info-goto-node node)
-      (when regex
-	(goto-char (if (and count (< count 0))
-		       (point-max)
-		     (point-min)))
-	(if (not (re-search-forward regex nil t count))
-	    (delete-window win)
-	  (recenter 0))))
+      (condition-case nil
+	  (progn (Info-goto-node node)
+		 (when regex
+		   (goto-char (if (and count (< count 0))
+				  (point-max)
+				(point-min)))
+		   (re-search-forward regex nil nil count)
+		   (recenter 0)))
+	(error (delete-window win)
+	       (set-window-configuration wconfig))))
     (and (window-valid-p win) win)))
 
 ;; simple-call-tree-info: CHECK
