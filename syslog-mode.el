@@ -1843,12 +1843,17 @@ as selection candidates for LINE. You may also choose \"current line\" or
 ;; simple-call-tree-info: CHECK
 (defun syslog-notes-next-match (arg)
   "Search other window for the next match to the word/regexp used by the last call to `syslog-show-notes'.
-If a prefix ARG is used, prompt for the ARGth next match."
+If a prefix ARG is used, prompt for the ARGth next match.
+When the search window is in `Info-mode' then `Info-search' will be used to search across all related nodes."
   (interactive "P")
-  (let ((word syslog-notes-last-word))
+  (let ((word syslog-notes-last-word)
+	(Info-isearch-search t))
     (if (buffer-live-p syslog-notes-last-buffer)
 	(with-selected-window (display-buffer syslog-notes-last-buffer)
-	  (re-search-forward word nil t (prefix-numeric-value arg))
+	  (funcall (if (and (eq major-mode 'Info-mode)
+			    (> (prefix-numeric-value arg) 0))
+		       'Info-search 're-search-forward)
+		   word nil t (prefix-numeric-value arg))
 	  (recenter 0))
       (message "No notes buffer visible"))))
 
