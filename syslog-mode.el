@@ -2149,8 +2149,8 @@ at the top. If COUNT is an integer display instead the COUNT'th match at the top
 or the COUNT'th last match if COUNT is negative.
 If no match for REGEX can be found, return nil.
 If ALL is non-nil, the search may go beyond the end of the current node & file 
-if necessary until a match is found. In this case ALL must be a positive integer
-to search forwards, or a negative integer to search backwards."
+if necessary until a match is found. In that case it currently only works properly
+if COUNT >= 0."
   (let ((wconfig (current-window-configuration))
 	(win (display-buffer
 	      (get-buffer-create
@@ -2165,7 +2165,8 @@ to search forwards, or a negative integer to search backwards."
 		   (goto-char (if (and count (< count 0))
 				  (point-max)
 				(point-min)))
-		   (re-search-forward regex nil nil count)
+		   (funcall (if all 'Info-search 're-search-forward)
+			    regex nil nil count)
 		   (recenter 0)))
 	(error (delete-window win)
 	       (set-window-configuration wconfig))))
