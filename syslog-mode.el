@@ -2094,7 +2094,8 @@ user will be prompted before loading the file (unless it's already loaded)."
 		  (< fsize syslog-large-file-size)
 		  (y-or-n-p (format "%s is a large file (%S bytes), continue? "
 				    (file-name-nondirectory fileorbuf) fsize)))))
-    (let ((win (display-buffer
+    (let ((wconfig (current-window-configuration))
+	  (win (display-buffer
 		(if (bufferp fileorbuf)
 		    fileorbuf
 		  (message "Loading %s..." fileorbuf)
@@ -2133,7 +2134,8 @@ user will be prompted before loading the file (unless it's already loaded)."
 						      (point)))))
 					   t count))
 		       (t (error "Invalid value for line arg: %S" line))))
-	    (delete-window win)
+	    (progn (delete-window win)
+		   (set-window-configuration wconfig))
 	  (when (derived-mode-p 'org-mode)
 	    (org-show-context 'agenda))
 	  (recenter 0)))
