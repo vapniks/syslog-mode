@@ -1840,7 +1840,7 @@ as selection candidates for LINE. You may also choose \"current line\" or
 		 (syslog-load-notes))
 	(syslog-show-notes)))))
 
-;; simple-call-tree-info: CHECK
+;; simple-call-tree-info: TODO figure out way to get `Info-search' working properly with backward searches
 (defun syslog-notes-next-match (arg)
   "Search other window for the next match to the word/regexp used by the last call to `syslog-show-notes'.
 If a prefix ARG is used, prompt for the ARGth next match.
@@ -2146,7 +2146,7 @@ user will be prompted before loading the file (unless it's already loaded)."
 	  (recenter 0)))
       (and (window-valid-p win) win))))
 
-;; simple-call-tree-info: TODO use Info-search to search all files related to node
+;; simple-call-tree-info: TODO figure out way to get `Info-search' working with backward searches
 (defun syslog-show-note-from-info-node (node &optional regex count all)
   "Display info NODE in another window, and return that window.
 If REGEX is non-nil recenter the buffer so that the first match is displayed
