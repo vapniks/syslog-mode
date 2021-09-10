@@ -1472,7 +1472,7 @@ The FACES arg is the same as for `highlight-regexp-unique' (which see)."
      faces)))
 
 ;; simple-call-tree-info: CHECK
-(defun syslog-extract-fds-from-strace (fds &optional copyhl display)
+(defun syslog-extract-fds-from-strace (fds &optional copyhl display bufname)
   "Extract strace output lines involving a particular file descriptor(s).
 FDS can be a string containing the name of the file descriptor enclosed in
 angle brackets as it appears in strace output, e.g \"<pipe:[123456]>\",
@@ -1483,8 +1483,10 @@ to select multiple file descriptors.
 Note: if the strace buffer had been processed by `syslog-replace-pipes'
 a file descriptor string could be like \"<pipe:[proc1,3r:proc3,4w]>\").
 
-The lines will be copied to a new buffer named like \"strace:NAME\",
+By default the lines will be copied to a new buffer named like \"strace:NAME\",
 where NAME is the name of the last element of FDS when it is a list.
+When called from code (non-interactively) the BUFNAME argument can be 
+supplied to name the buffer.
 If COPYHL is non-nil then any highlighting added by the user in the
 current buffer will be copied over (font-locking is always applied).
 
@@ -1509,11 +1511,12 @@ will be displayed."
 	   (fdsrx (funcall (if (listp fds) 'regexp-opt 'regexp-quote) fds))
 	   (fullrx (concat "^\\(?1:\\S-+\\) +\\(?:\\(?2:[^([:space:]\n]+\\)(.*\\|<\\.\\.\\. pipe resumed>.*\\)"
 			   fdsrx ".*?\\(?:<\\(?3:unfinished\\) \\.\\.\\.>$\\)?$"))
-	   (bufname (concat "strace:" (if (listp fds)
-					  (concat (car fds) "(+"
-						  (number-to-string (1- (length fds)))
-						  ")")
-					fds)))
+	   (bufname (or bufname
+			(concat "strace:" (if (listp fds)
+					      (concat (car fds) "(+"
+						      (number-to-string (1- (length fds)))
+						      ")")
+					    fds))))
 	   output unfinished)
       (unless (and (get-buffer bufname)
 		   (not (y-or-n-p
