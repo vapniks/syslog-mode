@@ -2156,7 +2156,8 @@ if COUNT >= 0."
 	      (get-buffer-create
 	       (concat "*info-" (and (string-match "^(\\([^()]+\\))" node)
 				     (match-string 1 node))
-		       "*")))))
+		       "*"))))
+	(Info-isearch-search t))
     (with-selected-window win
       (unless (eq major-mode 'Info-mode) (Info-mode))
       (condition-case nil
