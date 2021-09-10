@@ -465,22 +465,24 @@ a prefix argument is used in which case they are prompted for."
 		      (mapcar (lambda (x) (replace-regexp-in-string "\\.[0-9]+$" "" x)) basenames)
 		      :test 'equal)))
     (get-buffer-create
-     (substring (cl-loop for file in basenames2
-			 for files = (cl-remove-if-not
-				      (lambda (x) (string-match-p (regexp-quote file) x))
-				      basenames)
-			 for nums = (mapcar (lambda (x)
-					      (let* ((match (string-match "\\.\\([0-9]+\\)" x))
-						     (n (if match (match-string 1 x) "0")))
-						(string-to-number n)))
-					    files)
-			 for min = (if nums (apply 'min nums) 0)
-			 for max = (if nums (apply 'max nums) 0)
-			 concat (concat file "." (if (= min max) (number-to-string min)
-						   (concat "{" (number-to-string min)
-							   "-" (number-to-string max) "}"))
-					","))
-		0 -1))))
+     (if (> (length filenames) 1)
+	 (substring (cl-loop for file in basenames2
+			     for files = (cl-remove-if-not
+					  (lambda (x) (string-match-p (regexp-quote file) x))
+					  basenames)
+			     for nums = (mapcar (lambda (x)
+						  (let* ((match (string-match "\\.\\([0-9]+\\)" x))
+							 (n (if match (match-string 1 x) "0")))
+						    (string-to-number n)))
+						files)
+			     for min = (if nums (apply 'min nums) 0)
+			     for max = (if nums (apply 'max nums) 0)
+			     concat (concat file "." (if (= min max) (number-to-string min)
+						       (concat "{" (number-to-string min)
+							       "-" (number-to-string max) "}"))
+					    ","))
+		    0 -1)
+       (car basenames)))))
 
 ;; simple-call-tree-info: DONE
 (defun syslog-open-files (files &optional label)
