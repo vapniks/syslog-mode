@@ -549,11 +549,11 @@ highlight those regexps with."
 		 (let* ((args1 (cdadr (interactive-form (car trt))))
 			(args2 (cdr trt))
 			(args3 (cl-loop
-				for arg in args1
-				for i from 0
+				for i from 0 to (1- (max (length args1) (length args2)))
+				for arg1 = (nth i args1)
 				for arg2 = (eval (nth i args2))
 				collect (if (eq arg2 'interactive)
-					    (eval arg)
+					    (eval arg1)
 					  arg2))))
 		   (apply (car trt) args3)))
 		((and (consp trt)
