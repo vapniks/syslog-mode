@@ -240,7 +240,9 @@
 
 ;;; TODO: statistical reporting - have a regular expression to match item type, then report counts of each item type.
 ;;        also statistics on number of items per hour/day/week/etc.
-
+;;        Make syslog-notes a separate library (with a different name) so that it can be used with other major modes,
+;;        e.g. programming languages (R, matlab, python, etc). This would be very useful when working on long term
+;;        projects intermittently to help reorient yourself to the code.
 
 ;;; Require
 (require 'hide-lines)
@@ -1836,7 +1838,8 @@ as selection candidates for LINE. You may also choose \"current line\" or
 						 word
 					       (regexp-quote word)))
 	  (when note
-	    (message (if (> (length note) 0)
+	    (message "%s"
+		     (if (> (length note) 0)
 			 (replace-regexp-in-string "\n$" "" note)
 		       (concat "No notes found for " word
 			       " (to create one: M-x syslog-edit-notes)")))
@@ -2090,7 +2093,7 @@ Optional args START & END can be used to delimit the search area when LINE is
 a regexp. They can be either integers indicating buffer positions, or regexps
 indicating positions to search for.
 
-If FILEORBUF is an org file or buffer, the buffer will be place in `org-mode',
+If FILEORBUF is an org file or buffer, the buffer will be placed in `org-mode',
 and widened around the displayed section.
 If no match for LINE can be found, return nil.
 
@@ -2150,6 +2153,40 @@ user will be prompted before loading the file (unless it's already loaded)."
 	    (org-show-context 'agenda))
 	  (recenter 0)))
       (and (window-valid-p win) win))))
+
+;; simple-call-tree-info: CHECK
+(defun syslog-extract-buffer-substring (fileorbuf startrx endrx &optional skipfirst skiplast nthstart nthend)
+  "Return substring of FILEORBUF (a file or buffer) delimited by regexps STARTRX & ENDRX.
+FILEORBUF can be a filename, or an existing buffer, or nil to mean the current buffer.
+If optional arg SKIPFIRST is non-nil then the first line (matching STARTRX) will be omitted
+from the results, and if SKIPLAST is non-nil then the last line (matching ENDRX) will be omitted.
+Optional arg NTHSTART can be an integer indicating how many matches to STARTRX to skip
+ (starting from the beginning of the buffer) before accepting a match, and NTHEND indicates
+how many matches to ENDRX to skip before accepting a match. If NTHSTART/NTHEND is negative then
+search backwards from the end of the buffer."
+  (with-current-buffer (if (stringp fileorbuf)
+			   (find-file-noselect fileorbuf)
+			 (or fileorbuf (current-buffer)))
+    (save-mark-and-excursion
+      (let ((bkwrds1 (and nthstart (< nthstart 0)))
+	    (bkwrds2 (and nthend (< nthend 0))))
+	(if bkwrds1
+	    (goto-char (point-max))
+	  (goto-char (point-min)))
+	(let* ((start (and (re-search-forward startrx nil t nthstart)
+			   (if (not (or bkwrds1 bkwrds2))
+			       (prog1 (re-search-backward startrx nil t)
+				 (re-search-forward startrx nil t))
+			     (if (and bkwrds1 bkwrds2)
+				 (prog1 (re-search-forward startrx nil t)
+				   (re-search-backward startrx nil t))
+			       (point)))))
+	       (end (re-search-forward endrx nil t nthend))
+	       (str (and start end
+			 (buffer-substring-no-properties start end))))
+	  (when skipfirst (setq str (replace-regexp-in-string "\\`[^\n]*\n" "" str)))
+	  (when skiplast (setq str (replace-regexp-in-string "\n[^\n]*\\'" "" str)))
+	  str)))))
 
 ;; simple-call-tree-info: TODO figure out way to get `Info-search' working with backward searches
 (defun syslog-show-note-from-info-node (node &optional regex count all)
