@@ -2169,7 +2169,8 @@ search backwards from the end of the buffer."
 			 (or fileorbuf (current-buffer)))
     (save-mark-and-excursion
       (let ((bkwrds1 (and nthstart (< nthstart 0)))
-	    (bkwrds2 (and nthend (< nthend 0))))
+	    (bkwrds2 (and nthend (< nthend 0)))
+	    (maxlines (floor (* max-mini-window-height (frame-height)))))
 	(if bkwrds1
 	    (goto-char (point-max))
 	  (goto-char (point-min)))
@@ -2185,9 +2186,10 @@ search backwards from the end of the buffer."
 	       (str (and start end
 			 (buffer-substring-no-properties start end))))
 	  (when str
-	    (when skipfirst (setq str (replace-regexp-in-string "\\`[^\n]*\n" "" str)))
-	    (when skiplast (setq str (replace-regexp-in-string "\n[^\n]*\\'" "" str)))
-	    str))))))
+	    (let ((lines (split-string str "\n")))
+	      (when skipfirst (setq lines (cdr lines)))
+	      (when skiplast (setq lines (butlast lines)))
+	      (mapconcat 'identity (take maxlines lines) "\n"))))))))
 
 ;; simple-call-tree-info: TODO figure out way to get `Info-search' working with backward searches
 (defun syslog-show-note-from-info-node (node &optional regex count all)
