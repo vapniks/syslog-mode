@@ -2184,9 +2184,10 @@ search backwards from the end of the buffer."
 	       (end (re-search-forward endrx nil t nthend))
 	       (str (and start end
 			 (buffer-substring-no-properties start end))))
-	  (when skipfirst (setq str (replace-regexp-in-string "\\`[^\n]*\n" "" str)))
-	  (when skiplast (setq str (replace-regexp-in-string "\n[^\n]*\\'" "" str)))
-	  str)))))
+	  (when str
+	    (when skipfirst (setq str (replace-regexp-in-string "\\`[^\n]*\n" "" str)))
+	    (when skiplast (setq str (replace-regexp-in-string "\n[^\n]*\\'" "" str)))
+	    str))))))
 
 ;; simple-call-tree-info: TODO figure out way to get `Info-search' working with backward searches
 (defun syslog-show-note-from-info-node (node &optional regex count all)
